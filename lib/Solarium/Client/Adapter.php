@@ -66,7 +66,7 @@ abstract class Solarium_Client_Adapter extends Solarium_Configurable
      * @var array
      */
     protected $_options = array(
-        'host'    => 'solr.executivenetworks.com',
+        'host'    => 'localhost',
         'port'    => 8983,
         'path'    => '/solr/',
 /*        'core'    => null, 

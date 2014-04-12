@@ -1,14 +1,21 @@
 <?php
 
+require_once 'lib/hooks.php';
+require_once 'lib/events.php';
+
 elgg_register_event_handler('init', 'system', 'elgg_solr_init');
 
 /**
  *  Init elgg_solr plugin
  */
 function elgg_solr_init() {
-
-    // Register solr page handler
-    elgg_register_page_handler('solr', 'elgg_solr_page_handler');
+	
+	// if the plugin is not configured lets leave search alone
+	if (!elgg_solr_has_settings()) {
+		return true;
+	}
+	
+	elgg_register_library('Solarium', dirname(__FILE__) . '/lib/Solarium/Autoloader.php');
 	
 	// unregister default search hooks
 	elgg_unregister_plugin_hook_handler('search', 'object', 'search_objects_hook');
@@ -38,288 +45,8 @@ function elgg_solr_init() {
 	elgg_solr_register_solr_entity_type('user', 'default', 'elgg_solr_add_update_user');
 	elgg_solr_register_solr_entity_type('object', 'default', 'elgg_solr_add_update_object_default');
 	elgg_solr_register_solr_entity_type('group', 'default', 'elgg_solr_add_update_group_default');
-}
-
-/**
- * Solr page handler
- *
- * @param array $page  The URI elements
- *
- * @return bool
- */
-function elgg_solr_page_handler($page) {
-
-    $base = elgg_get_plugins_path() . 'elgg_solr/pages/elgg_solr';
-
-    switch ($page[0]) {
-
-        case 'reindex':
-			admin_gatekeeper();
-            elgg_solr_reindex();
-            break;
-
-        default:
-            require $base . "/solr.php";
-            break;
-    }
-
-    return true;
-}
-
-/**
- * Return default results for searches on objects.
- *
- * @param unknown_type $hook
- * @param unknown_type $type
- * @param unknown_type $value
- * @param unknown_type $params
- * @return unknown_type
- */
-function elgg_solr_file_search($hook, $type, $value, $params) {
-
-    $entities = array();
-
-    require_once(__DIR__ . '/lib/Solarium/Autoloader.php');
-
-    Solarium_Autoloader::register();
-
-    $config = array(
-        'adapteroptions' => array(
-            'host' => 'solr.executivenetworks.com',
-            'port' => 8983,
-            'path' => '/solr/',
-        )
-    );
-
-    $select = array(
-        'query'  => $params['query'],
-        'start'  => $params['offset'],
-        'rows'   => $params['limit'],
-        'fields' => array('id','container_guid','title','description'),
-    );
-
-    // create a client instance
-    $client = new Solarium_Client($config);
-
-    // get an update query instance
-    $query = $client->createSelect($select);
 	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
-	
-	$query->createFilterQuery('type')->setQuery('type:object');
-	$query->createFilterQuery('subtype')->setQuery('subtype:file');
-
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
-            $query->createFilterQuery($key)->setQuery($value);
-        }
-    }
-
-    // get highlighting component and apply settings
-    $hl = $query->getHighlighting();
-    $hl->setFields(array('attr_content', 'description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
-
-    // this executes the query and returns the result
-    try {
-        $resultset = $client->select($query);
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Get the highlighted snippet
-    try {
-        $highlighting = $resultset->getHighlighting();
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Count the total number of documents found by solr
-    $count = $resultset->getNumFound();
-
-    foreach ($resultset as $document) {
-
-        $snippet = '';
-
-        if ($entity = get_entity($document->id)) {
-
-            // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
-            $highlightedDoc = $highlighting->getResult($document->id);
-
-            if($highlightedDoc){
-                foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
-                }
-            }
-
-            $title = search_get_highlighted_relevant_substrings($entity->title, $params['query']);
-            $entity->setVolatileData('search_matched_title', $title);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
-
-            $entities[] = $entity;
-        }
-    }
-
-    return array(
-        'entities' => $entities,
-        'count' => $count,
-    );
-}
-
-//@TODO - this can take a long time - vroom it!
-function elgg_solr_reindex() {
-	set_time_limit(0);
-	
-	$debug = get_input('debug', false);
-	if ($debug) {
-		elgg_set_config('elgg_solr_debug', 1);
-	}
-	
-	$registered_types = get_registered_entity_types();
-	
-	$ia = elgg_set_ignore_access(true);
-	
-    // Include the solarium class loader
-    require_once(__DIR__ . '/lib/Solarium/Autoloader.php');
-
-    Solarium_Autoloader::register();
-	
-	$config = array(
-			'adapteroptions' => array(
-				'host' => 'solr.executivenetworks.com',
-				'port' => 8983,
-				'path' => '/solr/',
-			)
-		);
-	
-	// create a client instance
-	$client = new Solarium_Client($config);
-
-	// get an update query instance
-	$update = $client->createUpdate();
-	
-	// Add the delete query
-	$update->addDeleteQuery('*:*');
-
-	// Add the commit command to the update query
-	$update->addCommit();
-    
-	// this executes the query and returns the result
-	$result = $client->update($update);
-
-	elgg_set_config('elgg_solr_nocommit', true); // tell our indexer not to commit right away
-	
-	$count = 0;
-	foreach ($registered_types as $type => $subtypes) {
-		$options = array(
-			'type' => $type,
-			'limit' => false
-		);
-		
-		if ($subtypes) {
-			$options['subtypes'] = $subtypes;
-		}
-	
-		$entities = new ElggBatch('elgg_get_entities', $options);
-
-		foreach ($entities as $e) {
-			
-			$count++;
-			if ($count % 100) {
-				elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
-			}
-			elgg_solr_add_update_entity(null, null, $e);
-			
-			elgg_set_config('elgg_solr_nocommit', true);
-		}
-	}
-	
-	if ($debug) {
-		elgg_solr_debug_log($count . ' entities sent to Solr');
-	}
-	
-	elgg_set_ignore_access($ia);
-	exit;
-}
-
-function elgg_solr_add_update_entity($event, $type, $entity) {
-	if (elgg_get_config('elgg_solr_debug')) {
-		$debug = true;
-	}
-	
-	
-	if (!elgg_instanceof($entity)) {
-		if ($debug) {
-			elgg_solr_debug_log('Not a valid elgg entity');
-		}
-		return true;
-	}
-	
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
-		if ($debug) {
-			elgg_solr_debug_log('Not a registered entity type');
-		}
-		return true;
-	}
-	
-	$function = elgg_solr_get_solr_function($entity->type, $entity->getSubtype());
-	
-	if (is_callable($function)) {
-		if ($debug) {
-			elgg_solr_debug_log('processing entity with function - ' . $function);
-		}
-		
-		$function($entity);
-	}
-	else {
-		if ($debug) {
-			elgg_solr_debug_log('Not a callable function - ' . $function);
-		}
-	}
-}
-
-function elgg_solr_delete_entity($event, $type, $entity) {
-	
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
-		return true;
-	}
-
-    // Delete the current index
-    require_once(__DIR__ . '/lib/Solarium/Autoloader.php');
-    Solarium_Autoloader::register();
-
-    $config = array(
-        'adapteroptions' => array(
-            'host' => 'solr.executivenetworks.com',
-            'port' => 8983,
-            'path' => '/solr/',
-        )
-    );
-
-    // create a client instance
-    $client = new Solarium_Client($config);
-
-    // get an update query instance
-    $update = $client->createUpdate();
-
-    // add the delete id and a commit command to the update query
-    $update->addDeleteById($entity->guid);
-    $update->addCommit();
-
-    try {
-        $result = $client->update($update);
-    } catch( Exception $e) {
-        error_log("elgg_solr_delete_object() - GUID:{$entity->guid} - " . $e->getMessage());
-    }
-
-    return true;
+	elgg_register_action('elgg_solr/reindex', dirname(__FILE__) . '/actions/reindex.php', 'admin');
 }
 
 
@@ -395,8 +122,10 @@ function elgg_solr_add_update_file($entity) {
     // File you want to upload/post
 	
 	if (file_exists($entity->getFilenameOnFilestore())) {
+		$options = elgg_solr_get_adapter_options();
+		
 		// URL on which we have to post data
-		$url = "http://solr.executivenetworks.com:8983/solr/update/extract?"
+		$url = "{$options['protocol']}{$options['host']}:{$options['port']}{$options['path']}update/extract?"
          . "literal.id={$entity->guid}"
          . "&literal.container_guid={$entity->container_guid}"
 		 . "&literal.owner_guid={$entity->owner_guid}"
@@ -480,16 +209,6 @@ EOF;
 }
 
 
-function elgg_solr_user_settings_save($hook, $type, $return, $params) {
-	$user_guid = (int) get_input('guid');
-	$user = get_user($user_guid);
-	
-	if ($user) {
-		elgg_solr_add_update_user($user);
-	}
-}
-
-
 function elgg_solr_add_update_user($entity) {
 	
 	if (elgg_get_config('elgg_solr_debug')) {
@@ -541,105 +260,6 @@ EOF;
 }
 
 
-
-function elgg_solr_user_search($hook, $type, $return, $params) {
-	$entities = array();
-
-    require_once(__DIR__ . '/lib/Solarium/Autoloader.php');
-
-    Solarium_Autoloader::register();
-
-    $config = array(
-        'adapteroptions' => array(
-            'host' => 'solr.executivenetworks.com',
-            'port' => 8983,
-            'path' => '/solr/',
-        )
-    );
-
-    $select = array(
-        'query'  => $params['query'],
-        'start'  => $params['offset'],
-        'rows'   => $params['limit'],
-        'fields' => array('id','name','username', 'description'),
-    );
-
-    // create a client instance
-    $client = new Solarium_Client($config);
-
-    // get an update query instance
-    $query = $client->createSelect($select);
-	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
-	
-	// make sure we're only getting users
-	$query->createFilterQuery('type')->setQuery('type:user');
-
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
-            $query->createFilterQuery($key)->setQuery($value);
-        }
-    }
-
-    // get highlighting component and apply settings
-    $hl = $query->getHighlighting();
-    $hl->setFields(array('name', 'description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
-
-    // this executes the query and returns the result
-    try {
-        $resultset = $client->select($query);
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Get the highlighted snippet
-    try {
-        $highlighting = $resultset->getHighlighting();
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Count the total number of documents found by solr
-    $count = $resultset->getNumFound();
-
-    foreach ($resultset as $document) {
-
-        $snippet = '';
-
-        if ($entity = get_entity($document->id)) {
-
-            // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
-            $highlightedDoc = $highlighting->getResult($document->id);
-
-            if($highlightedDoc){
-                foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
-                }
-            }
-
-            $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
-            $entity->setVolatileData('search_matched_name', $name);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
-
-            $entities[] = $entity;
-        }
-    }
-
-    return array(
-        'entities' => $entities,
-        'count' => $count,
-    );
-}
-
-
 function elgg_solr_debug_log($message) {
 	error_log($message);
 }
@@ -650,8 +270,10 @@ function elgg_solr_push_doc($doc) {
 		$debug = true;
 	}
 	
+	$options = elgg_solr_get_adapter_options();
+	
 	// Solr URL
-    $url = "http://solr.executivenetworks.com:8983/solr/update";
+    $url = "{$options['protocol']}{$options['host']}:{$options['port']}{$options['path']}update";
 	
 	if (!elgg_get_config('elgg_solr_nocommit')) {
 		$url .= '?commit=true';
@@ -790,244 +412,43 @@ EOF;
 }
 
 
-function elgg_solr_group_search($hook, $type, $return, $params) {
-	$entities = array();
-
-    require_once(__DIR__ . '/lib/Solarium/Autoloader.php');
-
-    Solarium_Autoloader::register();
-
-    $config = array(
-        'adapteroptions' => array(
-            'host' => 'solr.executivenetworks.com',
-            'port' => 8983,
-            'path' => '/solr/',
-        )
-    );
-
-    $select = array(
-        'query'  => $params['query'],
-        'start'  => $params['offset'],
-        'rows'   => $params['limit'],
-        'fields' => array('id','name','description'),
-    );
-
-    // create a client instance
-    $client = new Solarium_Client($config);
-
-    // get an update query instance
-    $query = $client->createSelect($select);
+function elgg_solr_has_settings() {
+	$host = elgg_get_plugin_setting('host', 'elgg_solr');
+	$port = elgg_get_plugin_setting('port', 'elgg_solr');
+	$path = elgg_get_plugin_setting('path', 'elgg_solr');
+	$protocol = elgg_get_plugin_setting('protocol', 'elgg_solr');
 	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
-	
-	// make sure we're only getting groups
-	$query->createFilterQuery('type')->setQuery('type:group');
-
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
-            $query->createFilterQuery($key)->setQuery($value);
-        }
-    }
-
-    // get highlighting component and apply settings
-    $hl = $query->getHighlighting();
-    $hl->setFields(array('title', 'description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
-
-    // this executes the query and returns the result
-    try {
-        $resultset = $client->select($query);
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Get the highlighted snippet
-    try {
-        $highlighting = $resultset->getHighlighting();
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Count the total number of documents found by solr
-    $count = $resultset->getNumFound();
-
-    foreach ($resultset as $document) {
-
-        $snippet = '';
-
-        if ($entity = get_entity($document->id)) {
-
-            // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
-            $highlightedDoc = $highlighting->getResult($document->id);
-
-            if($highlightedDoc){
-                foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
-                }
-            }
-
-            $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
-            $entity->setVolatileData('search_matched_name', $name);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
-
-            $entities[] = $entity;
-        }
-    }
-
-    return array(
-        'entities' => $entities,
-        'count' => $count,
-    );
-}
-
-
-
-function elgg_solr_object_search($hook, $type, $return, $params) {
-	// we don't want to show results if a more specific search was run
-//	if (empty($params['subtype']) && get_input('entity_subtype', false)) {
-//		return false;
-//	}
-//	
-	$entities = array();
-
-    require_once(__DIR__ . '/lib/Solarium/Autoloader.php');
-
-    Solarium_Autoloader::register();
-
-    $config = array(
-        'adapteroptions' => array(
-            'host' => 'solr.executivenetworks.com',
-            'port' => 8983,
-            'path' => '/solr/',
-        )
-    );
-
-    $select = array(
-        'query'  => $params['query'],
-        'start'  => $params['offset'],
-        'rows'   => $params['limit'],
-        'fields' => array('id','title','description'),
-    );
-
-    // create a client instance
-    $client = new Solarium_Client($config);
-
-    // get an update query instance
-    $query = $client->createSelect($select);
-	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
-	
-	// make sure we're only getting groups
-	$query->createFilterQuery('type')->setQuery('type:object');
-
-	if ($params['subtype']) {
-		$query->createFilterQuery('subtype')->setQuery('subtype:' . $params['subtype']);
-	}
-
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
-            $query->createFilterQuery($key)->setQuery($value);
-        }
-    }
-
-    // get highlighting component and apply settings
-    $hl = $query->getHighlighting();
-    $hl->setFields(array('title'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
-
-    // this executes the query and returns the result
-    try {
-        $resultset = $client->select($query);
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Get the highlighted snippet
-    try {
-        $highlighting = $resultset->getHighlighting();
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return null;
-    }
-
-    // Count the total number of documents found by solr
-    $count = $resultset->getNumFound();
-
-    foreach ($resultset as $document) {
-
-        $snippet = '';
-
-        if ($entity = get_entity($document->id)) {
-
-            // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
-            $highlightedDoc = $highlighting->getResult($document->id);
-
-            if($highlightedDoc){
-                foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
-                }
-            }
-
-            $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
-            $entity->setVolatileData('search_matched_title', $name);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
-
-            $entities[] = $entity;
-        }
-    }
-
-    return array(
-        'entities' => $entities,
-        'count' => $count,
-    );
-}
-
-
-function elgg_solr_metadata_update($event, $type, $metadata) {
-	
-	// short circuit if it's our own metadata
-	if ($metadata->name == 'elgg_solr_reindex') {
-		return true;
-	}
-	
-	// any time we're updating metadata we may need to reindex the entity
-	$entity = get_entity($metadata->entity_guid);
-	if ($entity && !$entity->elgg_solr_reindex && is_registered_entity_type($entity->type, $entity->getSubtype())) {
-		$entity->elgg_solr_reindex = 1;
+	if (empty($host) || empty($port) || empty($path) || empty($protocol)) {
+		return false;
 	}
 	
 	return true;
 }
 
 
-
-function elgg_solr_cron_index($hook, $type, $return, $params) {
-	// get any objects that need to be reindexed due to new metadata
-	$options = array(
-		'metadata_name_value_pairs' => array(
-			'name' => 'elgg_solr_reindex',
-			'value' => 1
-		),
-		'limit' => false
+function elgg_solr_get_adapter_options() {
+	return array(
+		'host' => elgg_get_plugin_setting('host', 'elgg_solr'),
+		'port' => elgg_get_plugin_setting('port', 'elgg_solr'),
+		'path' => elgg_get_plugin_setting('path', 'elgg_solr'),
+		'protocol' => elgg_get_plugin_setting('protocol', 'elgg_solr'),
 	);
+}
+
+function elgg_solr_get_client() {
+	elgg_load_library('Solarium');
 	
-	$entities = new ElggBatch('elgg_get_entities', $options, '', 25, true);
+	Solarium_Autoloader::register();
 	
-	foreach ($entities as $e) {
-		elgg_solr_add_update_entity('', '', $e);
-		$e->elgg_solr_reindex = 0;
-	}
+	$options = elgg_solr_get_adapter_options();
+	
+	$config = array(
+			'adapteroptions' => array(
+				'host' => $options['host'],
+				'port' => $options['port'],
+				'path' => $options['path'],
+			));
+
+	// create a client instance
+	return new Solarium_Client($config);
 }
