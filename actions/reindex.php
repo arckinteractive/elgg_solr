@@ -13,20 +13,7 @@ $registered_types = get_registered_entity_types();
 
 $ia = elgg_set_ignore_access(true);
 
-// create a client instance
-$client = elgg_solr_get_client();
-
-// get an update query instance
-$update = $client->createUpdate();
-
-// Add the delete query
-$update->addDeleteQuery('*:*');
-
-// Add the commit command to the update query
-$update->addCommit();
-
-// this executes the query and returns the result
-$result = $client->update($update);
+elgg_solr_push_doc('<delete><query>*:*</query></delete>');
 
 elgg_set_config('elgg_solr_nocommit', true); // tell our indexer not to commit right away
 
