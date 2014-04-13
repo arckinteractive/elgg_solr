@@ -430,7 +430,7 @@ function elgg_solr_get_adapter_options() {
 	return array(
 		'host' => elgg_get_plugin_setting('host', 'elgg_solr'),
 		'port' => elgg_get_plugin_setting('port', 'elgg_solr'),
-		'path' => elgg_get_plugin_setting('path', 'elgg_solr'),
+		'path' => elgg_get_plugin_setting('solr_path', 'elgg_solr'),
 		'protocol' => elgg_get_plugin_setting('protocol', 'elgg_solr'),
 	);
 }
@@ -441,7 +441,7 @@ function elgg_solr_get_client() {
 	Solarium_Autoloader::register();
 	
 	$options = elgg_solr_get_adapter_options();
-	
+
 	$config = array(
 			'adapteroptions' => array(
 				'host' => $options['host'],

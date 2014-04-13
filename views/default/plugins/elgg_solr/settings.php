@@ -46,8 +46,8 @@ $body .= elgg_view('output/longtext', array(
 
 $body .= '<label>' . elgg_echo('elgg_solr:settings:path') . '</label>';
 $body .= elgg_view('input/text', array(
-	'name' => 'params[path]',
-	'value' => $vars['entity']->path
+	'name' => 'params[solr_path]',
+	'value' => $vars['entity']->solr_path
 ));
 $body .= elgg_view('output/longtext', array(
 	'value' => elgg_echo('elgg_solr:settings:path:help'),
