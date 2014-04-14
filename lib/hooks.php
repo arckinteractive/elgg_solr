@@ -103,7 +103,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 //	if (empty($params['subtype']) && get_input('entity_subtype', false)) {
 //		return false;
 //	}
-//	
+
 	$entities = array();
 
     $select = array(
@@ -129,6 +129,9 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
 	if ($params['subtype']) {
 		$query->createFilterQuery('subtype')->setQuery('subtype:' . $params['subtype']);
+	}
+	else {
+		$query->createFilterQuery('subtype')->setQuery('-subtype:[* TO *]');
 	}
 
     if (!empty($params['fq'])) {
@@ -198,7 +201,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	$entities = array();
 
     $select = array(
-        'query'  => $params['query'],
+        'query'  => "name:{$params['query']}^3 OR username:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','name','username', 'description'),
@@ -266,6 +269,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
             $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
             $entity->setVolatileData('search_matched_name', $name);
+			$entity->setVolatileData('search_matched_title', $name);
 
             $entity->setVolatileData('search_matched_description', $snippet);    
 

@@ -1,18 +1,30 @@
 <?php
 
-$title = elgg_echo('elgg_solr:reindex');
-
-$body = elgg_view('output/url', array(
+elgg_register_menu_item('elgg_solr_controls', array(
+	'name' => 'solr_delete_index',
+	'text' => elgg_echo('elgg_solr:delete_index'),
+	'href' => 'action/elgg_solr/delete_index',
+	'is_action' => true,
+	'is_trusted' => true,
+	'link_class' => 'elgg-button elgg-button-action elgg-requires-confirmation',
+	'confirm' => elgg_echo('elgg_solr:delete_index:confirm')
+));
+		
+elgg_register_menu_item('elgg_solr_controls', array(
+	'name' => 'solr_reindex',
 	'text' => elgg_echo('elgg_solr:reindex'),
 	'href' => 'action/elgg_solr/reindex',
 	'is_action' => true,
 	'is_trusted' => true,
-	'class' => 'elgg-button elgg-requires-confirmation'
+	'link_class' => 'elgg-button elgg-button-action elgg-requires-confirmation',
+	'confirm' => elgg_echo('elgg_solr:reindex:confirm')
 ));
 
-$body .= elgg_view('output/longtext', array(
-	'value' => elgg_echo('elgg_solr:reindex:help'),
-	'class' => 'elgg-subtext'
+$title = elgg_echo('elgg_solr:controls');
+
+$body = elgg_view_menu('elgg_solr_controls', array(
+	'class' => 'elgg-menu-hz',
+	'item_class' => 'mrm',
 ));
 
 if (elgg_solr_has_settings()) {
