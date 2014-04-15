@@ -428,6 +428,87 @@ EOF;
 	elgg_solr_push_doc($doc);
 }
 
+/**
+ * get default filter queries based on search params
+ * 
+ * @param type $params
+ * 
+ * return array
+ */
+function elgg_solr_get_default_fq($params) {
+	$fq = array();
+	
+	// type/types
+	if ($params['type']) {
+		$fq['type'] = 'type:' . $params['type'];
+	}
+	
+	if ($params['types']) {
+		if (is_array($params['types'])) {
+			$fq['type'] = 'type:(' . implode(' OR ', $params['types']) . ')';
+		}
+		else {
+			$fq['type'] = 'type:' . $params['types'];
+		}
+	}
+	
+	//subtype
+	if ($params['subtype']) {
+		$fq['subtype'] = 'subtype:' . $params['subtype'];
+	}
+	elseif ($fq['type']) {
+		//$fq['subtype'] = '-subtype:[* TO *]'; // catch unsubtyped entities
+		$fq['subtype'] = 'subtype:elgg_solr_empty_value'; // default schema value, more efficent than above
+	}
+	
+	if ($params['subtypes']) {
+		if (is_array($params['subtypes'])) {
+			$fq['subtype'] = 'subtype:(' . implode(' OR ', $params['subtypes']) . ')';
+		}
+		else {
+			$fq['subtype'] = 'subtype:' . $params['subtypes'];
+		}
+	}
+	elseif ($fq['type']) {
+		$fq['subtype'] = 'subtype:elgg_solr_empty_value';
+	}
+	
+	
+	//container
+	if ($params['container_guid']) {
+		$fq['container'] = 'container_guid:' . $params['container_guid'];
+	}
+	
+	if ($params['container_guids']) {
+		if (is_array($params['container_guids'])) {
+			$fq['container'] = 'container_guid:(' . implode(' OR ', $params['container_guids']) . ')';
+		}
+		else {
+			$fq['container'] = 'container_guid:' . $params['container_guid'];
+		}
+	}
+	
+	//owner
+	if ($params['owner_guid']) {
+		$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
+	}
+	
+	if ($params['owner_guids']) {
+		if (is_array($params['owner_guids'])) {
+			$fq['owner'] = 'owner_guid:(' . implode(' OR ', $params['owner_guids']) . ')';
+		}
+		else {
+			$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
+		}
+	}
+	
+	$access_query = elgg_solr_get_access_query();
+	if ($access_query) {
+		$fq['access'] = $access_query;
+	}
+	
+	return $fq;
+}
 
 function elgg_solr_has_settings() {
 	$host = elgg_get_plugin_setting('host', 'elgg_solr');

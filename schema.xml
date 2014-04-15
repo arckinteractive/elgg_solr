@@ -8,7 +8,7 @@
 
    <!-- ElggEntity -->
    <field name="type" type="text_general" indexed="true" stored="true" multiValued="false" />
-   <field name="subtype" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="subtype" type="text_general" indexed="true" stored="true" default="elgg_solr_empty_value" multiValued="false" />
    <field name="owner_guid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="container_guid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="access_id" type="int" indexed="true" stored="true" multiValued="false" />

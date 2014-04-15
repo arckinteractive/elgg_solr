@@ -26,16 +26,14 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
     // get an update query instance
     $query = $client->createSelect($select);
 	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
-	
-	$query->createFilterQuery('type')->setQuery('type:object');
-	$query->createFilterQuery('subtype')->setQuery('subtype:file');
+	$params['fq']['type'] = 'object';
+	$params['fq']['subtype'] = 'file';
 
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
+    $default_fq = elgg_solr_get_default_fq($params);
+	$filter_queries = array_merge($default_fq, $params['fq']);
+
+    if (!empty($filter_queries)) {
+        foreach ($filter_queries as $key => $value) {
             $query->createFilterQuery($key)->setQuery($value);
         }
     }
@@ -99,15 +97,11 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
 
 function elgg_solr_object_search($hook, $type, $return, $params) {
-	// we don't want to show results if a more specific search was run
-//	if (empty($params['subtype']) && get_input('entity_subtype', false)) {
-//		return false;
-//	}
 
 	$entities = array();
 
     $select = array(
-        'query'  => $params['query'],
+        'query'  => "title:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','title','description'),
@@ -119,23 +113,14 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
     // get an update query instance
     $query = $client->createSelect($select);
 	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
+	// make sure we're only getting objectss
+	$params['fq']['type'] = 'object';
 	
-	// make sure we're only getting groups
-	$query->createFilterQuery('type')->setQuery('type:object');
+	$default_fq = elgg_solr_get_default_fq($params);
+	$filter_queries = array_merge($default_fq, $params['fq']);
 
-	if ($params['subtype']) {
-		$query->createFilterQuery('subtype')->setQuery('subtype:' . $params['subtype']);
-	}
-	else {
-		$query->createFilterQuery('subtype')->setQuery('-subtype:[* TO *]');
-	}
-
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
+    if (!empty($filter_queries)) {
+        foreach ($filter_queries as $key => $value) {
             $query->createFilterQuery($key)->setQuery($value);
         }
     }
@@ -213,16 +198,14 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
     // get an update query instance
     $query = $client->createSelect($select);
 	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
-	
 	// make sure we're only getting users
-	$query->createFilterQuery('type')->setQuery('type:user');
+	$params['fq']['type'] = 'user';
 
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
+	$default_fq = elgg_solr_get_default_fq($params);
+	$filter_queries = array_merge($default_fq, $params['fq']);
+
+    if (!empty($filter_queries)) {
+        foreach ($filter_queries as $key => $value) {
             $query->createFilterQuery($key)->setQuery($value);
         }
     }
@@ -289,7 +272,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	$entities = array();
 
     $select = array(
-        'query'  => $params['query'],
+        'query'  => "name:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','name','description'),
@@ -301,16 +284,14 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     // get an update query instance
     $query = $client->createSelect($select);
 	
-	$access_query = elgg_solr_get_access_query();
-	if ($access_query) {
-		$query->createFilterQuery('access')->setQuery($access_query);
-	}
-	
 	// make sure we're only getting groups
-	$query->createFilterQuery('type')->setQuery('type:group');
+	$params['fq']['type'] = 'group';
 
-    if (!empty($params['fq'])) {
-        foreach ($params['fq'] as $key => $value) {
+	$default_fq = elgg_solr_get_default_fq($params);
+	$filter_queries = array_merge($default_fq, $params['fq']);
+
+    if (!empty($filter_queries)) {
+        foreach ($filter_queries as $key => $value) {
             $query->createFilterQuery($key)->setQuery($value);
         }
     }
@@ -357,6 +338,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
             $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
             $entity->setVolatileData('search_matched_name', $name);
+			$entity->setVolatileData('search_matched_title', $name);
 
             $entity->setVolatileData('search_matched_description', $snippet);    
 
