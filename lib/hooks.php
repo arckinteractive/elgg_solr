@@ -17,7 +17,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
         'query'  => $params['query'],
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','container_guid','title','description'),
+        'fields' => array('id','title','description'),
     );
 
     // create a client instance
@@ -40,7 +40,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
-    $hl->setFields(array('attr_content', 'description'));
+    $hl->setFields(array('title', 'attr_content', 'description'));
     $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
     $hl->setSimplePostfix('</strong>');
 
@@ -72,16 +72,25 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
             // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
             $highlightedDoc = $highlighting->getResult($document->id);
 
+			$matched = array();
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
+                    $snippet = implode(' (...) ', $highlight);
+					$entity->setVolatileData('search_matched_' . $field, $snippet);
+					$matched[$field] = $snippet;
                 }
             }
 
-            $title = search_get_highlighted_relevant_substrings($entity->title, $params['query']);
-            $entity->setVolatileData('search_matched_title', $title);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
+            if (empty($matched['title'])) {
+				$entity->setVolatileData('search_matched_title', $entity->title);
+			}
+            
+			if (empty($matched['description']) && empty($matched['attr_content'])) {
+				$entity->setVolatileData('search_matched_description', elgg_get_excerpt($entity->description, 100));
+			}
+			else {
+				$entity->setVolatileData('search_matched_description', $matched['description'] . $matched['attr_content']);
+			}
 
             $entities[] = $entity;
         }
@@ -127,7 +136,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
-    $hl->setFields(array('title'));
+    $hl->setFields(array('title', 'description'));
     $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
     $hl->setSimplePostfix('</strong>');
 
@@ -159,16 +168,22 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
             // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
             $highlightedDoc = $highlighting->getResult($document->id);
 
+			$matched = array();
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
+                    $snippet .= implode(' (...) ', $highlight);
+					$entity->setVolatileData('search_matched_' . $field, $snippet);
+					$matched[$field] = $snippet;
                 }
             }
-
-            $name = search_get_highlighted_relevant_substrings($entity->title, $params['query']);
-            $entity->setVolatileData('search_matched_title', $name);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
+			
+			if (empty($matched['title'])) {
+				$entity->setVolatileData('search_matched_title', $entity->title);
+			}
+            
+			if (empty($matched['description'])) {
+				$entity->setVolatileData('search_matched_description', elgg_get_excerpt($entity->description, 100));
+			}
 
             $entities[] = $entity;
         }
@@ -244,17 +259,26 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
             // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
             $highlightedDoc = $highlighting->getResult($document->id);
 
+			$matched = array();
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
+                    $snippet = implode(' (...) ', $highlight);
+					$entity->setVolatileData('search_matched_' . $field, $snippet);
+					$matched[$field] = $snippet;
                 }
             }
 
-            $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
-            $entity->setVolatileData('search_matched_name', $name);
-			$entity->setVolatileData('search_matched_title', $name);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
+			if (empty($matched['name'])) {
+				$entity->setVolatileData('search_matched_name', $entity->name);
+				$entity->setVolatileData('search_matched_title', $entity->name);
+			}
+			else {
+				$entity->setVolatileData('search_matched_title', $matched['name']);
+			}
+            
+			if (empty($matched['description'])) {
+				$entity->setVolatileData('search_matched_description', elgg_get_excerpt($entity->description, 100));
+			}
 
             $entities[] = $entity;
         }
@@ -298,7 +322,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
-    $hl->setFields(array('title', 'description'));
+    $hl->setFields(array('name', 'description'));
     $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
     $hl->setSimplePostfix('</strong>');
 
@@ -330,17 +354,26 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
             // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
             $highlightedDoc = $highlighting->getResult($document->id);
 
+			$matched = array();
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
-                    $snippet .= implode(' (...) ', $highlight) . '<br/>';
+                    $snippet = implode(' (...) ', $highlight);
+					$entity->setVolatileData('search_matched_' . $field, $snippet);
+					$matched[$field] = $snippet;
                 }
             }
 
-            $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
-            $entity->setVolatileData('search_matched_name', $name);
-			$entity->setVolatileData('search_matched_title', $name);
-
-            $entity->setVolatileData('search_matched_description', $snippet);    
+ 			if (empty($matched['name'])) {
+				$entity->setVolatileData('search_matched_name', $entity->name);
+				$entity->setVolatileData('search_matched_title', $entity->name);
+			}
+			else {
+				$entity->setVolatileData('search_matched_title', $matched['name']);
+			}
+            
+			if (empty($matched['description'])) {
+				$entity->setVolatileData('search_matched_description', elgg_get_excerpt($entity->description, 100));
+			}
 
             $entities[] = $entity;
         }
