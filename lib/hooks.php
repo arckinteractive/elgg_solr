@@ -26,8 +26,8 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
     // get an update query instance
     $query = $client->createSelect($select);
 	
-	$params['fq']['type'] = 'object';
-	$params['fq']['subtype'] = 'file';
+	$params['fq']['type'] = 'type:object';
+	$params['fq']['subtype'] = 'subtype:file';
 
     $default_fq = elgg_solr_get_default_fq($params);
 	$filter_queries = array_merge($default_fq, $params['fq']);
@@ -199,7 +199,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	
 	// make sure we're only getting users
-	$params['fq']['type'] = 'user';
+	$params['fq']['type'] = 'type:user';
 
 	$default_fq = elgg_solr_get_default_fq($params);
 	$filter_queries = array_merge($default_fq, $params['fq']);
@@ -285,7 +285,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	
 	// make sure we're only getting groups
-	$params['fq']['type'] = 'group';
+	$params['fq']['type'] = 'type:group';
 
 	$default_fq = elgg_solr_get_default_fq($params);
 	$filter_queries = array_merge($default_fq, $params['fq']);

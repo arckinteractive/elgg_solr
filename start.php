@@ -506,7 +506,7 @@ function elgg_solr_get_default_fq($params) {
 	if ($access_query) {
 		$fq['access'] = $access_query;
 	}
-	
+
 	return $fq;
 }
 
