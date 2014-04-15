@@ -114,8 +114,8 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	
 	// make sure we're only getting objectss
-	$params['fq']['type'] = 'object';
-	
+	$params['fq']['type'] = 'type:object';
+
 	$default_fq = elgg_solr_get_default_fq($params);
 	$filter_queries = array_merge($default_fq, $params['fq']);
 
@@ -165,7 +165,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
                 }
             }
 
-            $name = search_get_highlighted_relevant_substrings($entity->name, $params['query']);
+            $name = search_get_highlighted_relevant_substrings($entity->title, $params['query']);
             $entity->setVolatileData('search_matched_title', $name);
 
             $entity->setVolatileData('search_matched_description', $snippet);    

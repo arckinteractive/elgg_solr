@@ -267,6 +267,7 @@ function elgg_solr_add_update_user($entity) {
                 <field name="username">$username</field>
 				<field name="description">$description</field>
                 <field name="type">user</field>
+				<field name="subtype">{$entity->getSubtype()}</field>
 				<field name="access_id">{$entity->access_id}</field>
 				<field name="time_created">{$entity->time_created}</field>
             </doc>
@@ -439,66 +440,79 @@ function elgg_solr_get_default_fq($params) {
 	$fq = array();
 	
 	// type/types
-	if ($params['type']) {
-		$fq['type'] = 'type:' . $params['type'];
+	if (isset($params['type']) && $params['type'] !== ELGG_ENTITIES_ANY_VALUE) {
+		if ($params['type'] === ELGG_ENTITIES_NO_VALUE) {
+			$fq['type'] = '-type:[* TO *]';
+		}
+		else {
+			$fq['type'] = 'type:' . $params['type'];
+		}
 	}
 	
-	if ($params['types']) {
+	if ($params['types'] && $params['types'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['types'])) {
 			$fq['type'] = 'type:(' . implode(' OR ', $params['types']) . ')';
 		}
 		else {
-			$fq['type'] = 'type:' . $params['types'];
+			if ($params['types'] === ELGG_ENTITIES_NO_VALUE) {
+				$fq['type'] = '-type:[* TO *]';
+			}
+			else {
+				$fq['type'] = 'type:' . $params['types'];
+			}
 		}
 	}
 	
 	//subtype
-	if ($params['subtype']) {
-		$fq['subtype'] = 'subtype:' . $params['subtype'];
-	}
-	elseif ($fq['type']) {
-		//$fq['subtype'] = '-subtype:[* TO *]'; // catch unsubtyped entities
-		$fq['subtype'] = 'subtype:elgg_solr_empty_value'; // default schema value, more efficent than above
+	if (isset($params['subtype']) && $params['subtype'] !== ELGG_ENTITIES_ANY_VALUE) {
+		if ($params['subtype'] === ELGG_ENTITIES_NO_VALUE) {
+			$fq['subtype'] = '-subtype:[* TO *]';
+		}
+		else {
+			$fq['subtype'] = 'subtype:' . $params['subtype'];
+		}
 	}
 	
-	if ($params['subtypes']) {
+	if (isset($params['subtypes']) && $params['subtypes'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['subtypes'])) {
 			$fq['subtype'] = 'subtype:(' . implode(' OR ', $params['subtypes']) . ')';
 		}
 		else {
-			$fq['subtype'] = 'subtype:' . $params['subtypes'];
+			if ($params['subtypes'] === ELGG_ENTITIES_NO_VALUE) {
+				$fq['subtype'] = '-subtype[* TO *]';
+			}
+			else {
+				$fq['subtype'] = 'subtype:' . $params['subtypes'];
+			}
 		}
-	}
-	elseif ($fq['type']) {
-		$fq['subtype'] = 'subtype:elgg_solr_empty_value';
 	}
 	
 	
 	//container
-	if ($params['container_guid']) {
-		$fq['container'] = 'container_guid:' . $params['container_guid'];
+	if (isset($params['container_guid']) && $params['container_guid'] !== ELGG_ENTITIES_ANY_VALUE) {
+			$fq['container'] = 'container_guid:' . $params['container_guid'];
 	}
 	
-	if ($params['container_guids']) {
+	if (isset($params['container_guids'])&& $params['container_guids'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['container_guids'])) {
 			$fq['container'] = 'container_guid:(' . implode(' OR ', $params['container_guids']) . ')';
 		}
 		else {
-			$fq['container'] = 'container_guid:' . $params['container_guid'];
+				$fq['container'] = 'container_guid:' . $params['container_guid'];
 		}
 	}
 	
 	//owner
-	if ($params['owner_guid']) {
+	if (isset($params['owner_guid']) && $params['owner_guid'] !== ELGG_ENTITIES_ANY_VALUE) {
 		$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
 	}
 	
-	if ($params['owner_guids']) {
+	if (isset($params['owner_guids']) && $params['owner_guids'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['owner_guids'])) {
 			$fq['owner'] = 'owner_guid:(' . implode(' OR ', $params['owner_guids']) . ')';
 		}
 		else {
-			$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
+				$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
 		}
 	}
 	
