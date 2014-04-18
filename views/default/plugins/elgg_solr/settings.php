@@ -14,7 +14,7 @@ if (elgg_get_plugin_setting('reindex_running', 'elgg_solr')) {
 	elgg_register_menu_item('elgg_solr_controls', array(
 		'name' => 'solr_reindex_unlock',
 		'text' => elgg_echo('elgg_solr:reindex:unlock'),
-		'href' => 'action/elgg_solr/unlock_reindex',
+		'href' => 'action/elgg_solr/reindex_unlock',
 		'is_action' => true,
 		'is_trusted' => true,
 		'link_class' => 'elgg-button elgg-button-action elgg-requires-confirmation'
