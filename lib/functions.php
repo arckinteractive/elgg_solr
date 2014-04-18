@@ -257,8 +257,8 @@ function elgg_solr_add_update_file($entity) {
    
 
     // File you want to upload/post
-	
-	if (file_exists($entity->getFilenameOnFilestore())) {
+	$extract = elgg_get_plugin_setting('extract_handler', 'elgg_solr');
+	if (file_exists($entity->getFilenameOnFilestore()) && $extract == 'yes') {
 		$options = elgg_solr_get_adapter_options();
 		
 		// URL on which we have to post data
@@ -290,13 +290,32 @@ function elgg_solr_add_update_file($entity) {
 			$url .= '&commit=true';
 		}
 		
-		$curl = 'curl "' . $url . '" -F "myfile=@' . $entity->getFilenameOnFilestore() . '"';
+		$ch = curl_init();
+		$doc = array('myfile' => '@'.$entity->getFilenameOnFilestore());
+
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $doc);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_VERBOSE, 1);
 		
-		if ($debug) {
-			elgg_solr_debug_log('Curl via exec - ' . $curl);
+		// Execute the request
+		try {
+			if ($debug) {
+				elgg_solr_debug_log('attempting solr update with url: ' . $url);
+				elgg_solr_debug_log('doc = ' . print_r($doc,1));
+			}
+			$response = curl_exec($ch);
+		
+			if ($debug) {
+				elgg_solr_debug_log('curl response:  ' . print_r($response,1));
+			}
+		} catch( Exception $e) {
+			if ($debug) {
+				elgg_solr_debug_log('elgg_solr_add_update_object() - ' . $e->getMessage());
+			}
 		}
-		
-		exec($curl);
+
 		return true;
 	}
 	
@@ -464,6 +483,7 @@ function elgg_solr_debug_log($message) {
 
 
 function elgg_solr_push_doc($doc) {
+	$debug = false;
 	if (elgg_get_config('elgg_solr_debug')) {
 		$debug = true;
 	}
