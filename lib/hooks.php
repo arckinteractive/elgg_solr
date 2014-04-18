@@ -396,7 +396,7 @@ function elgg_solr_cron_index($hook, $type, $return, $params) {
 		'limit' => false
 	);
 	
-	$entities = new ElggBatch('elgg_get_entities', $options, '', 25, true);
+	$entities = new ElggBatch('elgg_get_entities', $options, '', 400, true);
 	
 	foreach ($entities as $e) {
 		elgg_solr_add_update_entity('', '', $e);
