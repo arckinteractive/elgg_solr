@@ -93,3 +93,20 @@ $body .= elgg_view('output/longtext', array(
 ));
 
 echo elgg_view_module('main', $title, $body);
+
+
+$title = elgg_echo('elgg_solr:settings:title:misc');
+
+$body = '<label>' . elgg_echo('elgg_solr:settings:batch_size') . '</label><br>';
+$body .= elgg_view('input/dropdown', array(
+	'name' => 'params[reindex_batch_size]',
+	'value' => $vars['entity']->reindex_batch_size,
+	'options' => array(25,50,100,200,300,400,500)
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:batch_size:help'),
+	'class' => 'elgg-subtext'
+));
+		
+echo elgg_view_module('main', $title, $body);
+		

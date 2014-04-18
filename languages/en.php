@@ -21,6 +21,9 @@ $english = array(
 	'elgg_solr:error:index_running' => "Reindex could not be started as a previous session is still running.  If the previous session has stopped unexpectedly you must unlock the index first.",
 	'elgg_solr:reindex:unlock' => "Unlock Reindex",
 	'elgg_solr:reindex:unlocked' => "Reindex has been unlocked",
+	'elgg_solr:settings:title:misc' => "Miscellaneous Settings",
+	'elgg_solr:settings:batch_size' => "Batch Size",
+	'elgg_solr:settings:batch_size:help' => "The higher this value the faster the reindex function runs.  However the higher this value the more memory it will use.  Use too much memory and reindex will fail to work.  If unsure leave it at the default value of 50.",
 );
 
 add_translation("en", $english);
