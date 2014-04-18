@@ -16,3 +16,5 @@ Configure Solr with the schema.xml included in the root directory of this plugin
 Enter and save the connection information on the plugin settings page.
 
 Trigger a reindex from the plugin setting page.
+
+Ensure hourly cron is configured and active
