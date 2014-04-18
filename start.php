@@ -1,5 +1,6 @@
 <?php
 
+require_once 'lib/functions.php';
 require_once 'lib/hooks.php';
 require_once 'lib/events.php';
 
