@@ -45,6 +45,8 @@ function elgg_solr_reindex() {
 	if ($debug) {
 		elgg_solr_debug_log($count . ' entities sent to Solr');
 	}
+	
+	elgg_solr_push_doc('<commit/>'); // commit the last of the entities
 	elgg_set_ignore_access($ia);
 	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
 }
@@ -57,12 +59,7 @@ function elgg_solr_get_client() {
 	
 	$options = elgg_solr_get_adapter_options();
 
-	$config = array(
-			'adapteroptions' => array(
-				'host' => $options['host'],
-				'port' => $options['port'],
-				'path' => $options['path'],
-			));
+	$config = array('adapteroptions' => $options);
 
 	// create a client instance
 	return new Solarium_Client($config);
@@ -73,7 +70,8 @@ function elgg_solr_get_adapter_options() {
 	return array(
 		'host' => elgg_get_plugin_setting('host', 'elgg_solr'),
 		'port' => elgg_get_plugin_setting('port', 'elgg_solr'),
-		'path' => elgg_get_plugin_setting('solr_path', 'elgg_solr')
+		'path' => elgg_get_plugin_setting('solr_path', 'elgg_solr'),
+		'core' => elgg_get_plugin_setting('solr_core', 'elgg_solr'),
 	);
 }
 
@@ -264,7 +262,7 @@ function elgg_solr_add_update_file($entity) {
 		$options = elgg_solr_get_adapter_options();
 		
 		// URL on which we have to post data
-		$url = "http://{$options['host']}:{$options['port']}{$options['path']}update/extract?"
+		$url = "http://{$options['host']}:{$options['port']}{$options['path']}{$options['core']}update/extract?"
          . "literal.id={$entity->guid}"
          . "&literal.container_guid={$entity->container_guid}"
 		 . "&literal.owner_guid={$entity->owner_guid}"
@@ -473,7 +471,7 @@ function elgg_solr_push_doc($doc) {
 	$options = elgg_solr_get_adapter_options();
 	
 	// Solr URL
-    $url = "http://{$options['host']}:{$options['port']}{$options['path']}update";
+    $url = "http://{$options['host']}:{$options['port']}{$options['path']}{$options['core']}update";
 	
 	if (!elgg_get_config('elgg_solr_nocommit')) {
 		$url .= '?commit=true';

@@ -24,6 +24,8 @@ $english = array(
 	'elgg_solr:settings:title:misc' => "Miscellaneous Settings",
 	'elgg_solr:settings:batch_size' => "Batch Size",
 	'elgg_solr:settings:batch_size:help' => "The higher this value the faster the reindex function runs.  However the higher this value the more memory it will use.  Use too much memory and reindex will fail to work.  If unsure leave it at the default value of 50.",
+	'elgg_solr:settings:core' => "Core",
+	'elgg_solr:settings:core:help' => "If running a multi-core solr instance enter the name of the core Elgg should use with a trailing slash eg. <strong>elgg/</strong><br>  Leave blank for default."
 );
 
 add_translation("en", $english);

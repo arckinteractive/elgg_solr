@@ -78,6 +78,16 @@ $body .= elgg_view('output/longtext', array(
 	'class' => 'elgg-subtext'
 ));
 
+$body .= '<label>' . elgg_echo('elgg_solr:settings:core') . '</label>';
+$body .= elgg_view('input/text', array(
+	'name' => 'params[solr_core]',
+	'value' => $vars['entity']->solr_core
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:core:help'),
+	'class' => 'elgg-subtext'
+));
+
 echo elgg_view_module('main', $title, $body);
 
 
