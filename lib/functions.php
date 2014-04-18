@@ -253,8 +253,8 @@ function elgg_solr_add_update_file($entity) {
 	
 	$owner = $entity->getOwnerEntity();
 
-    $title       = urlencode(elgg_solr_xml_format($entity->title));
-    $description = urlencode(elgg_solr_xml_format($desc));
+    $title       = urlencode($entity->title);
+    $description = urlencode($desc);
    
 
     // File you want to upload/post
@@ -277,13 +277,23 @@ function elgg_solr_add_update_file($entity) {
 			$url .= "&literal.description={$description}";
 		}
 		
-		$tags = $entity->tags;
-		if ($tags && is_array($tags)) {
-			foreach ($tags as $tag) {
-				$t = urlencode(elgg_solr_xml_format($tag));
-				$url .= "&literal.tags={$t}";
+		$valid_tag_names = elgg_get_registered_tag_metadata_names();
+		
+		if ($valid_tag_names && is_array($valid_tag_names)) {
+			foreach ($valid_tag_names as $tagname) {
+				$tags = $entity->$tagname;
+				if ($tags && !is_array($tags)) {
+					$tags = array($tags);
+				}
+		
+				if ($tags && is_array($tags)) {
+					foreach ($tags as $tag) {
+						$t = urlencode($tagname . ':' . $tag);
+						$url .= "&literal.tags={$t}";
+					}
+				}
 			}
-		}	
+		}
 
 		$url .= "&uprefix=attr_&fmap.content=attr_content";
 		
@@ -337,15 +347,25 @@ function elgg_solr_add_update_file($entity) {
 				<field name="access_id">{$entity->access_id}</field>
 				<field name="time_created">{$entity->time_created}</field>
 EOF;
-				
-$tags = $entity->tags;
-if ($tags && is_array($tags)) {
-	foreach ($tags as $tag) {
-		$doc .= <<<EOF
-				<field name="tags">{$tag}</field>
+		
+	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+		
+	if ($valid_tag_names && is_array($valid_tag_names)) {
+			foreach ($valid_tag_names as $tagname) {
+				$tags = $entity->$tagname;
+				if ($tags && !is_array($tags)) {
+					$tags = array($tags);
+				}
+				if ($tags && is_array($tags)) {
+					foreach ($tags as $tag) {
+						$t = elgg_solr_xml_format($tagname . ':' . $tag);
+							$doc .= <<<EOF
+				<field name="tags">{$t}</field>
 EOF;
+					}
+				}
+			}
 	}
-}
 				
 $doc .= <<<EOF
             </doc>
@@ -380,14 +400,25 @@ function elgg_solr_add_update_object_default($entity) {
 				<field name="time_created">{$entity->time_created}</field>
 EOF;
 				
-$tags = $entity->tags;
-if ($tags && is_array($tags)) {
-	foreach ($tags as $tag) {
-		$doc .= <<<EOF
-				<field name="tags">{$tag}</field>
+	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+	
+	if ($valid_tag_names && is_array($valid_tag_names)) {
+		foreach ($valid_tag_names as $tagname) {
+			$tags = $entity->$tagname;
+			if ($tags && !is_array($tags)) {
+				$tags = array($tags);
+			}
+			if ($tags && is_array($tags)) {
+				foreach ($tags as $tag) {
+					$t = elgg_solr_xml_format($tagname . ':' . $tag);
+						$doc .= <<<EOF
+			<field name="tags">{$t}</field>
 EOF;
+				}
+			}
+		}
 	}
-}
+
 
 $doc .= <<<EOF
             </doc>
@@ -460,14 +491,25 @@ function elgg_solr_add_update_user($entity) {
 				<field name="time_created">{$entity->time_created}</field>
 EOF;
 				
-$tags = $entity->tags;
-if ($tags && is_array($tags)) {
-	foreach ($tags as $tag) {
-		$doc .= <<<EOF
-				<field name="tags">{$tag}</field>
+	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+	
+	if ($valid_tag_names && is_array($valid_tag_names)) {
+		foreach ($valid_tag_names as $tagname) {
+			$tags = $entity->$tagname;
+			if ($tags && !is_array($tags)) {
+				$tags = array($tags);
+			}
+			if ($tags && is_array($tags)) {
+				foreach ($tags as $tag) {
+					$t = elgg_solr_xml_format($tagname . ':' . $tag);
+						$doc .= <<<EOF
+			<field name="tags">{$t}</field>
 EOF;
+				}
+			}
+		}
 	}
-}
+
 
 $doc .= <<<EOF
             </doc>
@@ -624,15 +666,25 @@ function elgg_solr_add_update_group_default($entity) {
 				<field name="owner_guid">{$entity->owner_guid}</field>
 				<field name="time_created">{$entity->time_created}</field>
 EOF;
-				
-$tags = $entity->tags;
-if ($tags && is_array($tags)) {
-	foreach ($tags as $tag) {
-		$doc .= <<<EOF
-				<field name="tags">{$tag}</field>
+
+	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+	
+	if ($valid_tag_names && is_array($valid_tag_names)) {
+		foreach ($valid_tag_names as $tagname) {
+			$tags = $entity->$tagname;
+			if ($tags && !is_array($tags)) {
+				$tags = array($tags);
+			}
+			if ($tags && is_array($tags)) {
+				foreach ($tags as $tag) {
+					$t = elgg_solr_xml_format($tagname . ':' . $tag);
+						$doc .= <<<EOF
+			<field name="tags">{$t}</field>
 EOF;
+				}
+			}
+		}
 	}
-}
 
 $doc .= <<<EOF
             </doc>
