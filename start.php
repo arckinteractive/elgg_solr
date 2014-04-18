@@ -48,6 +48,7 @@ function elgg_solr_init() {
 	
 	elgg_register_action('elgg_solr/reindex', dirname(__FILE__) . '/actions/reindex.php', 'admin');
 	elgg_register_action('elgg_solr/delete_index', dirname(__FILE__) . '/actions/delete_index.php', 'admin');
+	elgg_register_action('elgg_solr/reindex_unlock', dirname(__FILE__) . '/actions/reindex_unlock.php', 'admin');
 }
 
 
@@ -624,6 +625,9 @@ function elgg_solr_get_client() {
 
 function elgg_solr_reindex() {
 	set_time_limit(0);
+	
+	// lock the function
+	elgg_set_plugin_setting('reindex_running', 1, 'elgg_solr');
 
 	$debug = get_input('debug', false);
 	if ($debug) {
@@ -665,4 +669,5 @@ function elgg_solr_reindex() {
 		elgg_solr_debug_log($count . ' entities sent to Solr');
 	}
 	elgg_set_ignore_access($ia);
+	//elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
 }

@@ -18,6 +18,9 @@ $english = array(
 	'elgg_solr:delete_index' => "Delete Solr Index",
 	'elgg_solr:delete_index:confirm' => "This will delete the index removing all content in solr.  Are you sure you want to continue?",
 	'elgg_solr:success:delete_index' => "Solr Index has been deleted",
+	'elgg_solr:error:index_running' => "Reindex could not be started as a previous session is still running.  If the previous session has stopped unexpectedly you must unlock the index first.",
+	'elgg_solr:reindex:unlock' => "Unlock Reindex",
+	'elgg_solr:reindex:unlocked' => "Reindex has been unlocked",
 );
 
 add_translation("en", $english);

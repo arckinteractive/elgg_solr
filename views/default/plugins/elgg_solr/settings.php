@@ -10,15 +10,27 @@ elgg_register_menu_item('elgg_solr_controls', array(
 	'confirm' => elgg_echo('elgg_solr:delete_index:confirm')
 ));
 		
-elgg_register_menu_item('elgg_solr_controls', array(
-	'name' => 'solr_reindex',
-	'text' => elgg_echo('elgg_solr:reindex'),
-	'href' => 'action/elgg_solr/reindex',
-	'is_action' => true,
-	'is_trusted' => true,
-	'link_class' => 'elgg-button elgg-button-action elgg-requires-confirmation',
-	'confirm' => elgg_echo('elgg_solr:reindex:confirm')
-));
+if (elgg_get_plugin_setting('reindex_running', 'elgg_solr')) {
+	elgg_register_menu_item('elgg_solr_controls', array(
+		'name' => 'solr_reindex_unlock',
+		'text' => elgg_echo('elgg_solr:reindex:unlock'),
+		'href' => 'action/elgg_solr/unlock_reindex',
+		'is_action' => true,
+		'is_trusted' => true,
+		'link_class' => 'elgg-button elgg-button-action elgg-requires-confirmation'
+	));
+}
+else {
+	elgg_register_menu_item('elgg_solr_controls', array(
+		'name' => 'solr_reindex',
+		'text' => elgg_echo('elgg_solr:reindex'),
+		'href' => 'action/elgg_solr/reindex',
+		'is_action' => true,
+		'is_trusted' => true,
+		'link_class' => 'elgg-button elgg-button-action elgg-requires-confirmation',
+		'confirm' => elgg_echo('elgg_solr:reindex:confirm')
+	));
+}
 
 $title = elgg_echo('elgg_solr:controls');
 
