@@ -73,8 +73,7 @@ function elgg_solr_get_adapter_options() {
 	return array(
 		'host' => elgg_get_plugin_setting('host', 'elgg_solr'),
 		'port' => elgg_get_plugin_setting('port', 'elgg_solr'),
-		'path' => elgg_get_plugin_setting('solr_path', 'elgg_solr'),
-		'protocol' => elgg_get_plugin_setting('protocol', 'elgg_solr'),
+		'path' => elgg_get_plugin_setting('solr_path', 'elgg_solr')
 	);
 }
 
@@ -83,9 +82,8 @@ function elgg_solr_has_settings() {
 	$host = elgg_get_plugin_setting('host', 'elgg_solr');
 	$port = elgg_get_plugin_setting('port', 'elgg_solr');
 	$path = elgg_get_plugin_setting('path', 'elgg_solr');
-	$protocol = elgg_get_plugin_setting('protocol', 'elgg_solr');
 	
-	if (empty($host) || empty($port) || empty($path) || empty($protocol)) {
+	if (empty($host) || empty($port) || empty($path)) {
 		return false;
 	}
 	
@@ -266,7 +264,7 @@ function elgg_solr_add_update_file($entity) {
 		$options = elgg_solr_get_adapter_options();
 		
 		// URL on which we have to post data
-		$url = "{$options['protocol']}{$options['host']}:{$options['port']}{$options['path']}update/extract?"
+		$url = "http://{$options['host']}:{$options['port']}{$options['path']}update/extract?"
          . "literal.id={$entity->guid}"
          . "&literal.container_guid={$entity->container_guid}"
 		 . "&literal.owner_guid={$entity->owner_guid}"
@@ -475,7 +473,7 @@ function elgg_solr_push_doc($doc) {
 	$options = elgg_solr_get_adapter_options();
 	
 	// Solr URL
-    $url = "{$options['protocol']}{$options['host']}:{$options['port']}{$options['path']}update";
+    $url = "http://{$options['host']}:{$options['port']}{$options['path']}update";
 	
 	if (!elgg_get_config('elgg_solr_nocommit')) {
 		$url .= '?commit=true';

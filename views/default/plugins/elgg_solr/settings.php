@@ -78,20 +78,6 @@ $body .= elgg_view('output/longtext', array(
 	'class' => 'elgg-subtext'
 ));
 
-$body .= '<label>' . elgg_echo('elgg_solr:settings:protocol') . '</label><br>';
-$body .= elgg_view('input/dropdown', array(
-	'name' => 'params[protocol]',
-	'value' => $vars['entity']->protocol,
-	'options_values' => array(
-		'http://' => 'http',
-		'https://' => 'https'
-	)
-));
-$body .= elgg_view('output/longtext', array(
-	'value' => elgg_echo('elgg_solr:settings:protocol:help'),
-	'class' => 'elgg-subtext'
-));
-
 echo elgg_view_module('main', $title, $body);
 
 
