@@ -28,7 +28,8 @@ function elgg_solr_reindex() {
 			$options['subtypes'] = $subtypes;
 		}
 
-		$entities = new ElggBatch('elgg_get_entities', $options, null, 25);
+		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
+		$entities = new ElggBatch('elgg_get_entities', $options, null, $batch_size);
 
 		foreach ($entities as $e) {
 
