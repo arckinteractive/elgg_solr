@@ -1,6 +1,7 @@
 <?php
 
 function elgg_solr_add_update_entity($event, $type, $entity) {
+	$debug = false;
 	if (elgg_get_config('elgg_solr_debug')) {
 		$debug = true;
 	}

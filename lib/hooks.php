@@ -276,9 +276,8 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 				$entity->setVolatileData('search_matched_title', $matched['name']);
 			}
             
-			if (empty($matched['description'])) {
-				$entity->setVolatileData('search_matched_description', elgg_get_excerpt($entity->description, 100));
-			}
+			$desc_hl = search_get_highlighted_relevant_substrings($entity->description, $params['query']);
+			$entity->setVolatileData('search_matched_description', $desc_hl);
 
             $entities[] = $entity;
         }

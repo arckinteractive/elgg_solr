@@ -106,7 +106,7 @@ function elgg_solr_get_solr_function($type, $subtype) {
 
 
 function elgg_solr_add_update_file($entity) {
-	
+	$debug = false;
 	if (elgg_get_config('elgg_solr_debug')) {
 		$debug = true;
 	}
@@ -139,6 +139,14 @@ function elgg_solr_add_update_file($entity) {
 		if ($description) {
 			$url .= "&literal.description={$description}";
 		}
+		
+		$tags = $entity->tags;
+		if ($tags && is_array($tags)) {
+			foreach ($tags as $tag) {
+				$t = urlencode(elgg_solr_xml_format($tag));
+				$url .= "&literal.tags={$t}";
+			}
+		}	
 
 		$url .= "&uprefix=attr_&fmap.content=attr_content";
 		
@@ -172,6 +180,18 @@ function elgg_solr_add_update_file($entity) {
 				<field name="owner_guid">{$entity->owner_guid}</field>
 				<field name="access_id">{$entity->access_id}</field>
 				<field name="time_created">{$entity->time_created}</field>
+EOF;
+				
+$tags = $entity->tags;
+if ($tags && is_array($tags)) {
+	foreach ($tags as $tag) {
+		$doc .= <<<EOF
+				<field name="tags">{$tag}</field>
+EOF;
+	}
+}
+				
+$doc .= <<<EOF
             </doc>
         </add>
 EOF;
@@ -202,6 +222,18 @@ function elgg_solr_add_update_object_default($entity) {
 				<field name="container_guid">{$entity->container_guid}</field>
 				<field name="owner_guid">{$entity->owner_guid}</field>
 				<field name="time_created">{$entity->time_created}</field>
+EOF;
+				
+$tags = $entity->tags;
+if ($tags && is_array($tags)) {
+	foreach ($tags as $tag) {
+		$doc .= <<<EOF
+				<field name="tags">{$tag}</field>
+EOF;
+	}
+}
+
+$doc .= <<<EOF
             </doc>
         </add>
 EOF;
@@ -211,7 +243,7 @@ EOF;
 
 
 function elgg_solr_add_update_user($entity) {
-	
+	$debug = false;
 	if (elgg_get_config('elgg_solr_debug')) {
 		$debug = true;
 	}
@@ -270,6 +302,18 @@ function elgg_solr_add_update_user($entity) {
 				<field name="subtype">{$entity->getSubtype()}</field>
 				<field name="access_id">{$entity->access_id}</field>
 				<field name="time_created">{$entity->time_created}</field>
+EOF;
+				
+$tags = $entity->tags;
+if ($tags && is_array($tags)) {
+	foreach ($tags as $tag) {
+		$doc .= <<<EOF
+				<field name="tags">{$tag}</field>
+EOF;
+	}
+}
+
+$doc .= <<<EOF
             </doc>
         </add>
 EOF;
@@ -303,7 +347,7 @@ function elgg_solr_push_doc($doc) {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: text/xml")); 
     curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, "$doc");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $doc);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_VERBOSE, 1);
 
@@ -422,6 +466,18 @@ function elgg_solr_add_update_group_default($entity) {
 				<field name="container_guid">{$entity->container_guid}</field>
 				<field name="owner_guid">{$entity->owner_guid}</field>
 				<field name="time_created">{$entity->time_created}</field>
+EOF;
+				
+$tags = $entity->tags;
+if ($tags && is_array($tags)) {
+	foreach ($tags as $tag) {
+		$doc .= <<<EOF
+				<field name="tags">{$tag}</field>
+EOF;
+	}
+}
+
+$doc .= <<<EOF
             </doc>
         </add>
 EOF;
