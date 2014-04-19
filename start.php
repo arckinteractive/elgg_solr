@@ -22,11 +22,13 @@ function elgg_solr_init() {
 	elgg_unregister_plugin_hook_handler('search', 'object', 'search_objects_hook');
 	elgg_unregister_plugin_hook_handler('search', 'user', 'search_users_hook');
 	elgg_unregister_plugin_hook_handler('search', 'group', 'search_groups_hook');
+	elgg_unregister_plugin_hook_handler('search', 'tags', 'search_tags_hook');
 
     elgg_register_plugin_hook_handler('search', 'object:file', 'elgg_solr_file_search');
 	elgg_register_plugin_hook_handler('search', 'object', 'elgg_solr_object_search');
 	elgg_register_plugin_hook_handler('search', 'user', 'elgg_solr_user_search');
 	elgg_register_plugin_hook_handler('search', 'group', 'elgg_solr_group_search');
+	elgg_register_plugin_hook_handler('search', 'tags', 'elgg_solr_tag_search');
 	
 	elgg_register_plugin_hook_handler('cron', 'hourly', 'elgg_solr_cron_index');
 

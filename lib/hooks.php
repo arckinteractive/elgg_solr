@@ -414,3 +414,130 @@ function elgg_solr_user_settings_save($hook, $type, $return, $params) {
 		elgg_solr_add_update_user($user);
 	}
 }
+
+
+
+function elgg_solr_tag_search($hook, $type, $return, $params) {
+
+	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+	
+	if (!$valid_tag_names || !is_array($valid_tag_names)) {
+		return array('entities' => array(), 'count' => 0);
+	}
+
+	// if passed a tag metadata name, only search on that tag name.
+	// tag_name isn't included in the params because it's specific to
+	// tag searches.
+	if ($tag_names = get_input('tag_names')) {
+		if (is_array($tag_names)) {
+			$search_tag_names = $tag_names;
+		} else {
+			$search_tag_names = array($tag_names);
+		}
+
+		// check these are valid to avoid arbitrary metadata searches.
+		foreach ($search_tag_names as $i => $tag_name) {
+			if (!in_array($tag_name, $valid_tag_names)) {
+				unset($search_tag_names[$i]);
+			}
+		}
+	} else {
+		$search_tag_names = $valid_tag_names;
+	}
+	
+	$query = array();
+	foreach ($search_tag_names as $tagname) {
+		$query[] = 'tags:' . $tagname . '\:' . $params['query'];
+	}
+	
+	if (!$query) {
+		return array('entities' => array(), 'count' => 0);
+	}
+	
+	$q = implode(' OR ', $query);
+	
+	$select = array(
+        'query'  => $q,
+        'start'  => $params['offset'],
+        'rows'   => $params['limit'],
+        'fields' => array('id','title','description'),
+    );
+
+	$client = elgg_solr_get_client();
+// get an update query instance
+    $query = $client->createSelect($select);
+
+	$default_fq = elgg_solr_get_default_fq($params);
+	$filter_queries = array_merge($default_fq, $params['fq']);
+
+    if (!empty($filter_queries)) {
+        foreach ($filter_queries as $key => $value) {
+            $query->createFilterQuery($key)->setQuery($value);
+        }
+    }
+
+    // get highlighting component and apply settings
+    $hl = $query->getHighlighting();
+    $hl->setFields(array('tags'));
+    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
+    $hl->setSimplePostfix('</strong>');
+
+    // this executes the query and returns the result
+    try {
+        $resultset = $client->select($query);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return null;
+    }
+
+    // Get the highlighted snippet
+    try {
+        $highlighting = $resultset->getHighlighting();
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return null;
+    }
+
+    // Count the total number of documents found by solr
+    $count = $resultset->getNumFound();
+
+    foreach ($resultset as $document) {
+
+        $snippet = '';
+
+        if ($entity = get_entity($document->id)) {
+
+            // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
+            $highlightedDoc = $highlighting->getResult($document->id);
+
+			$matched = array();
+            if($highlightedDoc){
+                foreach($highlightedDoc as $field => $highlight) {
+					// a little hackery for matched tags
+					$snippet = array();
+                    foreach ($highlight as $key => $h) {
+						$matched = '<strong class="search-highlight search-highlight-color1">';
+						$matched .= substr(strstr(elgg_strip_tags($h), ':'), 1);
+						$matched .= '</strong>';
+						$snippet[] = $matched;
+					}
+
+					$display = implode(', ', $snippet);
+					$entity->setVolatileData('search_matched_extra', $display);
+                }
+            }
+			
+			$title = $entity->title ? $entity->title : $entity->name;
+			$description = $entity->description;
+			$entity->setVolatileData('search_matched_title', $title);
+			$entity->setVolatileData('search_matched_description', elgg_get_excerpt($description));
+            
+            $entities[] = $entity;
+        }
+    }
+
+	return array(
+		'entities' => $entities,
+		'count' => $count,
+	);
+}

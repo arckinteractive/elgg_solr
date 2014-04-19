@@ -262,6 +262,10 @@ function elgg_solr_add_update_file($entity) {
 	if (file_exists($entity->getFilenameOnFilestore()) && $extract == 'yes') {
 		$options = elgg_solr_get_adapter_options();
 		
+		if ($options['core']) {
+			$options['core'] .= '/';
+		}
+		
 		// URL on which we have to post data
 		$url = "http://{$options['host']}:{$options['port']}{$options['path']}{$options['core']}update/extract?"
          . "literal.id={$entity->guid}"
@@ -532,6 +536,9 @@ function elgg_solr_push_doc($doc) {
 	}
 	
 	$options = elgg_solr_get_adapter_options();
+	if ($options['core']) {
+		$options['core'] .= '/';
+	}
 	
 	// Solr URL
     $url = "http://{$options['host']}:{$options['port']}{$options['path']}{$options['core']}update";
