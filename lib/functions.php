@@ -42,6 +42,23 @@ function elgg_solr_reindex() {
 			elgg_set_config('elgg_solr_nocommit', true);
 		}
 	}
+	
+	// index comments
+	$options = array(
+		'annotation_name' => 'generic_comment',
+		'limit' => false
+	);
+	$comments = new ElggBatch('elgg_get_annotations', $options, null, $batch_size);
+	
+	foreach ($comments as $comment) {
+		$count++;
+		if ($count % 100) {
+			elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
+		}
+		elgg_solr_add_update_annotation(null, null, $comment);
+
+		elgg_set_config('elgg_solr_nocommit', true);
+	}
 
 	if ($debug) {
 		elgg_solr_debug_log($count . ' entities sent to Solr');
@@ -458,7 +475,7 @@ function elgg_solr_add_update_user($entity) {
 	$username = elgg_solr_xml_format($entity->username);
 	
 	
-	// @TODO - lump public profile fields in with description
+	// lump public profile fields in with description
 	$profile_fields = elgg_get_config('profile_fields');
 	$desc = '';
 	if (is_array($profile_fields) && sizeof($profile_fields) > 0) {

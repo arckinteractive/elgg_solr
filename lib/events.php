@@ -81,3 +81,36 @@ function elgg_solr_metadata_update($event, $type, $metadata) {
 	
 	return true;
 }
+
+
+
+function elgg_solr_add_update_annotation($event, $type, $annotation) {
+	if (!($annotation instanceof ElggAnnotation)) {
+		return true;
+	}
+	
+	if ($annotation->name != 'generic_comment') {
+		return true;
+	}
+
+    $description = elgg_solr_xml_format($annotation->value);
+	$subtype = elgg_solr_xml_format($annotation->name);
+
+    // Build the user document to be posted
+    $doc = <<<EOF
+        <add>
+            <doc>
+				<field name="id">annotation:{$annotation->id}</field>
+				<field name="description">{$description}</field>
+                <field name="type">annotation</field>
+				<field name="subtype">{$subtype}</field>
+				<field name="access_id">{$annotation->access_id}</field>
+				<field name="container_guid">{$annotation->entity_guid}</field>
+				<field name="owner_guid">{$annotation->owner_guid}</field>
+				<field name="time_created">{$annotation->time_created}</field>
+            </doc>
+        </add>
+EOF;
+
+	elgg_solr_push_doc($doc);
+}

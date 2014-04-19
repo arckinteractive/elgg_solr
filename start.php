@@ -23,17 +23,21 @@ function elgg_solr_init() {
 	elgg_unregister_plugin_hook_handler('search', 'user', 'search_users_hook');
 	elgg_unregister_plugin_hook_handler('search', 'group', 'search_groups_hook');
 	elgg_unregister_plugin_hook_handler('search', 'tags', 'search_tags_hook');
+	elgg_unregister_plugin_hook_handler('search', 'comments', 'search_comments_hook');
 
     elgg_register_plugin_hook_handler('search', 'object:file', 'elgg_solr_file_search');
 	elgg_register_plugin_hook_handler('search', 'object', 'elgg_solr_object_search');
 	elgg_register_plugin_hook_handler('search', 'user', 'elgg_solr_user_search');
 	elgg_register_plugin_hook_handler('search', 'group', 'elgg_solr_group_search');
 	elgg_register_plugin_hook_handler('search', 'tags', 'elgg_solr_tag_search');
+	elgg_register_plugin_hook_handler('search', 'comments', 'elgg_solr_comment_search');
 	
 	elgg_register_plugin_hook_handler('cron', 'hourly', 'elgg_solr_cron_index');
 
     elgg_register_event_handler('create', 'all', 'elgg_solr_add_update_entity', 1000);
     elgg_register_event_handler('update', 'all', 'elgg_solr_add_update_entity', 1000);
+	elgg_register_event_handler('create', 'all', 'elgg_solr_add_update_annotation', 1000);
+    elgg_register_event_handler('update', 'all', 'elgg_solr_add_update_annotation', 1000);
     elgg_register_event_handler('delete', 'object', 'elgg_solr_delete_entity', 1000);
 	elgg_register_event_handler('create', 'metadata', 'elgg_solr_metadata_update');
 	elgg_register_event_handler('update', 'metadata', 'elgg_solr_metadata_update');

@@ -541,3 +541,99 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 		'count' => $count,
 	);
 }
+
+
+
+function elgg_solr_comment_search($hook, $type, $return, $params) {
+	$entities = array();
+
+    $select = array(
+        'query'  => "description:{$params['query']}",
+        'start'  => $params['offset'],
+        'rows'   => $params['limit'],
+        'fields' => array('id','container_guid','description', 'owner_guid', 'time_created'),
+    );
+
+    // create a client instance
+    $client = elgg_solr_get_client();
+
+    // get an update query instance
+    $query = $client->createSelect($select);
+	
+	// make sure we're only getting comments
+	$params['fq']['type'] = 'type:annotation';
+	$params['fq']['subtype'] = 'subtype:generic_comment';
+	
+	$default_fq = elgg_solr_get_default_fq($params);
+	$filter_queries = array_merge($default_fq, $params['fq']);
+
+    if (!empty($filter_queries)) {
+        foreach ($filter_queries as $key => $value) {
+            $query->createFilterQuery($key)->setQuery($value);
+        }
+    }
+
+    // get highlighting component and apply settings
+    $hl = $query->getHighlighting();
+    $hl->setFields(array('description'));
+    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
+    $hl->setSimplePostfix('</strong>');
+
+    // this executes the query and returns the result
+    try {
+        $resultset = $client->select($query);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return null;
+    }
+
+    // Get the highlighted snippet
+    try {
+        $highlighting = $resultset->getHighlighting();
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return null;
+    }
+
+    // Count the total number of documents found by solr
+    $count = $resultset->getNumFound();
+
+    foreach ($resultset as $document) {
+
+        $entity = get_entity($document->container_guid);
+		
+		if (!$entity) {
+			$entity = new ElggObject();
+			$entity->setVolatileData('search_unavailable_entity', TRUE);
+		}
+
+        // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
+        $highlightedDoc = $highlighting->getResult($document->id);
+
+        if($highlightedDoc){
+            foreach($highlightedDoc as $highlight) {
+                $comment_str = implode(' (...) ', $highlight);
+            }
+        }
+		
+		if (!$comment_str) {
+			$comment_str = elgg_get_excerpt($document->description);
+		}
+		
+		$comments_data[] = array(
+			'annotation_id' => substr(strstr(elgg_strip_tags($document->id), ':'), 1),
+			'text' => $comment_str,
+			'owner_guid' => $document->owner_guid,
+			'time_created' => $document->time_created,
+		);
+		$entity->setVolatileData('search_comments_data', $comments_data);
+
+        $entities[] = $entity;
+    }
+
+    return array(
+        'entities' => $entities,
+        'count' => $count,
+    );
+}
+
