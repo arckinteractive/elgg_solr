@@ -2,4 +2,5 @@
 
 x.x (mm/dd/yyyy):
 
-1.0
+1.0 (04/18/2014):
+ - initial release
