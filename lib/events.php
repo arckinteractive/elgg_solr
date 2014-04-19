@@ -44,22 +44,8 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		return true;
 	}
-
-    // create a client instance
-    $client = elgg_solr_get_client();
-
-    // get an update query instance
-    $update = $client->createUpdate();
-
-    // add the delete id and a commit command to the update query
-    $update->addDeleteById($entity->guid);
-    $update->addCommit();
-
-    try {
-        $result = $client->update($update);
-    } catch( Exception $e) {
-        error_log("elgg_solr_delete_object() - GUID:{$entity->guid} - " . $e->getMessage());
-    }
+	
+	elgg_solr_push_doc('<delete><query>id:' . $entity->guid . '</query></delete>');
 
     return true;
 }
@@ -113,4 +99,16 @@ function elgg_solr_add_update_annotation($event, $type, $annotation) {
 EOF;
 
 	elgg_solr_push_doc($doc);
+}
+
+
+function elgg_solr_delete_annotation($event, $type, $annotation) {
+
+	if ($annotation->name != 'generic_comment') {
+		return true;
+	}
+
+	elgg_solr_push_doc('<delete><query>id:annotation\:' . $annotation->id . '</query></delete>');
+
+    return true;
 }

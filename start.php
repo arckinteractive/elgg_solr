@@ -39,6 +39,7 @@ function elgg_solr_init() {
 	elgg_register_event_handler('create', 'all', 'elgg_solr_add_update_annotation', 1000);
     elgg_register_event_handler('update', 'all', 'elgg_solr_add_update_annotation', 1000);
     elgg_register_event_handler('delete', 'object', 'elgg_solr_delete_entity', 1000);
+	elgg_register_event_handler('delete', 'annotations', 'elgg_solr_delete_annotation', 1000);
 	elgg_register_event_handler('create', 'metadata', 'elgg_solr_metadata_update');
 	elgg_register_event_handler('update', 'metadata', 'elgg_solr_metadata_update');
 	
