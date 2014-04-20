@@ -13,7 +13,8 @@
    <field name="container_guid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="access_id" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="time_created" type="int" indexed="true" stored="true" multiValued="false" />
-   <field name="tags" type="text_general" indexed="true" stored="true" multiValued="true" />
+   <!-- note type:string should provide exact-match capability - we want that for tags -->
+   <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
 
    <!-- ElggObject -->
    <field name="title" type="text_general" indexed="true" stored="true" multiValued="false" />

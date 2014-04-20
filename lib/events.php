@@ -108,7 +108,7 @@ function elgg_solr_delete_annotation($event, $type, $annotation) {
 		return true;
 	}
 
-	elgg_solr_push_doc('<delete><query>id:annotation\:' . $annotation->id . '</query></delete>');
+	elgg_solr_push_doc('<delete><query>id:annotation%%' . $annotation->id . '</query></delete>');
 
     return true;
 }

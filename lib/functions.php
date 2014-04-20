@@ -309,7 +309,7 @@ function elgg_solr_add_update_file($entity) {
 		
 				if ($tags && is_array($tags)) {
 					foreach ($tags as $tag) {
-						$t = urlencode($tagname . ':' . $tag);
+						$t = urlencode($tagname . '%%' . $tag);
 						$url .= "&literal.tags={$t}";
 					}
 				}
@@ -379,7 +379,7 @@ EOF;
 				}
 				if ($tags && is_array($tags)) {
 					foreach ($tags as $tag) {
-						$t = elgg_solr_xml_format($tagname . ':' . $tag);
+						$t = elgg_solr_xml_format($tagname . '%%' . $tag);
 							$doc .= <<<EOF
 				<field name="tags">{$t}</field>
 EOF;
@@ -431,7 +431,7 @@ EOF;
 			}
 			if ($tags && is_array($tags)) {
 				foreach ($tags as $tag) {
-					$t = elgg_solr_xml_format($tagname . ':' . $tag);
+					$t = elgg_solr_xml_format($tagname . '%%' . $tag);
 						$doc .= <<<EOF
 			<field name="tags">{$t}</field>
 EOF;
@@ -522,7 +522,7 @@ EOF;
 			}
 			if ($tags && is_array($tags)) {
 				foreach ($tags as $tag) {
-					$t = elgg_solr_xml_format($tagname . ':' . $tag);
+					$t = elgg_solr_xml_format($tagname . '%%' . $tag);
 						$doc .= <<<EOF
 			<field name="tags">{$t}</field>
 EOF;
@@ -701,7 +701,7 @@ EOF;
 			}
 			if ($tags && is_array($tags)) {
 				foreach ($tags as $tag) {
-					$t = elgg_solr_xml_format($tagname . ':' . $tag);
+					$t = elgg_solr_xml_format($tagname . '%%' . $tag);
 						$doc .= <<<EOF
 			<field name="tags">{$t}</field>
 EOF;
@@ -716,4 +716,16 @@ $doc .= <<<EOF
 EOF;
 
 	elgg_solr_push_doc($doc);
+}
+
+
+function elgg_solr_escape_special_chars($string) {
+	// Lucene characters that need escaping with \ are + - && || ! ( ) { } [ ] ^ " ~ * ? : \
+	$luceneReservedCharacters = preg_quote('+-&|!(){}[]^"~*?:\\');
+	$query = preg_replace_callback('/([' . $luceneReservedCharacters . '])/',
+		function($matches) {
+			return '\\' . $matches[0];
+		},
+    $string);
+	return $query;
 }

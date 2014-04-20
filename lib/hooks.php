@@ -10,7 +10,7 @@
  * @return unknown_type
  */
 function elgg_solr_file_search($hook, $type, $value, $params) {
-
+	$params['query'] = elgg_solr_escape_special_chars($params['query']);
     $entities = array();
 
     $select = array(
@@ -106,7 +106,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
 
 function elgg_solr_object_search($hook, $type, $return, $params) {
-
+	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 	$entities = array();
 
     $select = array(
@@ -198,6 +198,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
 
 function elgg_solr_user_search($hook, $type, $return, $params) {
+	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 	$entities = array();
 
     $select = array(
@@ -292,6 +293,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
 
 function elgg_solr_group_search($hook, $type, $return, $params) {
+	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 	$entities = array();
 
     $select = array(
@@ -418,7 +420,7 @@ function elgg_solr_user_settings_save($hook, $type, $return, $params) {
 
 
 function elgg_solr_tag_search($hook, $type, $return, $params) {
-
+	
 	$valid_tag_names = elgg_get_registered_tag_metadata_names();
 	
 	if (!$valid_tag_names || !is_array($valid_tag_names)) {
@@ -447,7 +449,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	
 	$query = array();
 	foreach ($search_tag_names as $tagname) {
-		$query[] = 'tags:' . $tagname . '\:' . $params['query'];
+		$query[] = 'tags:' . elgg_solr_escape_special_chars($tagname . '%%' . $params['query']);
 	}
 	
 	if (!$query) {
@@ -455,7 +457,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	}
 	
 	$q = implode(' OR ', $query);
-	
+
 	$select = array(
         'query'  => $q,
         'start'  => $params['offset'],
@@ -466,7 +468,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	$client = elgg_solr_get_client();
 // get an update query instance
     $query = $client->createSelect($select);
-
+	
 	$default_fq = elgg_solr_get_default_fq($params);
 	$filter_queries = array_merge($default_fq, $params['fq']);
 
@@ -517,7 +519,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 					$snippet = array();
                     foreach ($highlight as $key => $h) {
 						$matched = '<strong class="search-highlight search-highlight-color1">';
-						$matched .= substr(strstr(elgg_strip_tags($h), ':'), 1);
+						$matched .= substr(strstr(elgg_strip_tags($h), '%%'), 2);
 						$matched .= '</strong>';
 						$snippet[] = $matched;
 					}
@@ -545,6 +547,8 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 
 
 function elgg_solr_comment_search($hook, $type, $return, $params) {
+	$params['query'] = elgg_solr_escape_special_chars($params['query']);
+	
 	$entities = array();
 
     $select = array(

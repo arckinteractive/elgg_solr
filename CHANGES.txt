@@ -2,5 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
+1.1 ():
+ - correct special char escaping
+ - fix incorrect tag match
+Note - schema has been updated for this release
+
 1.0 (04/18/2014):
  - initial release
