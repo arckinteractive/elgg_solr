@@ -29,6 +29,7 @@ $english = array(
 	'elgg_solr:settings:core:help' => "If running a multi-core solr instance enter the name of the core Elgg should use eg. <strong>collection1</strong><br>  Leave blank for default.",
 	'elgg_solr:settings:extract' => "Use Extract Handler?",
 	'elgg_solr:settings:extract:help' => "The extract handler will index files uploaded to your site and allow them to be searchable by content.  While very common, not all solr implementations may have this configured.  If your does not then disable this setting.",
+	'elgg_solr:indexed:compare' => "%s of %s items have been indexed.  The more these numbers differ the more inaccurate searching will be, run the 'Solr Reindex' to fix an inaccurate index."
 );
 
 add_translation("en", $english);

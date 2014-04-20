@@ -70,7 +70,7 @@ function elgg_solr_reindex() {
 }
 
 
-function elgg_solr_indexable_count() {
+function elgg_solr_get_indexable_count() {
 	$registered_types = get_registered_entity_types();
 
 	$ia = elgg_set_ignore_access(true);
@@ -99,6 +99,31 @@ function elgg_solr_indexable_count() {
 	elgg_set_ignore_access($ia);
 	
 	return $count;
+}
+
+
+function elgg_solr_get_indexed_count() {
+	$select = array(
+        'query'  => '*:*',
+        'start'  => 0,
+        'rows'   => 1,
+        'fields' => array('id'),
+    );
+
+    // create a client instance
+    $client = elgg_solr_get_client();
+
+    // get an update query instance
+    $query = $client->createSelect($select);
+	
+	try {
+        $resultset = $client->select($query);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return false;
+    }
+	
+	return $resultset->getNumFound();
 }
 
 

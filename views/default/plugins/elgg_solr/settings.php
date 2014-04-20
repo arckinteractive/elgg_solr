@@ -40,6 +40,15 @@ $body = elgg_view_menu('elgg_solr_controls', array(
 	'item_class' => 'mrm',
 ));
 
+$body .= '<br><br>';
+
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:indexed:compare', array(
+		elgg_solr_get_indexed_count(),
+		elgg_solr_get_indexable_count()
+	))
+));
+
 if (elgg_solr_has_settings()) {
 	echo elgg_view_module('main', $title, $body);
 }
