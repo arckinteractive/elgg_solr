@@ -669,6 +669,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
         // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
         $highlightedDoc = $highlighting->getResult($document->id);
 
+		$comment_str = '';
         if($highlightedDoc){
             foreach($highlightedDoc as $highlight) {
                 $comment_str = implode(' (...) ', $highlight);
