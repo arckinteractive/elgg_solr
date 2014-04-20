@@ -70,6 +70,38 @@ function elgg_solr_reindex() {
 }
 
 
+function elgg_solr_indexable_count() {
+	$registered_types = get_registered_entity_types();
+
+	$ia = elgg_set_ignore_access(true);
+
+	$count = 0;
+	foreach ($registered_types as $type => $subtypes) {
+		$options = array(
+			'type' => $type,
+			'count' => true
+		);
+
+		if ($subtypes) {
+			$options['subtypes'] = $subtypes;
+		}
+
+		$count += elgg_get_entities($options);
+	}
+	
+	// count comments
+	$options = array(
+		'annotation_name' => 'generic_comment',
+		'count' => true
+	);
+	$count += elgg_get_annotations($options);
+	
+	elgg_set_ignore_access($ia);
+	
+	return $count;
+}
+
+
 function elgg_solr_get_client() {
 	elgg_load_library('Solarium');
 	

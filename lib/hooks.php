@@ -18,10 +18,6 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','title','description'),
-		'sort' => array(
-			'score' => 'desc',
-			'time_created' => 'asc'
-		)
     );
 
     // create a client instance
@@ -29,6 +25,10 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
+	$query->addSorts(array(
+		'score' => Solarium_Query_Select::SORT_DESC,
+		'time_created' => Solarium_Query_Select::SORT_ASC
+	));
 	
 	$params['fq']['type'] = 'type:object';
 	$params['fq']['subtype'] = 'subtype:file';
@@ -122,11 +122,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
         'query'  => "title:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','title','description'),
-		'sort' => array(
-			'score' => 'desc',
-			'time_created' => 'asc'
-		)
+        'fields' => array('id','title','description')
     );
 
     // create a client instance
@@ -134,6 +130,10 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
+	$query->addSorts(array(
+		'score' => Solarium_Query_Select::SORT_DESC,
+		'time_created' => Solarium_Query_Select::SORT_ASC
+	));
 	
 	// make sure we're only getting objectss
 	$params['fq']['type'] = 'type:object';
@@ -223,11 +223,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
         'query'  => "name:{$params['query']}^3 OR username:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','name','username', 'description'),
-		'sort' => array(
-			'score' => 'desc',
-			'time_created' => 'asc'
-		)
+        'fields' => array('id','name','username', 'description')
     );
 
     // create a client instance
@@ -235,6 +231,10 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
+	$query->addSorts(array(
+		'score' => Solarium_Query_Select::SORT_DESC,
+		'time_created' => Solarium_Query_Select::SORT_ASC
+	));
 	
 	// make sure we're only getting users
 	$params['fq']['type'] = 'type:user';
@@ -327,11 +327,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
         'query'  => "name:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','name','description'),
-		'sort' => array(
-			'score' => 'desc',
-			'time_created' => 'asc'
-		)
+        'fields' => array('id','name','description')
     );
 
     // create a client instance
@@ -339,6 +335,10 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
+	$query->addSorts(array(
+		'score' => Solarium_Query_Select::SORT_DESC,
+		'time_created' => Solarium_Query_Select::SORT_ASC
+	));
 	
 	// make sure we're only getting groups
 	$params['fq']['type'] = 'type:group';
@@ -499,16 +499,16 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
         'query'  => $q,
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','title','description'),
-		'sort' => array(
-			'score' => 'desc',
-			'time_created' => 'asc'
-		)
+        'fields' => array('id','title','description')
     );
 
 	$client = elgg_solr_get_client();
 // get an update query instance
     $query = $client->createSelect($select);
+	$query->addSorts(array(
+		'score' => Solarium_Query_Select::SORT_DESC,
+		'time_created' => Solarium_Query_Select::SORT_ASC
+	));
 	
 	$default_fq = elgg_solr_get_default_fq($params);
 	if ($params['fq']) {
@@ -609,6 +609,10 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
+	$query->addSorts(array(
+		'score' => Solarium_Query_Select::SORT_DESC,
+		'time_created' => Solarium_Query_Select::SORT_ASC
+	));
 	
 	// make sure we're only getting comments
 	$params['fq']['type'] = 'type:annotation';
