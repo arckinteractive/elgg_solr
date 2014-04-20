@@ -14,6 +14,7 @@ Dependencies
 =========
 
 This plugin depends on the default elgg search plugin (bundled with Elgg)
+
 This plugin depends on the vroom plugin - https://github.com/jumbojett/vroom
 
 Installation
