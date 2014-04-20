@@ -485,7 +485,8 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	
 	$query = array();
 	foreach ($search_tag_names as $tagname) {
-		$query[] = 'tags:' . elgg_solr_escape_special_chars($tagname . '%%' . $params['query']);
+		// @note - these need to be treated as literal exact matches, so encapsulate in double-quotes
+		$query[] = 'tags:"' . elgg_solr_escape_special_chars($tagname . '%%' . $params['query']) . '"';
 	}
 	
 	if (!$query) {
