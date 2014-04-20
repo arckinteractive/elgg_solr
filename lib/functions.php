@@ -628,6 +628,7 @@ function elgg_solr_get_access_query() {
 			'type' => 'user',
 			'relationship' => 'friend',
 			'relationship_guid' => elgg_get_logged_in_user_guid(),
+			'inverse_relationship' => true,
 			'limit' => false,
 			'callback' => false // keep the query fast
 		));
@@ -639,7 +640,7 @@ function elgg_solr_get_access_query() {
 			
 		$friends_list = '';
 		if ($friend_guids) {
-			$friends_list = implode(' OR ', $friend_guids);
+			$friends_list = elgg_solr_escape_special_chars(implode(' OR ', $friend_guids));
 		}
 	}
 
@@ -647,7 +648,7 @@ function elgg_solr_get_access_query() {
 	$return = '';
 	
 	if ($access_list) {
-		$return .= "access_id:({$access_list})";
+		$return .= "access_id:(" . elgg_solr_escape_special_chars($access_list) . ")";
 	}
 	
 	$fr_prefix = '';
@@ -659,9 +660,9 @@ function elgg_solr_get_access_query() {
 	}
 	
 	if ($friends_list) {
-		$return .= $fr_prefix . $friends_list . $fr_suffix;
+		$return .= $fr_prefix . 'access_id:' . elgg_solr_escape_special_chars(ACCESS_FRIENDS) . ' AND owner_guid:(' . $friends_list . ')' . $fr_suffix;
 	}
-	
+
 	return $return;
 }
 
