@@ -653,7 +653,13 @@ function elgg_solr_push_doc($doc) {
 
 
 function elgg_solr_xml_format($text) {
-	return htmlspecialchars(elgg_strip_tags($text), ENT_QUOTES, 'UTF-8');
+	$doc = new DOMDocument();
+	$fragment = $doc->createDocumentFragment();
+
+	$fragment->appendChild($doc->createTextNode($text));
+
+	// output the result
+	return $doc->saveXML($fragment);
 }
 
 

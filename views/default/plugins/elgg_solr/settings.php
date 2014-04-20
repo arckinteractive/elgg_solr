@@ -33,23 +33,22 @@ else {
 	));
 }
 
-$title = elgg_echo('elgg_solr:controls');
-
-$body = elgg_view_menu('elgg_solr_controls', array(
-	'class' => 'elgg-menu-hz',
-	'item_class' => 'mrm',
-));
-
-$body .= '<br><br>';
-
-$body .= elgg_view('output/longtext', array(
-	'value' => elgg_echo('elgg_solr:indexed:compare', array(
-		elgg_solr_get_indexed_count(),
-		elgg_solr_get_indexable_count()
-	))
-));
-
 if (elgg_solr_has_settings()) {
+	$title = elgg_echo('elgg_solr:controls');
+
+	$body = elgg_view_menu('elgg_solr_controls', array(
+		'class' => 'elgg-menu-hz',
+		'item_class' => 'mrm',
+	));
+
+	$body .= '<br><br>';
+
+	$body .= elgg_view('output/longtext', array(
+		'value' => elgg_echo('elgg_solr:indexed:compare', array(
+			elgg_solr_get_indexed_count(),
+			elgg_solr_get_indexable_count()
+		))
+	));
 	echo elgg_view_module('main', $title, $body);
 }
 

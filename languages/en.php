@@ -7,7 +7,7 @@ $english = array(
 	'elgg_solr:settings:host' => "Host",
 	'elgg_solr:settings:host:help' => "Enter the host of the solr installation without http(s) prefix.  eg. <strong>solr.example.com</strong>",
 	'elgg_solr:settings:port' => "Port",
-	'elgg_solr:settings:port:help' => "Enter the port # of solr installation.  eg. <strong>8983</strong>",
+	'elgg_solr:settings:port:help' => "Enter the port # of the solr installation.  eg. <strong>8983</strong>",
 	'elgg_solr:settings:path' => "Path",
 	'elgg_solr:settings:path:help' => "Path to the solr endpoint with starting and trailing slashes. eg. <strong>/solr/</strong>",
 	'elgg_solr:settings:protocol' => "Protocol",
@@ -28,8 +28,8 @@ $english = array(
 	'elgg_solr:settings:core' => "Core",
 	'elgg_solr:settings:core:help' => "If running a multi-core solr instance enter the name of the core Elgg should use eg. <strong>collection1</strong><br>  Leave blank for default.",
 	'elgg_solr:settings:extract' => "Use Extract Handler?",
-	'elgg_solr:settings:extract:help' => "The extract handler will index files uploaded to your site and allow them to be searchable by content.  While very common, not all solr implementations may have this configured.  If your does not then disable this setting.",
-	'elgg_solr:indexed:compare' => "%s of %s items have been indexed.  The more these numbers differ the more inaccurate searching will be, run the 'Solr Reindex' to fix an inaccurate index."
+	'elgg_solr:settings:extract:help' => "The extract handler will index files uploaded to your site and allow them to be searchable by content.  While very common, not all solr implementations may have this configured.  If yours does not then disable this setting.",
+	'elgg_solr:indexed:compare' => "%s of %s items have been indexed.  The more these numbers differ the more inaccurate searching will be, run the 'Solr Reindex' to fix an inaccurate index.  If the Reindex is locked but the indexed count does not change after refreshing the page the reindex script may have terminated unexpectedly.  If this happens repeatedly ensure that your server has plenty of memory, try reducing the batch size (lower down on this page)."
 );
 
 add_translation("en", $english);
