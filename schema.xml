@@ -7,8 +7,8 @@
    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
 
    <!-- ElggEntity -->
-   <field name="type" type="text_general" indexed="true" stored="true" multiValued="false" />
-   <field name="subtype" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="type" type="string" indexed="true" stored="true" multiValued="false" />
+   <field name="subtype" type="string" indexed="true" stored="true" multiValued="false" />
    <field name="owner_guid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="container_guid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="access_id" type="int" indexed="true" stored="true" multiValued="false" />
@@ -22,8 +22,8 @@
 
    <!-- ElggUser -->
    <field name="name" type="text_general" indexed="true" stored="true"/>
-   <field name="username" type="text_general" indexed="true" stored="true" multiValued="false" />
-   <field name="email" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="username" type="string" indexed="true" stored="true" multiValued="false" />
+   <field name="email" type="string" indexed="true" stored="true" multiValued="false" />
 
    <!-- Main body of document extracted by SolrCell.
         NOTE: This field is not indexed by default, since it is also copied to "text"

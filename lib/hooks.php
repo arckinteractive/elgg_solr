@@ -30,7 +30,12 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	$params['fq']['subtype'] = 'subtype:file';
 
     $default_fq = elgg_solr_get_default_fq($params);
-	$filter_queries = array_merge($default_fq, $params['fq']);
+	if ($params['fq']) {
+		$filter_queries = array_merge($default_fq, $params['fq']);
+	}
+	else {
+		$filter_queries = $default_fq;
+	}
 
     if (!empty($filter_queries)) {
         foreach ($filter_queries as $key => $value) {
@@ -126,7 +131,12 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	$params['fq']['type'] = 'type:object';
 
 	$default_fq = elgg_solr_get_default_fq($params);
-	$filter_queries = array_merge($default_fq, $params['fq']);
+	if ($params['fq']) {
+		$filter_queries = array_merge($default_fq, $params['fq']);
+	}
+	else {
+		$filter_queries = $default_fq;
+	}
 
     if (!empty($filter_queries)) {
         foreach ($filter_queries as $key => $value) {
@@ -218,7 +228,12 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	$params['fq']['type'] = 'type:user';
 
 	$default_fq = elgg_solr_get_default_fq($params);
-	$filter_queries = array_merge($default_fq, $params['fq']);
+	if ($params['fq']) {
+		$filter_queries = array_merge($default_fq, $params['fq']);
+	}
+	else {
+		$filter_queries = $default_fq;
+	}
 
     if (!empty($filter_queries)) {
         foreach ($filter_queries as $key => $value) {
@@ -313,7 +328,12 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	$params['fq']['type'] = 'type:group';
 
 	$default_fq = elgg_solr_get_default_fq($params);
-	$filter_queries = array_merge($default_fq, $params['fq']);
+	if ($params['fq']) {
+		$filter_queries = array_merge($default_fq, $params['fq']);
+	}
+	else {
+		$filter_queries = $default_fq;
+	}
 
     if (!empty($filter_queries)) {
         foreach ($filter_queries as $key => $value) {
@@ -470,7 +490,12 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	
 	$default_fq = elgg_solr_get_default_fq($params);
-	$filter_queries = array_merge($default_fq, $params['fq']);
+	if ($params['fq']) {
+		$filter_queries = array_merge($default_fq, $params['fq']);
+	}
+	else {
+		$filter_queries = $default_fq;
+	}
 
     if (!empty($filter_queries)) {
         foreach ($filter_queries as $key => $value) {
@@ -569,7 +594,12 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	$params['fq']['subtype'] = 'subtype:generic_comment';
 	
 	$default_fq = elgg_solr_get_default_fq($params);
-	$filter_queries = array_merge($default_fq, $params['fq']);
+	if ($params['fq']) {
+		$filter_queries = array_merge($default_fq, $params['fq']);
+	}
+	else {
+		$filter_queries = $default_fq;
+	}
 
     if (!empty($filter_queries)) {
         foreach ($filter_queries as $key => $value) {
