@@ -679,6 +679,10 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 			$comment_str = elgg_get_excerpt($document->description);
 		}
 		
+		$comments_data = $entity->getVolatileData('search_comments_data');
+		if (!$comments_data) {
+			$comments_data = array();
+		}
 		$comments_data[] = array(
 			'annotation_id' => substr(strstr(elgg_strip_tags($document->id), ':'), 1),
 			'text' => $comment_str,
