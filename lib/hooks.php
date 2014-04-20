@@ -18,6 +18,10 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','title','description'),
+		'sort' => array(
+			'score' => 'desc',
+			'time_created' => 'asc'
+		)
     );
 
     // create a client instance
@@ -119,6 +123,10 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','title','description'),
+		'sort' => array(
+			'score' => 'desc',
+			'time_created' => 'asc'
+		)
     );
 
     // create a client instance
@@ -216,6 +224,10 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','name','username', 'description'),
+		'sort' => array(
+			'score' => 'desc',
+			'time_created' => 'asc'
+		)
     );
 
     // create a client instance
@@ -316,6 +328,10 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','name','description'),
+		'sort' => array(
+			'score' => 'desc',
+			'time_created' => 'asc'
+		)
     );
 
     // create a client instance
@@ -483,6 +499,10 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','title','description'),
+		'sort' => array(
+			'score' => 'desc',
+			'time_created' => 'asc'
+		)
     );
 
 	$client = elgg_solr_get_client();
