@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.2 ():
+ - no longer requires hourly cron, real-time metadata triggers
+
 1.1 (04/21/2014):
  - correct special char escaping
  - fix incorrect tag match (forces exact match for tags)

@@ -423,27 +423,6 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 }
 
 
-
-function elgg_solr_cron_index($hook, $type, $return, $params) {
-	// get any objects that need to be reindexed due to new metadata
-	$options = array(
-		'metadata_name_value_pairs' => array(
-			'name' => 'elgg_solr_reindex',
-			'value' => 1
-		),
-		'limit' => false
-	);
-	
-	$entities = new ElggBatch('elgg_get_entities', $options, '', 25, true);
-	
-	foreach ($entities as $e) {
-		elgg_solr_add_update_entity('', '', $e);
-		$e->elgg_solr_reindex = 0;
-	}
-}
-
-
-
 function elgg_solr_user_settings_save($hook, $type, $return, $params) {
 	$user_guid = (int) get_input('guid');
 	$user = get_user($user_guid);

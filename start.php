@@ -32,7 +32,6 @@ function elgg_solr_init() {
 	elgg_register_plugin_hook_handler('search', 'tags', 'elgg_solr_tag_search');
 	elgg_register_plugin_hook_handler('search', 'comments', 'elgg_solr_comment_search');
 	
-	elgg_register_plugin_hook_handler('cron', 'hourly', 'elgg_solr_cron_index');
 
     elgg_register_event_handler('create', 'all', 'elgg_solr_add_update_entity', 1000);
     elgg_register_event_handler('update', 'all', 'elgg_solr_add_update_entity', 1000);
@@ -42,6 +41,9 @@ function elgg_solr_init() {
 	elgg_register_event_handler('delete', 'annotations', 'elgg_solr_delete_annotation', 1000);
 	elgg_register_event_handler('create', 'metadata', 'elgg_solr_metadata_update');
 	elgg_register_event_handler('update', 'metadata', 'elgg_solr_metadata_update');
+	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_entities_sync');
+	
+	elgg_set_config('elgg_solr_sync', array());
 	
 	// when to update the user index
 	elgg_register_plugin_hook_handler('usersettings:save', 'user', 'elgg_solr_user_settings_save', 1000);
