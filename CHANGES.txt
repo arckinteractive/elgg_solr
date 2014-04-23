@@ -4,6 +4,9 @@ x.x (mm/dd/yyyy):
 
 1.2 ():
  - no longer requires hourly cron, real-time metadata triggers
+ - adds type/subtype index statistics
+ - restructure admin UI - controls separate from settings
+ - granular reindex based on type/subtype
 
 1.1 (04/21/2014):
  - correct special char escaping
