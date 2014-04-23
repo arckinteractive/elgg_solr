@@ -32,7 +32,7 @@ else {
 	elgg_register_menu_item('elgg_solr_controls', array(
 		'name' => 'solr_reindex',
 		'text' => elgg_echo('elgg_solr:reindex'),
-		'href' => 'action/elgg_solr/reindex',
+		'href' => 'action/elgg_solr/reindex?type=full',
 		'is_action' => true,
 		'is_trusted' => true,
 		'link_class' => 'elgg-button elgg-button-action elgg-requires-confirmation',

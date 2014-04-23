@@ -11,7 +11,12 @@ function elgg_solr_reindex() {
 		elgg_set_config('elgg_solr_debug', 1);
 	}
 
-	$registered_types = get_registered_entity_types();
+	if (elgg_get_config('elgg_solr_reindex_options')) {
+		$registered_types = elgg_get_config('elgg_solr_reindex_options');
+	}
+	else {
+		$registered_types = get_registered_entity_types();
+	}
 
 	$ia = elgg_set_ignore_access(true);
 
@@ -25,6 +30,9 @@ function elgg_solr_reindex() {
 		);
 
 		if ($subtypes) {
+			if (!is_array($subtypes)) {
+				$subtypes = array($subtypes);
+			}
 			$options['subtypes'] = $subtypes;
 		}
 
@@ -43,11 +51,36 @@ function elgg_solr_reindex() {
 		}
 	}
 	
+	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
+	elgg_solr_push_doc('<commit/>'); // commit the last of the entities
+	elgg_set_ignore_access($ia);
+}
+
+
+function elgg_solr_comment_reindex() {
+	set_time_limit(0);
+	
+	$debug = get_input('debug', false);
+	if ($debug) {
+		elgg_set_config('elgg_solr_debug', 1);
+	}
+	
+	// lock the function
+	elgg_set_plugin_setting('reindex_running', 1, 'elgg_solr');
+	
+	$ia = elgg_set_ignore_access(true);
+
+	elgg_set_config('elgg_solr_nocommit', true); // tell our indexer not to commit right away
+
+	$count = 0;
+	
 	// index comments
 	$options = array(
 		'annotation_name' => 'generic_comment',
 		'limit' => false
 	);
+	
+	$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 	$comments = new ElggBatch('elgg_get_annotations', $options, null, $batch_size);
 	
 	foreach ($comments as $comment) {
