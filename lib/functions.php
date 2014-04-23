@@ -102,9 +102,9 @@ function elgg_solr_get_indexable_count() {
 }
 
 
-function elgg_solr_get_indexed_count() {
+function elgg_solr_get_indexed_count($query = '*:*', $fq = array()) {
 	$select = array(
-        'query'  => '*:*',
+        'query'  => $query,
         'start'  => 0,
         'rows'   => 1,
         'fields' => array('id'),
@@ -115,6 +115,12 @@ function elgg_solr_get_indexed_count() {
 
     // get an update query instance
     $query = $client->createSelect($select);
+	
+	if (!empty($fq)) {
+        foreach ($fq as $key => $value) {
+            $query->createFilterQuery($key)->setQuery($value);
+        }
+    }
 	
 	try {
         $resultset = $client->select($query);

@@ -1,8 +1,10 @@
 <?php
 
 $english = array(
+	'admin:administer_utilities:solr_index' => "Solr Index",
 	'elgg_solr' => "Elgg Solr",
-	'elgg_solr:controls' => "Solr Controls",
+	'elgg_solr:index:controls' => "Solr Index Controls",
+	'elgg_solr:settings' => "Solr Settings",
 	'elgg_solr:settings:title:adapter_options' => "Adapter Options",
 	'elgg_solr:settings:host' => "Host",
 	'elgg_solr:settings:host:help' => "Enter the host of the solr installation without http(s) prefix.  eg. <strong>solr.example.com</strong>",
@@ -29,7 +31,11 @@ $english = array(
 	'elgg_solr:settings:core:help' => "If running a multi-core solr instance enter the name of the core Elgg should use eg. <strong>collection1</strong><br>  Leave blank for default.",
 	'elgg_solr:settings:extract' => "Use Extract Handler?",
 	'elgg_solr:settings:extract:help' => "The extract handler will index files uploaded to your site and allow them to be searchable by content.  While very common, not all solr implementations may have this configured.  If yours does not then disable this setting.",
-	'elgg_solr:indexed:compare' => "%s of %s items have been indexed.  The more these numbers differ the more inaccurate searching will be, run the 'Solr Reindex' to fix an inaccurate index.  If the Reindex is locked but the indexed count does not change after refreshing the page the reindex script may have terminated unexpectedly.  If this happens repeatedly ensure that your server has plenty of memory, try reducing the batch size (lower down on this page)."
+	'elgg_solr:indexed:compare' => "%s of %s items have been indexed.  The more these numbers differ the more inaccurate searching will be, run the 'Solr Reindex' to fix an inaccurate index.  If the Reindex is locked but the indexed count does not change after refreshing the page the reindex script may have terminated unexpectedly.  If this happens repeatedly ensure that your server has plenty of memory, try reducing the batch size (on the settings page).",
+	'elgg_solr:missing:settings' => "You must configure Solr before accessing advanced settings",
+	'elgg_solr:type:subtype' => "Type:Subtype",
+	'elgg_solr:system:count' => "System Count",
+	'elgg_solr:solr:count' => "Solr Indexed Count",
 );
 
 add_translation("en", $english);
