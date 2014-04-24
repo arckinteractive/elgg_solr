@@ -28,6 +28,14 @@ function elgg_solr_reindex() {
 			'type' => $type,
 			'limit' => false
 		);
+		
+		$time = elgg_get_config('elgg_solr_time_options');
+		if ($time && is_array($time)) {
+			$options['wheres'] = array(
+				"e.time_created >= {$time['starttime']}",
+				"e.time_created <= {$time['endtime']}",
+			);
+		}
 
 		if ($subtypes) {
 			if (!is_array($subtypes)) {
@@ -79,6 +87,12 @@ function elgg_solr_comment_reindex() {
 		'annotation_name' => 'generic_comment',
 		'limit' => false
 	);
+	
+	$time = elgg_get_config('elgg_solr_time_options');
+	if ($time && is_array($time)) {
+		$options['annotation_created_time_lower'] = $time['starttime'];
+		$options['annotation_created_time_upper'] = $time['endtime'];
+	}
 	
 	$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 	$comments = new ElggBatch('elgg_get_annotations', $options, null, $batch_size);
@@ -831,4 +845,148 @@ function elgg_solr_escape_special_chars($string) {
 		},
     $string);
 	return $query;
+}
+
+
+/**
+ * 
+ * @param type $time - timestamp of the start of the block
+ * @param type $block - the block of time, hour/day/month/year/all
+ * @param type $type
+ * @param type $subtype
+ * @return type
+ */
+function elgg_solr_get_stats($time, $block, $type, $subtype) {
+	$options = array(
+		'type' => $type
+	);
+	
+	$fq = array();
+	
+	if ($subtype) {
+		$options['subtype'] = $subtype;
+		$fq['subtype'] = "subtype:{$subtype}";
+	}
+	
+	$stats = array();
+	switch ($block) {
+		case 'hour':
+			// I don't think we need minute resolution right now...
+			break;
+		case 'day':
+			for ($i=0; $i<24; $i++) {
+				$starttime = mktime($i, 0, 0, date('m', $time), date('j', $time), date('Y', $time));
+				$endtime = mktime($i+1, 0, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
+				
+				$stats[date('H', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => false
+				);
+			}
+			break;
+		case 'month':
+			for ($i=1; $i<date('t', $time)+1; $i++) {
+				$starttime = mktime(0, 0, 0, date('m', $time), $i, date('Y', $time));
+				$endtime = mktime(0, 0, 0, date('m', $time), $i+1, date('Y', $time)) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
+				
+				$stats[date('d', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'day'
+				);
+			}
+			break;
+		case 'year':
+			for ($i=1; $i<13; $i++) {
+				$starttime = mktime(0, 0, 0, $i, 1, date('Y', $time));
+				$endtime = mktime(0, 0, 0, $i+1, 1, date('Y', $time)) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
+				
+				$stats[date('F', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'month'
+				);
+			}
+			break;
+		
+		case 'all':
+		default:
+			$startyear = date('Y', elgg_get_site_entity()->time_created);
+			$currentyear = date('Y');
+
+			for ($i=$currentyear; $i>$startyear -1; $i--) {
+				$starttime = mktime(0, 0, 0, 1, 1, $i);
+				$endtime = mktime(0, 0, 0, 1, 1, $i+1) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
+				
+				$stats[$i] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'year'
+				);
+			}
+
+			break;
+	}
+	
+	return $stats;
+}
+
+
+function elgg_solr_get_system_count($options, $starttime, $endtime) {
+	$options['wheres'] = array(
+		"e.time_created >= {$starttime}",
+		"e.time_created <= {$endtime}"
+	);
+		
+	$options['count'] = true;
+	
+	return (int) elgg_get_entities($options);
+}
+
+
+
+function elgg_solr_get_display_datetime($time, $block) {
+
+	switch ($block) {
+		case 'year':
+			$format = 'Y';
+			break;
+		case 'month':
+			$format = 'F Y';
+			break;
+		case 'day':
+			$format = 'F j, Y';
+			break;
+		case 'all':
+		default:
+			return elgg_echo('elgg_solr:time:all');
+			break;
+	}
+	
+	return date($format, $time);
 }

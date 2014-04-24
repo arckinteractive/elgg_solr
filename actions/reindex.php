@@ -5,7 +5,10 @@ if (elgg_get_plugin_setting('reindex_running', 'elgg_solr')) {
 	forward(REFERER);
 }
 
+$starttime = get_input('starttime');
+$endtime = get_input('endtime');
 $type = get_input('type');
+
 switch ($type) {
 	case 'comments':
 		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_comment_reindex');
@@ -22,6 +25,15 @@ switch ($type) {
 		elgg_set_config('elgg_solr_reindex_options', $types);
 		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_reindex');
 		break;
+}
+
+if ($starttime && $endtime) {
+	$time = array(
+		'starttime' => $starttime,
+		'endtime' => $endtime
+	);
+	
+	elgg_set_config('elgg_solr_time_options', $time);
 }
 
 system_message(elgg_echo('elgg_solr:success:reindex'));

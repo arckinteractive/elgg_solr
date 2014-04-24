@@ -35,7 +35,10 @@ $stats['comments'] = array(
 	'indexed' => elgg_solr_get_indexed_count('type:annotation', array('subtype' => 'subtype:generic_comment'))
 );
 
+$system_total = 0;
+$indexed_total = 0;
 ?>
+<div class="elgg-solr-stats">
 <table>
 	<tr>
 		<td>
@@ -51,7 +54,12 @@ $stats['comments'] = array(
 			
 		</td>
 	</tr>
-	<?php foreach ($stats as $key => $value):	?>
+	<?php
+	
+		foreach ($stats as $key => $value):
+			$system_total += (int)$value['count'];
+			$indexed_total += (int)$value['indexed'];
+		?>
 	<tr>
 		<td>
 			<?php echo $key; ?>
@@ -77,12 +85,40 @@ $stats['comments'] = array(
 					'is_action' => true,
 					'class' => 'elgg-requires-confirmation'
 				));
+				
+				echo ' | ';
+				
+				echo elgg_view('output/url', array(
+					'text' => elgg_echo('elgg_solr:stats:byyear'),
+					'href' => 'admin/elgg_solr/stats?time=year&block=all&type=' . $type_subtype[0] . '&subtype=' . $type_subtype[1]
+				));
 			?>
 		</td>
 	</tr>
 	<?php endforeach; ?>
+	<tr>
+		<td>
+			<strong><?php echo elgg_echo('elgg_solr:totals'); ?></strong>
+		</td>
+		<td>
+			<?php echo (int) $system_total; ?>
+		</td>
+		<td>
+			<?php echo (int) $indexed_total; ?>
+		</td>
+		<td></td>
+	</tr>
 </table>
-
+<?php
+echo elgg_view('output/longtext', array(
+		'value' => elgg_echo('elgg_solr:indexed:compare', array(
+			$indexed_total,
+			$system_total
+		)
+	)
+));
+?>
+</div>
 
 
 
