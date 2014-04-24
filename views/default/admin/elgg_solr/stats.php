@@ -38,7 +38,12 @@
 			<?php echo $key; ?>
 		</td>
 		<td>
-			<?php echo (int)$value['count']; ?>
+			<?php
+				echo elgg_view('output/url', array(
+					'text' => (int)$value['count'],
+					'href' => "admin/elgg_solr/list_entities?type={$type}&subtype={$subtype}&starttime={$value['starttime']}&endtime={$value['endtime']}"
+				));
+			?>
 		</td>
 		<td>
 			<?php echo (int)$value['indexed']; ?>

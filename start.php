@@ -33,6 +33,7 @@ function elgg_solr_init() {
 	elgg_register_plugin_hook_handler('search', 'group', 'elgg_solr_group_search');
 	elgg_register_plugin_hook_handler('search', 'tags', 'elgg_solr_tag_search');
 	elgg_register_plugin_hook_handler('search', 'comments', 'elgg_solr_comment_search');
+	elgg_register_plugin_hook_handler('cron', 'daily', 'elgg_solr_daily_cron');
 	
 
     elgg_register_event_handler('create', 'all', 'elgg_solr_add_update_entity', 1000);

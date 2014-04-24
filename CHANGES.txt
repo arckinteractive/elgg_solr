@@ -8,6 +8,7 @@ x.x (mm/dd/yyyy):
  - restructure admin UI - controls separate from settings
  - granular reindex based on type/subtype
  - granular reindex down to hourly resolution
+ - daily optimization of index
 
 1.1 (04/21/2014):
  - correct special char escaping

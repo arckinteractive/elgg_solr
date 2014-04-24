@@ -99,7 +99,7 @@ function elgg_solr_comment_reindex() {
 	
 	foreach ($comments as $comment) {
 		$count++;
-		if ($count % 100) {
+		if ($count % 10000) {
 			elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
 		}
 		elgg_solr_add_update_annotation(null, null, $comment);
@@ -111,7 +111,6 @@ function elgg_solr_comment_reindex() {
 		elgg_solr_debug_log($count . ' entities sent to Solr');
 	}
 	
-	elgg_solr_push_doc('<commit/>'); // commit the last of the entities
 	elgg_set_ignore_access($ia);
 	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
 }
