@@ -127,3 +127,9 @@ function elgg_solr_entities_sync() {
 		elgg_solr_add_update_entity(null, null, $e);
 	}
 }
+
+
+
+function elgg_solr_profile_update($event, $type, $entity) {
+	elgg_solr_add_update_user($entity);
+}

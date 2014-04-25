@@ -50,7 +50,7 @@ function elgg_solr_init() {
 	
 	// when to update the user index
 	elgg_register_plugin_hook_handler('usersettings:save', 'user', 'elgg_solr_user_settings_save', 1000);
-	elgg_register_event_handler('profileupdate','user', 'elgg_solr_add_update_entity', 1000);
+	elgg_register_event_handler('profileupdate','user', 'elgg_solr_profile_update', 1000);
 	
 	
 	// register functions for indexing
