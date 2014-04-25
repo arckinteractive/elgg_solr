@@ -45,6 +45,7 @@ $english = array(
 	'admin:elgg_solr' => "Elgg Solr",
 	'admin:elgg_solr:stats' => "Index by time",
 	'elgg_solr:time:all' => "All Time",
+	'admin:elgg_solr:list_entities' => "Entity List",
 );
 
 add_translation("en", $english);
