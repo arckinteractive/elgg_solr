@@ -27,8 +27,9 @@ if (!$entities) {
 }
 
 foreach ($entities as $e) {
+	$title = $e->title ? $e->title : $e->name;
 	echo elgg_view('output/url', array(
-		'text' => $e->title ? $e->title : $e->name,
+		'text' => 'Entity ' . $e->guid . ': ' . $title,
 		'href' => $e->getURL()
 	));
 	
