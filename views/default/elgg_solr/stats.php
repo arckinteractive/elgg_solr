@@ -23,6 +23,7 @@ foreach ($registered_types as $type => $subtypes) {
 		continue;
 	}
 	
+	$options['subtype'] = ELGG_ENTITIES_NO_VALUE;
 	$count = elgg_get_entities($options);
 	$indexed = elgg_solr_get_indexed_count("type:{$type}");
 	

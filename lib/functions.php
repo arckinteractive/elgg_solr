@@ -866,6 +866,9 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 		$options['subtype'] = $subtype;
 		$fq['subtype'] = "subtype:{$subtype}";
 	}
+	else {
+		$options['subtype'] = ELGG_ENTITIES_NO_VALUE;
+	}
 	
 	$stats = array();
 	switch ($block) {
