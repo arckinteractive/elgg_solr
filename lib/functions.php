@@ -958,6 +958,119 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 	return $stats;
 }
 
+function elgg_solr_get_comment_stats($time, $block) {
+	$type = 'annotation';
+	$fq = array(
+		'subtype' => "subtype:generic_comment"
+	);
+	$stats = array();
+	switch ($block) {
+		case 'hour':
+			// I don't think we need minute resolution right now...
+			break;
+		case 'day':
+			for ($i=0; $i<24; $i++) {
+				$starttime = mktime($i, 0, 0, date('m', $time), date('j', $time), date('Y', $time));
+				$endtime = mktime($i+1, 0, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+					));
+				
+				$stats[date('H', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => false
+				);
+			}
+			break;
+		case 'month':
+			for ($i=1; $i<date('t', $time)+1; $i++) {
+				$starttime = mktime(0, 0, 0, date('m', $time), $i, date('Y', $time));
+				$endtime = mktime(0, 0, 0, date('m', $time), $i+1, date('Y', $time)) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+					));
+				
+				$stats[date('d', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'day'
+				);
+			}
+			break;
+		case 'year':
+			for ($i=1; $i<13; $i++) {
+				$starttime = mktime(0, 0, 0, $i, 1, date('Y', $time));
+				$endtime = mktime(0, 0, 0, $i+1, 1, date('Y', $time)) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+					));
+				
+				$stats[date('F', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'month'
+				);
+			}
+			break;
+		
+		case 'all':
+		default:
+			$startyear = date('Y', elgg_get_site_entity()->time_created);
+			$currentyear = date('Y');
+
+			for ($i=$currentyear; $i>$startyear -1; $i--) {
+				$starttime = mktime(0, 0, 0, 1, 1, $i);
+				$endtime = mktime(0, 0, 0, 1, 1, $i+1) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+					));
+				
+				$stats[$i] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'year'
+				);
+			}
+
+			break;
+	}
+	
+	return $stats;
+}
+
 
 function elgg_solr_get_system_count($options, $starttime, $endtime) {
 	$options['wheres'] = array(
