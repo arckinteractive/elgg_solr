@@ -41,11 +41,19 @@ function elgg_solr_add_update_entity($event, $type, $entity) {
 
 function elgg_solr_delete_entity($event, $type, $entity) {
 	
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
+	if (!elgg_instanceof($entity)) {
 		return true;
 	}
 	
-	elgg_solr_push_doc('<delete><query>id:' . $entity->guid . '</query></delete>');
+	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
+		return true;
+	}
+
+	$client = elgg_solr_get_client();
+	$query = $client->createUpdate();
+	$query->addDeleteById($entity->guid);
+	$query->addCommit();
+	$client->update($query);
 
     return true;
 }
@@ -69,27 +77,30 @@ function elgg_solr_add_update_annotation($event, $type, $annotation) {
 	if ($annotation->name != 'generic_comment') {
 		return true;
 	}
+	
+	$client = elgg_solr_get_client();
+	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
+	
+	$query = $client->createUpdate();
+	
+	// add document
+	$doc = $query->createDocument();
+	$doc->id = 'annotation:' . $annotation->id;
+	$doc->type = 'annotation';
+	$doc->subtype = $annotation->name;
+	$doc->owner_guid = $annotation->owner_guid;
+	$doc->container_guid = $annotation->container_guid;
+	$doc->access_id = $annotation->access_id;
+	$doc->description = $annotation->value;
+	$doc->time_created = $annotation->time_created;
+	
+	$query->addDocument($doc);
+	$query->addCommit($commit);
 
-    $description = elgg_solr_xml_format($annotation->value);
-	$subtype = elgg_solr_xml_format($annotation->name);
-
-    // Build the user document to be posted
-    $doc = <<<EOF
-        <add>
-            <doc>
-				<field name="id">annotation:{$annotation->id}</field>
-				<field name="description">{$description}</field>
-                <field name="type">annotation</field>
-				<field name="subtype">{$subtype}</field>
-				<field name="access_id">{$annotation->access_id}</field>
-				<field name="container_guid">{$annotation->entity_guid}</field>
-				<field name="owner_guid">{$annotation->owner_guid}</field>
-				<field name="time_created">{$annotation->time_created}</field>
-            </doc>
-        </add>
-EOF;
-
-	elgg_solr_push_doc($doc);
+	// this executes the query and returns the result
+	$client->update($query);
+		
+	return true;
 }
 
 
@@ -99,7 +110,11 @@ function elgg_solr_delete_annotation($event, $type, $annotation) {
 		return true;
 	}
 
-	elgg_solr_push_doc('<delete><query>id:annotation%%' . $annotation->id . '</query></delete>');
+	$client = elgg_solr_get_client();
+	$query = $client->createUpdate();
+	$query->addDeleteById('annotation:' . $annotation->id);
+	$query->addCommit();
+	$client->update($query);
 
     return true;
 }

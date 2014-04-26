@@ -3,15 +3,16 @@
 x.x (mm/dd/yyyy):
 
 1.2 ():
- - no longer requires hourly cron, real-time metadata triggers
+ - no longer requires hourly cron, real-time metadata triggers index
  - adds type/subtype index statistics
  - restructure admin UI - controls separate from settings
  - granular reindex based on type/subtype
  - granular reindex down to hourly resolution
- - daily optimization of index
+ - daily optimization of index (requires daily cron)
  - fix filterquery for ELGG_ENTITIES_NO_VALUE
- - update to Solarium 3.2.0
+ - update to Solarium 3.2.0 - @note - requires PHP 5.3.3
  - composer.json for vendor management
+ - use solarium for everything
 
 1.1 (04/21/2014):
  - correct special char escaping

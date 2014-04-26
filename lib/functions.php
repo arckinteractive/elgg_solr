@@ -60,7 +60,12 @@ function elgg_solr_reindex() {
 	}
 	
 	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
-	elgg_solr_push_doc('<commit/>'); // commit the last of the entities
+	
+	// commit the last of the entities
+	$client = elgg_solr_get_client();
+	$query = $client->createUpdate();
+	$query->addCommit();
+	$client->update($query);
 	elgg_set_ignore_access($ia);
 }
 
@@ -367,222 +372,128 @@ function elgg_solr_get_solr_function($type, $subtype) {
 	return false;
 }
 
-
+/**
+ * Index a file entity
+ * 
+ * @param type $entity
+ * @return boolean
+ */
 function elgg_solr_add_update_file($entity) {
-	$debug = false;
-	if (elgg_get_config('elgg_solr_debug')) {
-		$debug = true;
-	}
+	   
+	$client = elgg_solr_get_client();
+	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 	
-	// combine some additional sources to search
-	$desc = $entity->description;
-	
-	$owner = $entity->getOwnerEntity();
-
-    $title       = urlencode($entity->title);
-    $description = urlencode($desc);
-   
-
-    // File you want to upload/post
 	$extract = elgg_get_plugin_setting('extract_handler', 'elgg_solr');
+	$extracting = false;
 	if (file_exists($entity->getFilenameOnFilestore()) && $extract == 'yes') {
-		$options = elgg_solr_get_adapter_options();
-		
-		if ($options['core']) {
-			$options['core'] .= '/';
-		}
-		
-		// URL on which we have to post data
-		$url = "http://{$options['host']}:{$options['port']}{$options['path']}{$options['core']}update/extract?"
-         . "literal.id={$entity->guid}"
-         . "&literal.container_guid={$entity->container_guid}"
-		 . "&literal.owner_guid={$entity->owner_guid}"
-		 . "&literal.title={$title}"
-		 . "&literal.type=object"
-		 . "&literal.subtype=file"
-		 . "&literal.access_id={$entity->access_id}"
-		 . "&literal.time_created={$entity->time_created}";
-
-		if ($description) {
-			$url .= "&literal.description={$description}";
-		}
-		
-		$valid_tag_names = elgg_get_registered_tag_metadata_names();
-		
-		if ($valid_tag_names && is_array($valid_tag_names)) {
-			foreach ($valid_tag_names as $tagname) {
-				$tags = $entity->$tagname;
-				if ($tags && !is_array($tags)) {
-					$tags = array($tags);
-				}
-		
-				if ($tags && is_array($tags)) {
-					foreach ($tags as $tag) {
-						$t = urlencode($tagname . '%%' . $tag);
-						$url .= "&literal.tags={$t}";
-					}
-				}
-			}
-		}
-
-		$url .= "&uprefix=attr_&fmap.content=attr_content";
-		
-		if (!elgg_get_config('elgg_solr_nocommit')) {
-			$url .= '&commit=true';
-		}
-		
-		$ch = curl_init();
-		$doc = array('myfile' => '@'.$entity->getFilenameOnFilestore());
-
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $doc);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_VERBOSE, 1);
-		
-		// Execute the request
-		try {
-			if ($debug) {
-				elgg_solr_debug_log('attempting solr update with url: ' . $url);
-				elgg_solr_debug_log('doc = ' . print_r($doc,1));
-			}
-			$response = curl_exec($ch);
-		
-			if ($debug) {
-				elgg_solr_debug_log('curl response:  ' . print_r($response,1));
-			}
-		} catch( Exception $e) {
-			if ($debug) {
-				elgg_solr_debug_log('elgg_solr_add_update_object() - ' . $e->getMessage());
-			}
-		}
-
-		return true;
+		$extracting = true;
 	}
 	
-	$title       = elgg_solr_xml_format($entity->title);
-    $description = elgg_solr_xml_format($desc);
-
-	// we have no file to send, so push xml doc
-	$doc = <<<EOF
-        <add>
-            <doc>
-                <field name="id">{$entity->guid}</field>
-				<field name="title">{$title}</field>
-				<field name="description">{$description}</field>
-                <field name="type">object</field>
-				<field name="subtype">file</field>
-				<field name="container_guid">{$entity->container_guid}</field>
-				<field name="owner_guid">{$entity->owner_guid}</field>
-				<field name="access_id">{$entity->access_id}</field>
-				<field name="time_created">{$entity->time_created}</field>
-EOF;
-		
-	$valid_tag_names = elgg_get_registered_tag_metadata_names();
-		
-	if ($valid_tag_names && is_array($valid_tag_names)) {
-			foreach ($valid_tag_names as $tagname) {
-				$tags = $entity->$tagname;
-				if ($tags && !is_array($tags)) {
-					$tags = array($tags);
-				}
-				if ($tags && is_array($tags)) {
-					foreach ($tags as $tag) {
-						$t = elgg_solr_xml_format($tagname . '%%' . $tag);
-							$doc .= <<<EOF
-				<field name="tags">{$t}</field>
-EOF;
-					}
-				}
-			}
+	if ($extracting) {
+		// get an extract query instance and add settings
+		$query = $client->createExtract();
+		$query->setFile($entity->getFilenameOnFilestore());
+		$query->addFieldMapping('content', 'text');
+		$query->setUprefix('attr_');
+		$query->setOmitHeader(false);
 	}
+	else {
+		$query = $client->createUpdate();
+	}
+		
+	// add document
+	$doc = $query->createDocument();
+	$doc->id = $entity->guid;
+	$doc->type = $entity->subtype;
+	$doc->subtype = $entity->getSubtype();
+	$doc->owner_guid = $entity->owner_guid;
+	$doc->container_guid = $entity->container_guid;
+	$doc->access_id = $entity->access_id;
+	$doc->title = $entity->title;
+	$doc->description = $entity->description;
+	$doc->time_created = $entity->time_created;
+	$doc->tags = elgg_solr_get_tags_array($entity);
+	
+	//@TODO - investigate these
+	// set a document boost value
+	//$document->setBoost(2.5);
+
+	// set a field boost
+	//$document->setFieldBoost('population', 4.5);
+	//$document->setField('title', $entity->title, 4.5);
 				
-$doc .= <<<EOF
-            </doc>
-        </add>
-EOF;
-				
-	elgg_solr_push_doc($doc);
+	if ($extracting) {
+		$query->setDocument($doc);
+		$query->setCommit($commit);
+		$client->extract($query);
+	}
+	else {
+		$query->addDocument($doc);
+		$query->addCommit($commit);
+		$client->update($query);
+	}
+		
+	return true;
 }
 
-
+/**
+ * Index a generic elgg object
+ * 
+ * @param type $entity
+ * @return boolean
+ */
 function elgg_solr_add_update_object_default($entity) {
-	
+	   
 	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		return false;
 	}
 	
-	$title       = elgg_solr_xml_format($entity->title);
-    $description = elgg_solr_xml_format($entity->description);
-
-    // Build the user document to be posted
-    $doc = <<<EOF
-        <add>
-            <doc>
-				<field name="id">{$entity->guid}</field>
-				<field name="title">{$title}</field>
-				<field name="description">{$description}</field>
-                <field name="type">object</field>
-				<field name="subtype">{$entity->getSubtype()}</field>
-				<field name="access_id">{$entity->access_id}</field>
-				<field name="container_guid">{$entity->container_guid}</field>
-				<field name="owner_guid">{$entity->owner_guid}</field>
-				<field name="time_created">{$entity->time_created}</field>
-EOF;
-				
-	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+	$client = elgg_solr_get_client();
+	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 	
-	if ($valid_tag_names && is_array($valid_tag_names)) {
-		foreach ($valid_tag_names as $tagname) {
-			$tags = $entity->$tagname;
-			if ($tags && !is_array($tags)) {
-				$tags = array($tags);
-			}
-			if ($tags && is_array($tags)) {
-				foreach ($tags as $tag) {
-					$t = elgg_solr_xml_format($tagname . '%%' . $tag);
-						$doc .= <<<EOF
-			<field name="tags">{$t}</field>
-EOF;
-				}
-			}
-		}
-	}
+	$query = $client->createUpdate();
+	
+	// add document
+	$doc = $query->createDocument();
+	$doc->id = $entity->guid;
+	$doc->type = $entity->subtype;
+	$doc->subtype = $entity->getSubtype();
+	$doc->owner_guid = $entity->owner_guid;
+	$doc->container_guid = $entity->container_guid;
+	$doc->access_id = $entity->access_id;
+	$doc->title = $entity->title;
+	$doc->name = $entity->name;
+	$doc->description = $entity->description;
+	$doc->time_created = $entity->time_created;
+	$doc->tags = elgg_solr_get_tags_array($entity);
+	
+	//@TODO - investigate these
+	// set a document boost value
+	//$document->setBoost(2.5);
 
+	// set a field boost
+	//$document->setFieldBoost('population', 4.5);
+	//$document->setField('title', $entity->title, 4.5);
+				
+	$query->addDocument($doc);
+	$query->addCommit($commit);
 
-$doc .= <<<EOF
-            </doc>
-        </add>
-EOF;
-
-	elgg_solr_push_doc($doc);
+	// this executes the query and returns the result
+	$client->update($query);
+		
+	return true;
 }
 
 
 function elgg_solr_add_update_user($entity) {
-	$debug = false;
-	if (elgg_get_config('elgg_solr_debug')) {
-		$debug = true;
-	}
 	
 	if (!elgg_instanceof($entity, 'user')) {
-		if ($debug) {
-			elgg_solr_debug_log('Error: Not a valid user - ' . print_r($entity,1));
-		}
 		return false;
 	}
 	
 	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
-		if ($debug) {
-			elgg_solr_debug_log('Error: Not a valid entity type - ' . print_r($entity,1));
-		}
 		return false;
 	}
-	
-    $guid     = $entity->guid;
-    $name     = elgg_solr_xml_format($entity->name);
-	$username = elgg_solr_xml_format($entity->username);
-	
 	
 	// lump public profile fields in with description
 	$profile_fields = elgg_get_config('profile_fields');
@@ -603,115 +514,46 @@ function elgg_solr_add_update_user($entity) {
 		}
 	}
 	
-	$description = elgg_solr_xml_format($desc);
-
-    // Build the user document to be posted
-    $doc = <<<EOF
-        <add>
-            <doc>
-                <field name="id">$guid</field>
-				<field name="owner_guid">{$entity->owner_guid}</field>
-				<field name="container_guid">{$entity->container_guid}</field>
-                <field name="name">$name</field>
-                <field name="username">$username</field>
-				<field name="description">$description</field>
-                <field name="type">user</field>
-				<field name="subtype">{$entity->getSubtype()}</field>
-				<field name="access_id">{$entity->access_id}</field>
-				<field name="time_created">{$entity->time_created}</field>
-EOF;
-				
-	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+	$client = elgg_solr_get_client();
+	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 	
-	if ($valid_tag_names && is_array($valid_tag_names)) {
-		foreach ($valid_tag_names as $tagname) {
-			$tags = $entity->$tagname;
-			if ($tags && !is_array($tags)) {
-				$tags = array($tags);
-			}
-			if ($tags && is_array($tags)) {
-				foreach ($tags as $tag) {
-					$t = elgg_solr_xml_format($tagname . '%%' . $tag);
-						$doc .= <<<EOF
-			<field name="tags">{$t}</field>
-EOF;
-				}
-			}
-		}
-	}
+	$query = $client->createUpdate();
+	
+	// add document
+	$doc = $query->createDocument();
+	$doc->id = $entity->guid;
+	$doc->type = $entity->subtype;
+	$doc->subtype = $entity->getSubtype();
+	$doc->owner_guid = $entity->owner_guid;
+	$doc->container_guid = $entity->container_guid;
+	$doc->access_id = $entity->access_id;
+	$doc->title = $entity->title;
+	$doc->name = $entity->name;
+	$doc->username = $entity->username;
+	$doc->description = $desc;
+	$doc->time_created = $entity->time_created;
+	$doc->tags = elgg_solr_get_tags_array($entity);
+	
+	//@TODO - investigate these
+	// set a document boost value
+	//$document->setBoost(2.5);
 
-
-$doc .= <<<EOF
-            </doc>
-        </add>
-EOF;
-
-	elgg_solr_push_doc($doc);
+	// set a field boost
+	//$document->setFieldBoost('population', 4.5);
+	//$document->setField('title', $entity->title, 4.5);
+				
+	$query->addDocument($doc);
+	$query->addCommit($commit);
+	
+	// this executes the query and returns the result
+	$client->update($query);
+		
+	return true;
 }
 
 
 function elgg_solr_debug_log($message) {
 	error_log($message);
-}
-
-
-function elgg_solr_push_doc($doc) {
-	$debug = false;
-	if (elgg_get_config('elgg_solr_debug')) {
-		$debug = true;
-	}
-	
-	$options = elgg_solr_get_adapter_options();
-	if ($options['core']) {
-		$options['core'] .= '/';
-	}
-	
-	// Solr URL
-    $url = "http://{$options['host']}:{$options['port']}{$options['path']}{$options['core']}update";
-	
-	if (!elgg_get_config('elgg_solr_nocommit')) {
-		$url .= '?commit=true';
-	}
-
-    // Initialize cURL
-    $ch = curl_init();
-
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: text/xml")); 
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $doc);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_VERBOSE, 1);
-
-    // Execute the request
-    try {
-		if ($debug) {
-			elgg_solr_debug_log('attempting solr update with url: ' . $url);
-			elgg_solr_debug_log('doc = ' . print_r($doc,1));
-		}
-        $response = curl_exec($ch);
-		
-		if ($debug) {
-			elgg_solr_debug_log('curl response:  ' . print_r($response,1));
-		}
-    } catch( Exception $e) {
-		if ($debug) {
-			elgg_solr_debug_log('elgg_solr_add_update_object() - ' . $e->getMessage());
-		}
-    }
-
-    curl_close($ch);
-}
-
-
-function elgg_solr_xml_format($text) {
-	$doc = new DOMDocument();
-	$fragment = $doc->createDocumentFragment();
-
-	$fragment->appendChild($doc->createTextNode($text));
-
-	// output the result
-	return $doc->saveXML($fragment);
 }
 
 
@@ -782,56 +624,14 @@ function elgg_solr_get_access_query() {
 }
 
 
-
+/**
+ * by default there's nothing we need to do different with this
+ * so it's just a wrapper for object add
+ * 
+ * @param type $entity
+ */
 function elgg_solr_add_update_group_default($entity) {
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
-		return false;
-	}
-	
-	$name       = elgg_solr_xml_format($entity->name);
-    $description = elgg_solr_xml_format($entity->description);
-
-    // Build the user document to be posted
-    $doc = <<<EOF
-        <add>
-            <doc>
-				<field name="id">{$entity->guid}</field>
-				<field name="title">{$name}</field>
-				<field name="name">{$name}</field>
-				<field name="description">{$description}</field>
-                <field name="type">group</field>
-				<field name="subtype">{$entity->getSubtype()}</field>
-				<field name="access_id">{$entity->access_id}</field>
-				<field name="container_guid">{$entity->container_guid}</field>
-				<field name="owner_guid">{$entity->owner_guid}</field>
-				<field name="time_created">{$entity->time_created}</field>
-EOF;
-
-	$valid_tag_names = elgg_get_registered_tag_metadata_names();
-	
-	if ($valid_tag_names && is_array($valid_tag_names)) {
-		foreach ($valid_tag_names as $tagname) {
-			$tags = $entity->$tagname;
-			if ($tags && !is_array($tags)) {
-				$tags = array($tags);
-			}
-			if ($tags && is_array($tags)) {
-				foreach ($tags as $tag) {
-					$t = elgg_solr_xml_format($tagname . '%%' . $tag);
-						$doc .= <<<EOF
-			<field name="tags">{$t}</field>
-EOF;
-				}
-			}
-		}
-	}
-
-$doc .= <<<EOF
-            </doc>
-        </add>
-EOF;
-
-	elgg_solr_push_doc($doc);
+	elgg_solr_add_update_object_default($entity);
 }
 
 
@@ -1104,4 +904,33 @@ function elgg_solr_get_display_datetime($time, $block) {
 	}
 	
 	return date($format, $time);
+}
+
+
+/**
+ * Returns an array of tags for indexing
+ * 
+ * @param type $entity
+ * @return string
+ */
+function elgg_solr_get_tags_array($entity) {
+	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+	
+	$t = array();
+	if ($valid_tag_names && is_array($valid_tag_names)) {
+		foreach ($valid_tag_names as $tagname) {
+			$tags = $entity->$tagname;
+			if ($tags && !is_array($tags)) {
+				$tags = array($tags);
+			}
+	
+			if ($tags && is_array($tags)) {
+				foreach ($tags as $tag) {
+					$t[] = $tagname . '%%' . $tag;
+				}
+			}
+		}
+	}
+	
+	return $t;
 }

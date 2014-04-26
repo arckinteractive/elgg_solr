@@ -682,5 +682,8 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 
 // optimize our index daily
 function elgg_solr_daily_cron($hook, $type, $return, $params) {
-	elgg_solr_push_doc('<optimize/>');
+	$client = elgg_solr_get_client();
+	$query = $client->createUpdate();
+	$query->addOptimize(true, true, 5);
+	$client->update($query);
 }
