@@ -2,7 +2,7 @@
 
 x.x (mm/dd/yyyy):
 
-1.2 ():
+1.2 (04/26/14):
  - no longer requires hourly cron, real-time metadata triggers index
  - adds type/subtype index statistics
  - restructure admin UI - controls separate from settings
