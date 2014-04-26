@@ -10,6 +10,8 @@ x.x (mm/dd/yyyy):
  - granular reindex down to hourly resolution
  - daily optimization of index
  - fix filterquery for ELGG_ENTITIES_NO_VALUE
+ - update to Solarium 3.2.0
+ - composer.json for vendor management
 
 1.1 (04/21/2014):
  - correct special char escaping

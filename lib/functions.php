@@ -182,14 +182,14 @@ function elgg_solr_get_indexed_count($query = '*:*', $fq = array()) {
 function elgg_solr_get_client() {
 	elgg_load_library('Solarium');
 	
-	Solarium_Autoloader::register();
+	Solarium\Autoloader::register();
 	
 	$options = elgg_solr_get_adapter_options();
 
 	$config = array('adapteroptions' => $options);
 
 	// create a client instance
-	return new Solarium_Client($config);
+	return new Solarium\Client($config);
 }
 
 

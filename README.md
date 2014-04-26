@@ -10,12 +10,20 @@ Speed up site search by using a dedicated Solr search index
 
 This plugin follows the structure of the default Elgg search plugin, can be extended using the same search plugin hooks.
 
-Dependencies
+
+Elgg Dependencies
 =========
 
 This plugin depends on the default elgg search plugin (bundled with Elgg)
 
 This plugin depends on the vroom plugin - https://github.com/jumbojett/vroom
+
+
+Git Dev
+=========
+
+If grabbing the plugin from Github, install dependencies by running ```composer install```
+
 
 Installation
 =========

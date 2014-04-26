@@ -18,7 +18,7 @@ function elgg_solr_init() {
 		return true;
 	}
 	
-	elgg_register_library('Solarium', dirname(__FILE__) . '/lib/Solarium/Autoloader.php');
+	elgg_register_library('Solarium', dirname(__FILE__) . '/vendor/autoload.php');
 	
 	// unregister default search hooks
 	elgg_unregister_plugin_hook_handler('search', 'object', 'search_objects_hook');
