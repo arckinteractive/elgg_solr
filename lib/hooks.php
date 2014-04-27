@@ -233,7 +233,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	$query->addSorts(array(
 		'score' => 'desc',
-		'time_created' => 'asc'
+		'time_created' => 'desc'
 	));
 	
 	// make sure we're only getting users
