@@ -27,7 +27,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
     $query = $client->createSelect($select);
 	$query->addSorts(array(
 		'score' => 'desc',
-		'time_created' => 'asc'
+		'time_created' => 'desc'
 	));
 	
 	$params['fq']['type'] = 'type:object';
@@ -132,7 +132,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	$query->addSorts(array(
 		'score' => 'desc',
-		'time_created' => 'asc'
+		'time_created' => 'desc'
 	));
 	
 	// make sure we're only getting objectss
@@ -337,7 +337,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	$query->addSorts(array(
 		'score' => 'desc',
-		'time_created' => 'asc'
+		'time_created' => 'desc'
 	));
 	
 	// make sure we're only getting groups
@@ -486,7 +486,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	$query->addSorts(array(
 		'score' => 'desc',
-		'time_created' => 'asc'
+		'time_created' => 'desc'
 	));
 	
 	$default_fq = elgg_solr_get_default_fq($params);
@@ -590,7 +590,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
     $query = $client->createSelect($select);
 	$query->addSorts(array(
 		'score' => 'desc',
-		'time_created' => 'asc'
+		'time_created' => 'desc'
 	));
 	
 	// make sure we're only getting comments
