@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.3 ():
+ - search order by time_created desc (after relevance)
+
 1.2 (04/26/14):
  - no longer requires hourly cron, real-time metadata triggers index
  - adds type/subtype index statistics
