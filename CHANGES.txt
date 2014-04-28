@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.3 ():
+ - strip tags from highlighted results prior to highlighting (sometimes was breaking views)
+
 1.2.1 (04/27/14):
  - search order by time_created desc (after relevance)
  - fix typo in commit command (can now reindex again)

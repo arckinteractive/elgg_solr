@@ -85,6 +85,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
                     $snippet = implode(' (...) ', $highlight);
+					$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
 					$entity->setVolatileData('search_matched_' . $field, $snippet);
 					$matched[$field] = $snippet;
                 }
@@ -293,6 +294,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
                     $snippet = implode(' (...) ', $highlight);
+					$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
 					$entity->setVolatileData('search_matched_' . $field, $snippet);
 					$matched[$field] = $snippet;
                 }
@@ -397,6 +399,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
                     $snippet = implode(' (...) ', $highlight);
+					$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
 					$entity->setVolatileData('search_matched_' . $field, $snippet);
 					$matched[$field] = $snippet;
                 }
@@ -654,11 +657,12 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
         if($highlightedDoc){
             foreach($highlightedDoc as $highlight) {
                 $comment_str = implode(' (...) ', $highlight);
+				$comment_str = search_get_highlighted_relevant_substrings(elgg_strip_tags($comment_str), $params['query']);
             }
         }
 		
 		if (!$comment_str) {
-			$comment_str = elgg_get_excerpt($document->description);
+			$comment_str = search_get_highlighted_relevant_substrings(elgg_get_excerpt($document->description), $params['query']);
 		}
 		
 		$comments_data = $entity->getVolatileData('search_comments_data');
