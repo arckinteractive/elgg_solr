@@ -191,7 +191,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
                 foreach($highlightedDoc as $field => $highlight) {
                     $snippet .= implode(' (...) ', $highlight);
 					$entity->setVolatileData('search_matched_' . $field, $snippet);
-					$matched[$field] = $snippet;
+					$matched[$field] = elgg_strip_tags($snippet);
                 }
             }
 			
