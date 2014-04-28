@@ -95,7 +95,9 @@ function elgg_solr_add_update_annotation($event, $type, $annotation) {
 	$doc->time_created = $annotation->time_created;
 	
 	$query->addDocument($doc);
-	$query->addCommit($commit);
+	if ($commit) {
+		$query->addCommit($commit);
+	}
 
 	// this executes the query and returns the result
 	$client->update($query);

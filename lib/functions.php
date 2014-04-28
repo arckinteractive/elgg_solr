@@ -404,7 +404,7 @@ function elgg_solr_add_update_file($entity) {
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
-	$doc->type = $entity->subtype;
+	$doc->type = $entity->type;
 	$doc->subtype = $entity->getSubtype();
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
@@ -424,12 +424,16 @@ function elgg_solr_add_update_file($entity) {
 				
 	if ($extracting) {
 		$query->setDocument($doc);
-		$query->setCommit($commit);
+		if ($commit) {
+			$query->setCommit();
+		}
 		$client->extract($query);
 	}
 	else {
 		$query->addDocument($doc);
-		$query->addCommit($commit);
+		if ($commit) {
+			$query->addCommit();
+		}
 		$client->update($query);
 	}
 		
@@ -456,7 +460,7 @@ function elgg_solr_add_update_object_default($entity) {
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
-	$doc->type = $entity->subtype;
+	$doc->type = $entity->type;
 	$doc->subtype = $entity->getSubtype();
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
@@ -476,7 +480,9 @@ function elgg_solr_add_update_object_default($entity) {
 	//$document->setField('title', $entity->title, 4.5);
 				
 	$query->addDocument($doc);
-	$query->addCommit($commit);
+	if ($commit) {
+		$query->addCommit($commit);
+	}
 
 	// this executes the query and returns the result
 	$client->update($query);
@@ -522,7 +528,7 @@ function elgg_solr_add_update_user($entity) {
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
-	$doc->type = $entity->subtype;
+	$doc->type = $entity->type;
 	$doc->subtype = $entity->getSubtype();
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
@@ -542,12 +548,13 @@ function elgg_solr_add_update_user($entity) {
 	//$document->setFieldBoost('population', 4.5);
 	//$document->setField('title', $entity->title, 4.5);
 				
-	$query->addDocument($doc);
-	$query->addCommit($commit);
-	
+	$query->addDocument($doc, true);
+	if ($commit) {
+		$query->addCommit();
+	}
+
 	// this executes the query and returns the result
 	$client->update($query);
-		
 	return true;
 }
 
