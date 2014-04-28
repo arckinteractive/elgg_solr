@@ -190,13 +190,13 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
             if($highlightedDoc){
                 foreach($highlightedDoc as $field => $highlight) {
                     $snippet .= implode(' (...) ', $highlight);
-					$entity->setVolatileData('search_matched_' . $field, $snippet);
+					$entity->setVolatileData('search_matched_' . $field, elgg_strip_tags($snippet));
 					$matched[$field] = elgg_strip_tags($snippet);
                 }
             }
 			
 			if (empty($matched['title'])) {
-				$entity->setVolatileData('search_matched_title', $entity->title);
+				$entity->setVolatileData('search_matched_title', elgg_strip_tags($entity->title));
 			}
             
 			if (empty($matched['description'])) {
