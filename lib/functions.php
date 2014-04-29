@@ -191,7 +191,9 @@ function elgg_solr_get_client() {
 	
 	$options = elgg_solr_get_adapter_options();
 
-	$config = array('adapteroptions' => $options);
+	$config = array('endpoint' => array(
+		'localhost' => $options
+		));
 
 	// create a client instance
 	return new Solarium\Client($config);

@@ -2,8 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
-1.3 ():
+1.2.2 (04/28/2014):
  - strip tags from highlighted results prior to highlighting (sometimes was breaking views)
+ - fix adapter options structure for solarium 3.2.0
 
 1.2.1 (04/27/14):
  - search order by time_created desc (after relevance)
