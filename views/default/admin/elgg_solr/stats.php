@@ -70,6 +70,21 @@
 					'class' => 'elgg-requires-confirmation'
 				));
 				
+				echo ' | ';
+				
+				$delete_index = 'action/elgg_solr/delete_index?type=' . $type;
+				if ($subtype) {
+					$delete_index .= "&subtype={$subtype}";
+				}
+				$delete_index .= "&starttime={$value['starttime']}&endtime={$value['endtime']}";
+				echo elgg_view('output/url', array(
+					'text' => elgg_echo('elgg_solr:index:delete'),
+					'href' => $delete_index,
+					'is_trusted' => true,
+					'is_action' => true,
+					'class' => 'elgg-requires-confirmation'
+				));
+				
 				if ($value['block']) {
 					echo ' | ';
 				

@@ -89,6 +89,20 @@ $indexed_total = 0;
 				
 				echo ' | ';
 				
+				$delete_index = 'action/elgg_solr/delete_index?type=' . $type_subtype[0];
+				if ($type_subtype[1]) {
+					$delete_index .= "&subtype={$type_subtype[1]}";
+				}
+				echo elgg_view('output/url', array(
+					'text' => elgg_echo('elgg_solr:index:delete'),
+					'href' => $delete_index,
+					'is_trusted' => true,
+					'is_action' => true,
+					'class' => 'elgg-requires-confirmation'
+				));
+				
+				echo ' | ';
+				
 				echo elgg_view('output/url', array(
 					'text' => elgg_echo('elgg_solr:stats:byyear'),
 					'href' => 'admin/elgg_solr/stats?time=year&block=all&type=' . $type_subtype[0] . '&subtype=' . $type_subtype[1]

@@ -2,9 +2,13 @@
 
 x.x (mm/dd/yyyy):
 
-1.3 ():
+1.3 (05/03/2014):
  - plugin setting to fall back to Elgg Search (useful while rebuilding indexes)
-
+ - fix entity guid storage for comment indexes (requires reindex of comments)
+ - fix empty subtype filterquery
+ - append username to display name to show username highlighted results
+ - performance boost, gets elgg results in a single query
+ - selective deletion of solr index by type/subtype and time
 
 1.2.2 (04/28/2014):
  - strip tags from highlighted results prior to highlighting (sometimes was breaking views)

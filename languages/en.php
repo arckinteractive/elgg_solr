@@ -49,6 +49,7 @@ $english = array(
 	'elgg_solr:settings:title:use_solr' => "Solr Search",
 	'elgg_solr:settings:use_solr' => "Use Solr for returning search results?",
 	'elgg_solr:settings:use_solr:help' => "Setting this to 'No' will let search fall back to the default search handlers while allowing you to keep this plugin active.  Useful for using Elgg default search while rebuilding the solr index.",
+	'elgg_solr:index:delete' => "Delete Index",
 );
 
 add_translation("en", $english);
