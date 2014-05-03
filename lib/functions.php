@@ -429,14 +429,23 @@ function elgg_solr_add_update_file($entity) {
 		if ($commit) {
 			$query->setCommit();
 		}
-		$client->extract($query);
+		try {
+			$client->extract($query);	
+		} catch (Exception $exc) {
+			error_log($exc->getMessage());
+		}
 	}
 	else {
 		$query->addDocument($doc);
 		if ($commit) {
 			$query->addCommit();
 		}
-		$client->update($query);
+		
+		try {
+			$client->update($query);	
+		} catch (Exception $exc) {
+			error_log($exc->getMessage());
+		}
 	}
 		
 	return true;
@@ -487,7 +496,11 @@ function elgg_solr_add_update_object_default($entity) {
 	}
 
 	// this executes the query and returns the result
-	$client->update($query);
+	try {
+		$client->update($query);	
+	} catch (Exception $exc) {
+		error_log($exc->getMessage());
+	}
 		
 	return true;
 }
@@ -556,7 +569,11 @@ function elgg_solr_add_update_user($entity) {
 	}
 
 	// this executes the query and returns the result
-	$client->update($query);
+	try {
+		$client->update($query);	
+	} catch (Exception $exc) {
+		error_log($exc->getMessage());
+	}
 	return true;
 }
 

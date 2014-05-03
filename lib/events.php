@@ -100,7 +100,11 @@ function elgg_solr_add_update_annotation($event, $type, $annotation) {
 	}
 
 	// this executes the query and returns the result
-	$client->update($query);
+	try {
+		$client->update($query);	
+	} catch (Exception $exc) {
+		error_log($exc->getMessage());
+	}
 		
 	return true;
 }
