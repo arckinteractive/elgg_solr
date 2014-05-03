@@ -74,6 +74,19 @@ $body .= elgg_view('output/longtext', array(
 	'value' => elgg_echo('elgg_solr:settings:extract:help'),
 	'class' => 'elgg-subtext'
 ));
+
+$body .= '<label>' . elgg_echo('elgg_solr:settings:use_solr') . '</label><br>';
+$body .= elgg_view('input/dropdown', array(
+	'name' => 'params[use_solr]',
+	'value' => $vars['entity']->use_solr ? $vars['entity']->use_solr : 'yes',
+	'options_values' => array(
+		'yes' => elgg_echo('option:yes'),
+		'no' => elgg_echo('option:no')
+	)
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:use_solr:help'),
+	'class' => 'elgg-subtext'
+));
 		
 echo elgg_view_module('main', $title, $body);
-		
