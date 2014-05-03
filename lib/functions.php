@@ -237,7 +237,8 @@ function elgg_solr_get_default_fq($params) {
 	// type/types
 	if (isset($params['type']) && $params['type'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if ($params['type'] === ELGG_ENTITIES_NO_VALUE) {
-			$fq['type'] = '-type:[* TO *]';
+			//$fq['type'] = '-type:[* TO *]';
+			$fq['type'] = 'type:""';
 		}
 		else {
 			$fq['type'] = 'type:' . $params['type'];
@@ -250,7 +251,8 @@ function elgg_solr_get_default_fq($params) {
 		}
 		else {
 			if ($params['types'] === ELGG_ENTITIES_NO_VALUE) {
-				$fq['type'] = '-type:[* TO *]';
+				//$fq['type'] = '-type:[* TO *]';
+				$fq['type'] = 'type:""';
 			}
 			else {
 				$fq['type'] = 'type:' . $params['types'];
@@ -261,7 +263,8 @@ function elgg_solr_get_default_fq($params) {
 	//subtype
 	if (isset($params['subtype']) && $params['subtype'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if ($params['subtype'] === ELGG_ENTITIES_NO_VALUE) {
-			$fq['subtype'] = '-subtype:[* TO *]';
+			//$fq['subtype'] = '-subtype:[* TO *]';
+			$fq['subtype'] = 'subtype:""';
 		}
 		else {
 			$fq['subtype'] = 'subtype:' . $params['subtype'];
@@ -274,7 +277,8 @@ function elgg_solr_get_default_fq($params) {
 		}
 		else {
 			if ($params['subtypes'] === ELGG_ENTITIES_NO_VALUE) {
-				$fq['subtype'] = '-subtype:[* TO *]';
+				//$fq['subtype'] = '-subtype:[* TO *]';
+				$fq['subtype'] = 'subtype:""';
 			}
 			else {
 				$fq['subtype'] = 'subtype:' . $params['subtypes'];
