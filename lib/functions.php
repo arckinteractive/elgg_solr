@@ -611,7 +611,7 @@ function elgg_solr_get_access_query() {
 		// get friends
 		// @TODO - is there a better way? Not sure if there's a limit on solr if
 		// someone has a whole lot of friends...
-		$friends = elgg_get_entities(array(
+		$friends = elgg_get_entities_from_relationship(array(
 			'type' => 'user',
 			'relationship' => 'friend',
 			'relationship_guid' => elgg_get_logged_in_user_guid(),

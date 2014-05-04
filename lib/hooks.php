@@ -133,20 +133,23 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
 
 function elgg_solr_object_search($hook, $type, $return, $params) {
-	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 
     $select = array(
-        'query'  => "title:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','title','description')
     );
-
     // create a client instance
-    $client = elgg_solr_get_client();
+    $client = elgg_solr_get_client($select);
 
     // get an update query instance
     $query = $client->createSelect($select);
+	// get the dismax component and set a boost query
+	$dismax = $query->getDisMax();
+	$dismax->setQueryFields('title^2 description^1');
+	
+	// this query is now a dismax query
+	$query->setQuery($params['query']);
 	$query->addSorts(array(
 		'score' => 'desc',
 		'time_created' => 'desc'
