@@ -150,7 +150,16 @@ function elgg_solr_entities_sync() {
 }
 
 
-
 function elgg_solr_profile_update($event, $type, $entity) {
 	elgg_solr_add_update_user($entity);
+}
+
+
+function elgg_solr_upgrades() {
+	$ia = elgg_set_ignore_access(true);
+	elgg_load_library('elgg_solr:upgrades');
+	
+	run_function_once('elgg_solr_upgrade_20140504a');
+	
+	elgg_set_ignore_access($ia);
 }

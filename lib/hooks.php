@@ -10,10 +10,8 @@
  * @return unknown_type
  */
 function elgg_solr_file_search($hook, $type, $value, $params) {
-	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 
     $select = array(
-        'query'  => $params['query'],
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','title','description'),
@@ -28,6 +26,22 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 		'score' => 'desc',
 		'time_created' => 'desc'
 	));
+	
+	$title_boost = elgg_solr_get_title_boost();
+	$description_boost = elgg_solr_get_description_boost();
+	
+	// get the dismax component and set a boost query
+	$dismax = $query->getDisMax();
+	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost} attr_content^{$description_boost}");
+	
+	$boostQuery = elgg_solr_get_boost_query();
+	if ($boostQuery) {
+		$dismax->setBoostQuery($boostQuery);
+	}
+	
+	// this query is now a dismax query
+	$query->setQuery($params['query']);
+	
 	
 	$params['fq']['type'] = 'type:object';
 	$params['fq']['subtype'] = 'subtype:file';
@@ -144,9 +158,18 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
+	
+	$title_boost = elgg_solr_get_title_boost();
+	$description_boost = elgg_solr_get_description_boost();
+	
 	// get the dismax component and set a boost query
 	$dismax = $query->getDisMax();
-	$dismax->setQueryFields('title^2 description^1');
+	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost}");
+	
+	$boostQuery = elgg_solr_get_boost_query();
+	if ($boostQuery) {
+		$dismax->setBoostQuery($boostQuery);
+	}
 	
 	// this query is now a dismax query
 	$query->setQuery($params['query']);
@@ -254,10 +277,8 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
 
 function elgg_solr_user_search($hook, $type, $return, $params) {
-	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 
     $select = array(
-        'query'  => "name:{$params['query']}^3 OR username:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','name','username', 'description')
@@ -272,6 +293,25 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 		'score' => 'desc',
 		'time_created' => 'desc'
 	));
+	
+	$title_boost = elgg_solr_get_title_boost();
+	$description_boost = elgg_solr_get_description_boost();
+	
+	// get the dismax component and set a boost query
+	$dismax = $query->getDisMax();
+	$dismax->setQueryFields("name^{$title_boost} username^{$title_boost} description^{$description_boost}");
+	
+	// no time boost for users
+	/*
+	$boostQuery = elgg_solr_get_boost_query();
+	if ($boostQuery) {
+		$dismax->setBoostQuery($boostQuery);
+	}
+	 * 
+	 */
+	
+	// this query is now a dismax query
+	$query->setQuery($params['query']);
 	
 	// make sure we're only getting users
 	$params['fq']['type'] = 'type:user';
@@ -384,10 +424,8 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
 
 function elgg_solr_group_search($hook, $type, $return, $params) {
-	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 
     $select = array(
-        'query'  => "name:{$params['query']}^2 OR description:{$params['query']}^1",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
         'fields' => array('id','name','description')
@@ -402,6 +440,21 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 		'score' => 'desc',
 		'time_created' => 'desc'
 	));
+	
+	$title_boost = elgg_solr_get_title_boost();
+	$description_boost = elgg_solr_get_description_boost();
+	
+	// get the dismax component and set a boost query
+	$dismax = $query->getDisMax();
+	$dismax->setQueryFields("name^{$title_boost} description^{$description_boost}");
+	
+	$boostQuery = elgg_solr_get_boost_query();
+	if ($boostQuery) {
+		$dismax->setBoostQuery($boostQuery);
+	}
+	
+	// this query is now a dismax query
+	$query->setQuery($params['query']);
 	
 	// make sure we're only getting groups
 	$params['fq']['type'] = 'type:group';
@@ -669,15 +722,13 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 
 
 function elgg_solr_comment_search($hook, $type, $return, $params) {
-	$params['query'] = elgg_solr_escape_special_chars($params['query']);
 	
 	$entities = array();
 
     $select = array(
-        'query'  => "description:{$params['query']}",
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','container_guid','description', 'owner_guid', 'time_created'),
+        'fields' => array('id', 'container_guid', 'description', 'owner_guid', 'time_created'),
     );
 
     // create a client instance
@@ -689,6 +740,21 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 		'score' => 'desc',
 		'time_created' => 'desc'
 	));
+	
+	$description_boost = elgg_solr_get_description_boost();
+	
+	// get the dismax component and set a boost query
+	$dismax = $query->getDisMax();
+	$dismax->setQueryFields("description^{$description_boost}");
+	
+	$boostQuery = elgg_solr_get_boost_query();
+	if ($boostQuery) {
+		$dismax->setBoostQuery($boostQuery);
+	}
+	
+	// this query is now a dismax query
+	$query->setQuery($params['query']);
+	
 	
 	// make sure we're only getting comments
 	$params['fq']['type'] = 'type:annotation';

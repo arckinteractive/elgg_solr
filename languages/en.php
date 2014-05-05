@@ -50,6 +50,21 @@ $english = array(
 	'elgg_solr:settings:use_solr' => "Use Solr for returning search results?",
 	'elgg_solr:settings:use_solr:help' => "Setting this to 'No' will let search fall back to the default search handlers while allowing you to keep this plugin active.  Useful for using Elgg default search while rebuilding the solr index.",
 	'elgg_solr:index:delete' => "Delete Index",
+	'elgg_solr:settings:title:query' => "Advanced Query Settings",
+	'elgg_solr:settings:query:title_boost' => "Title Match Boost",
+	'elgg_solr:settings:query:title_boost:help' => "A multiplier boost to relevancy when a title match is found.  The higher this number compared to other field boosts the more the title will be considered relevant.  Default: 1.5",
+	'elgg_solr:settings:query:description_boost' => "Description Match Boost",
+	'elgg_solr:settings:query:description_boost:help' =>"A multiplier boost to relevancy when a description match is found.  The higher this number compared to other field boosts the more the description will be considered relevant.  Default: 1",
+	'elgg_solr:settings:query:time_boost' => "Boost the relevancy of most recently created content?",
+	'elgg_solr:settings:query:time_boost:settings' => "Recent content boost",
+	'elgg_solr:settings:query:time_boost:period' => "Increase relevance of content created within the last",
+	'elgg_solr:time:day' => "Day(s)",
+	'elgg_solr:time:week' => "Week(s)",
+	'elgg_solr:time:month' => "Month(s)",
+	'elgg_solr:time:year' => "Year(s)",
+	'elgg_solr:settings:query:time_boost:by' => "with a boost of",
+	'elgg_solr:settings:query:time_boost:help' => "Boost the relevancy of recent content.  The higher the boost value the more relevant it will become.  Default: 1.5"
+	
 );
 
 add_translation("en", $english);

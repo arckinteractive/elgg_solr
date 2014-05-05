@@ -964,3 +964,69 @@ function elgg_solr_get_tags_array($entity) {
 	
 	return $t;
 }
+
+
+function elgg_solr_get_title_boost() {
+	static $title_boost;
+	
+	if ($title_boost) {
+		return $title_boost;
+	}
+	
+	$title_boost = elgg_get_plugin_setting('title_boost', 'elgg_solr');
+	if (!is_numeric($title_boost)) {
+		$title_boost = 1.5;
+	}
+	
+	return $title_boost;
+}
+
+function elgg_solr_get_description_boost() {
+	static $description_boost;
+	
+	if ($description_boost) {
+		return $description_boost;
+	}
+	
+	$description_boost = elgg_get_plugin_setting('description_boost', 'elgg_solr');
+	if (!is_numeric($description_boost)) {
+		$description_boost = 1.5;
+	}
+	
+	return $description_boost;
+}
+
+
+function elgg_solr_get_boost_query() {
+	static $boostquery;
+
+	if ($boostquery || $boostquery === false) {
+		return $boostquery;
+	}
+	
+	$use_boostquery = elgg_get_plugin_setting('use_time_boost', 'elgg_solr');
+	if ($use_boostquery != 'yes') {
+		$boostquery = false;
+		return $boostquery;
+	}
+	
+	$num = elgg_get_plugin_setting('time_boost_num', 'elgg_solr');
+	$interval = elgg_get_plugin_setting('time_boost_interval', 'elgg_solr');
+	$time_boost = elgg_get_plugin_setting('time_boost', 'elgg_solr');
+	$starttime = strtotime("-{$num} {$interval}");
+	$now = time();
+
+	if (!is_numeric($num) || !is_numeric($starttime) || !is_numeric($time_boost)) {
+		$boostquery = false;
+		return $boostquery;
+	}
+	
+	$boostquery = "time_created:[{$starttime} TO {$now}]^{$time_boost}";
+	return $boostquery;
+}
+
+
+
+
+
+

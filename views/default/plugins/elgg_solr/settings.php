@@ -47,6 +47,73 @@ $body .= elgg_view('output/longtext', array(
 echo elgg_view_module('main', $title, $body);
 
 
+
+$title = elgg_echo('elgg_solr:settings:title:query');
+
+$body = '<label>' . elgg_echo('elgg_solr:settings:query:title_boost') . '</label>';
+$body .= elgg_view('input/text', array(
+	'name' => 'params[title_boost]',
+	'value' => $vars['entity']->title_boost,
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:query:title_boost:help'),
+	'class' => 'elgg-subtext'
+));
+
+
+$body .= '<label>' . elgg_echo('elgg_solr:settings:query:description_boost') . '</label>';
+$body .= elgg_view('input/text', array(
+	'name' => 'params[description_boost]',
+	'value' => $vars['entity']->description_boost
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:query:description_boost:help'),
+	'class' => 'elgg-subtext'
+));
+
+$body .= '<label>' . elgg_echo('elgg_solr:settings:query:time_boost') . '</label><br>';
+$body .= elgg_view('input/dropdown', array(
+	'name' => 'params[use_time_boost]',
+	'value' => $vars['entity']->use_time_boost,
+	'options_values' => array(
+		'yes' => elgg_echo('option:yes'),
+		'no' => elgg_echo('option:no')
+	)
+));
+
+$body .= '<br><br>';
+
+$body .= '<label>' . elgg_echo('elgg_solr:settings:query:time_boost:settings') . '</label><br>';
+$body .= elgg_echo('elgg_solr:settings:query:time_boost:period') . '&nbsp;&nbsp;';
+$body .= elgg_view('input/dropdown', array(
+	'name' => 'params[time_boost_num]',
+	'value' => $vars['entity']->time_boost_num,
+	'options' => range(1,25)
+));
+$body .= elgg_view('input/dropdown', array(
+	'name' => 'params[time_boost_interval]',
+	'value' => $vars['entity']->time_boost_interval,
+	'options_values' => array(
+		'day' => elgg_echo('elgg_solr:time:day'),
+		'week' => elgg_echo('elgg_solr:time:week'),
+		'month' => elgg_echo('elgg_solr:time:month'),
+		'year' => elgg_echo('elgg_solr:time:year')
+	)
+));
+$body .= '&nbsp;&nbsp;' . elgg_echo('elgg_solr:settings:query:time_boost:by') . '&nbsp;&nbsp;';
+$body .= elgg_view('input/text', array(
+	'name' => 'params[time_boost]',
+	'value' => $vars['entity']->time_boost
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:query:time_boost:help'),
+	'class' => 'elgg-subtext'
+));
+		
+echo elgg_view_module('main', $title, $body);
+
+
+
 $title = elgg_echo('elgg_solr:settings:title:misc');
 
 $body = '<label>' . elgg_echo('elgg_solr:settings:batch_size') . '</label><br>';

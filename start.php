@@ -19,6 +19,7 @@ function elgg_solr_init() {
 	}
 	
 	elgg_register_library('Solarium', dirname(__FILE__) . '/vendor/autoload.php');
+	elgg_register_library('elgg_solr:upgrades', dirname(__FILE__) . '/lib/upgrades.php');
 	
 	if (elgg_get_plugin_setting('use_solr', 'elgg_solr') != 'no') {
 		// unregister default search hooks
@@ -48,6 +49,7 @@ function elgg_solr_init() {
 	elgg_register_event_handler('create', 'metadata', 'elgg_solr_metadata_update');
 	elgg_register_event_handler('update', 'metadata', 'elgg_solr_metadata_update');
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_entities_sync');
+	elgg_register_event_handler('upgrade', 'system', 'elgg_solr_upgrades');
 	
 	elgg_set_config('elgg_solr_sync', array());
 	
