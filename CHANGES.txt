@@ -2,6 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
+1.4.1 ():
+ - remove from index on entity disable
+ - add back to index on entity enable
+
 1.4 (05/04/2014):
  - fixes memory issue on access control
  - use dismax query handler for better relevance results
