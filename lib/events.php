@@ -163,3 +163,15 @@ function elgg_solr_upgrades() {
 	
 	elgg_set_ignore_access($ia);
 }
+
+function elgg_solr_disable_entity($event, $type, $entity) {
+	if (elgg_instanceof($entity, $type)) {
+		elgg_solr_delete_entity(null, null, $entity);
+	}
+}
+
+function elgg_solr_enable_entity($event, $type, $entity) {
+	if (elgg_instanceof($entity, $type)) {
+		elgg_solr_add_update_entity(null, null, $entity);
+	}
+}

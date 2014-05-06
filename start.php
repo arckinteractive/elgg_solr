@@ -50,6 +50,8 @@ function elgg_solr_init() {
 	elgg_register_event_handler('update', 'metadata', 'elgg_solr_metadata_update');
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_entities_sync');
 	elgg_register_event_handler('upgrade', 'system', 'elgg_solr_upgrades');
+	elgg_register_event_handler('disable', 'all', 'elgg_solr_disable_entity');
+	elgg_register_event_handler('enable', 'all', 'elgg_solr_enable_entity');
 	
 	elgg_set_config('elgg_solr_sync', array());
 	
