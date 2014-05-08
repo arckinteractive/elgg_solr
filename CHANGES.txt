@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.5 ():
+ - enables wildcard search with *
+
 1.4.1 (05/08/2014):
  - remove from index on entity disable
  - add back to index on entity enable

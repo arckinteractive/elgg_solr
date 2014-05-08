@@ -31,7 +31,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	$description_boost = elgg_solr_get_description_boost();
 	
 	// get the dismax component and set a boost query
-	$dismax = $query->getDisMax();
+	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost} attr_content^{$description_boost}");
 	
 	$boostQuery = elgg_solr_get_boost_query();
@@ -163,7 +163,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	$description_boost = elgg_solr_get_description_boost();
 	
 	// get the dismax component and set a boost query
-	$dismax = $query->getDisMax();
+	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost}");
 	
 	$boostQuery = elgg_solr_get_boost_query();
@@ -229,7 +229,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
         $highlightedDoc = $highlighting->getResult($document->id);
 
         if($highlightedDoc){
-            foreach($highlightedDoc as $field => $highlight) {
+            foreach($highlightedDoc as $field => $highlight) { var_dump($highlight);
                 $snippet = implode(' (...) ', $highlight);
 				$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
 				$search_results[$document->id][$field] = $snippet;
@@ -298,7 +298,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	$description_boost = elgg_solr_get_description_boost();
 	
 	// get the dismax component and set a boost query
-	$dismax = $query->getDisMax();
+	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("name^{$title_boost} username^{$title_boost} description^{$description_boost}");
 	
 	// no time boost for users
@@ -445,7 +445,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	$description_boost = elgg_solr_get_description_boost();
 	
 	// get the dismax component and set a boost query
-	$dismax = $query->getDisMax();
+	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("name^{$title_boost} description^{$description_boost}");
 	
 	$boostQuery = elgg_solr_get_boost_query();
@@ -744,7 +744,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	$description_boost = elgg_solr_get_description_boost();
 	
 	// get the dismax component and set a boost query
-	$dismax = $query->getDisMax();
+	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("description^{$description_boost}");
 	
 	$boostQuery = elgg_solr_get_boost_query();
