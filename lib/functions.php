@@ -399,9 +399,9 @@ function elgg_solr_add_update_file($entity) {
 		// get an extract query instance and add settings
 		$query = $client->createExtract();
 		$query->setFile($entity->getFilenameOnFilestore());
-		$query->addFieldMapping('content', 'text');
+		$query->addFieldMapping('content', 'attr_content');
 		$query->setUprefix('attr_');
-		$query->setOmitHeader(false);
+		$query->setOmitHeader(true);
 	}
 	else {
 		$query = $client->createUpdate();
@@ -431,7 +431,7 @@ function elgg_solr_add_update_file($entity) {
 	if ($extracting) {
 		$query->setDocument($doc);
 		if ($commit) {
-			$query->setCommit();
+			$query->setCommit(true);
 		}
 		try {
 			$client->extract($query);	
