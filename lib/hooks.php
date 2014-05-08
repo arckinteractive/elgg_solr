@@ -229,7 +229,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
         $highlightedDoc = $highlighting->getResult($document->id);
 
         if($highlightedDoc){
-            foreach($highlightedDoc as $field => $highlight) { var_dump($highlight);
+            foreach($highlightedDoc as $field => $highlight) {
                 $snippet = implode(' (...) ', $highlight);
 				$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
 				$search_results[$document->id][$field] = $snippet;
