@@ -47,3 +47,15 @@ $time_boost = elgg_get_plugin_setting('time_boost', 'elgg_solr');
 if (empty($time_boost) && $time_boost !== '0') {
 	elgg_set_plugin_setting('time_boost', '1.5', 'elgg_solr');
 }
+
+$hl_prefix = elgg_get_plugin_setting('hl_prefix', 'elgg_solr');
+
+if (empty($hl_prefix)) {
+	elgg_set_plugin_setting('hl_prefix', '<strong class="search-highlight search-highlight-color1">', 'elgg_solr');
+}
+
+$hl_suffix = elgg_get_plugin_setting('hl_suffix', 'elgg_solr');
+
+if (empty($hl_suffix)) {
+	elgg_set_plugin_setting('hl_suffix', '</strong>', 'elgg_solr');
+}

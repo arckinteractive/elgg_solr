@@ -142,6 +142,27 @@ $body .= elgg_view('output/longtext', array(
 	'class' => 'elgg-subtext'
 ));
 
+$body .= '<label>' . elgg_echo('elgg_solr:settings:highlight:prefix') . '</label>';
+$body .= elgg_view('input/text', array(
+	'name' => 'params[hl_prefix]',
+	'value' => $vars['entity']->hl_prefix
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:highlight:prefix:help'),
+	'class' => 'elgg-subtext'
+));
+
+$body .= '<label>' . elgg_echo('elgg_solr:settings:highlight:suffix') . '</label>';
+$body .= elgg_view('input/text', array(
+	'name' => 'params[hl_suffix]',
+	'value' => $vars['entity']->hl_suffix
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:highlight:suffix:help'),
+	'class' => 'elgg-subtext'
+));
+
+
 $body .= '<label>' . elgg_echo('elgg_solr:settings:use_solr') . '</label><br>';
 $body .= elgg_view('input/dropdown', array(
 	'name' => 'params[use_solr]',

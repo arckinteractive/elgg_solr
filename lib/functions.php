@@ -1026,7 +1026,27 @@ function elgg_solr_get_boost_query() {
 }
 
 
+function elgg_solr_get_hl_prefix() {
+	static $hl_prefix;
+	
+	if ($hl_prefix) {
+		return $hl_prefix;
+	}
+	
+	$hl_prefix = elgg_get_plugin_setting('hl_prefix', 'elgg_solr');
+	
+	return $hl_prefix;
+}
 
 
-
-
+function elgg_solr_get_hl_suffix() {
+	static $hl_suffix;
+	
+	if ($hl_suffix) {
+		return $hl_suffix;
+	}
+	
+	$hl_suffix = elgg_get_plugin_setting('hl_suffix', 'elgg_solr');
+	
+	return $hl_suffix;
+}

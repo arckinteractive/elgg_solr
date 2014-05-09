@@ -63,8 +63,8 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
     $hl->setFields(array('title', 'attr_content', 'description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
+    $hl->setSimplePrefix('<span data-hl="elgg-solr">');
+	$hl->setSimplePostfix('</span>');
 
     // this executes the query and returns the result
     try {
@@ -84,6 +84,8 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
     // Count the total number of documents found by solr
     $count = $resultset->getNumFound();
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
     foreach ($resultset as $document) {
@@ -96,7 +98,14 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
         if($highlightedDoc){
             foreach($highlightedDoc as $field => $highlight) {
                 $snippet = implode(' (...) ', $highlight);
-				$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
+				// get our highlight based on the wrapped tokens
+				// note, this is to prevent partial html from breaking page layouts
+				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+
+				$snippet = filter_tags($snippet);
+				if ($match[1]) {
+					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+				}
 				$search_results[$document->id][$field] = $snippet;
             }
         }
@@ -198,9 +207,9 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
     $hl->setFields(array('title', 'description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
-
+	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
+	$hl->setSimplePostfix('</span>');
+	
     // this executes the query and returns the result
     try {
         $resultset = $client->select($query);
@@ -219,6 +228,8 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
     // Count the total number of documents found by solr
     $count = $resultset->getNumFound();
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
 
     $search_results = array();
     foreach ($resultset as $document) {
@@ -231,7 +242,15 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
         if($highlightedDoc){
             foreach($highlightedDoc as $field => $highlight) {
                 $snippet = implode(' (...) ', $highlight);
-				$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
+				// get our highlight based on the wrapped tokens
+				// note, this is to prevent partial html from breaking page layouts
+				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+
+				$snippet = filter_tags($snippet);
+				if ($match[1]) {
+					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+				}
+				
 				$search_results[$document->id][$field] = $snippet;
             }
         }
@@ -333,8 +352,8 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
     $hl->setFields(array('name', 'username', 'description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
+	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
+	$hl->setSimplePostfix('</span>');
 
     // this executes the query and returns the result
     try {
@@ -354,6 +373,8 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
     // Count the total number of documents found by solr
     $count = $resultset->getNumFound();
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
 	
 	$search_results = array();
     foreach ($resultset as $document) {
@@ -366,7 +387,14 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
         if($highlightedDoc){
             foreach($highlightedDoc as $field => $highlight) {
                 $snippet = implode(' (...) ', $highlight);
-				$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
+				// get our highlight based on the wrapped tokens
+				// note, this is to prevent partial html from breaking page layouts
+				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+
+				$snippet = filter_tags($snippet);
+				if ($match[1]) {
+					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+				}
 				$search_results[$document->id][$field] = $snippet;
             }
         }
@@ -476,8 +504,8 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
     $hl->setFields(array('name', 'description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
+	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
+	$hl->setSimplePostfix('</span>');
 
     // this executes the query and returns the result
     try {
@@ -497,6 +525,8 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
     // Count the total number of documents found by solr
     $count = $resultset->getNumFound();
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();	
 
 	$search_results = array();
     foreach ($resultset as $document) {
@@ -509,7 +539,14 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
         if($highlightedDoc){
             foreach($highlightedDoc as $field => $highlight) {
                 $snippet = implode(' (...) ', $highlight);
-				$snippet = search_get_highlighted_relevant_substrings(elgg_strip_tags($snippet), $params['query']);
+				// get our highlight based on the wrapped tokens
+				// note, this is to prevent partial html from breaking page layouts
+				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+
+				$snippet = filter_tags($snippet);
+				if ($match[1]) {
+					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+				}
 				$search_results[$document->id][$field] = $snippet;
             }
         }
@@ -642,8 +679,8 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
     $hl->setFields(array('tags'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
+    $hl->setSimplePrefix('<span data-hl="elgg-solr">');
+	$hl->setSimplePostfix('</span>');
 
     // this executes the query and returns the result
     try {
@@ -663,6 +700,8 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 
     // Count the total number of documents found by solr
     $count = $resultset->getNumFound();
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
     foreach ($resultset as $document) {
@@ -677,9 +716,9 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 				// a little hackery for matched tags
 				$snippet = array();
                 foreach ($highlight as $key => $h) {
-					$matched = '<strong class="search-highlight search-highlight-color1">';
+					$matched = $hl_prefix;
 					$matched .= substr(strstr(elgg_strip_tags($h), '%%'), 2);
-					$matched .= '</strong>';
+					$matched .= $hl_suffix;
 					$snippet[] = $matched;
 				}
 
@@ -777,8 +816,8 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
     $hl->setFields(array('description'));
-    $hl->setSimplePrefix('<strong class="search-highlight search-highlight-color1">');
-    $hl->setSimplePostfix('</strong>');
+   	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
+	$hl->setSimplePostfix('</span>');
 
     // this executes the query and returns the result
     try {
@@ -798,7 +837,9 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 
     // Count the total number of documents found by solr
     $count = $resultset->getNumFound();
-
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	
     foreach ($resultset as $document) {
 		// comments entity_guid stored as container_guid in solr
         $entity = get_entity($document->container_guid);
@@ -814,13 +855,20 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 		$comment_str = '';
         if($highlightedDoc){
             foreach($highlightedDoc as $highlight) {
-                $comment_str = implode(' (...) ', $highlight);
-				$comment_str = search_get_highlighted_relevant_substrings(elgg_strip_tags($comment_str), $params['query']);
+                $snippet = implode(' (...) ', $highlight);
+				// get our highlight based on the wrapped tokens
+				// note, this is to prevent partial html from breaking page layouts
+				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+
+				$snippet = filter_tags($snippet);
+				if ($match[1]) {
+					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+				}
             }
         }
 		
-		if (!$comment_str) {
-			$comment_str = search_get_highlighted_relevant_substrings(elgg_get_excerpt($document->description), $params['query']);
+		if (!$snippet) {
+			$snippet = search_get_highlighted_relevant_substrings(elgg_get_excerpt($document->description), $params['query']);
 		}
 		
 		$comments_data = $entity->getVolatileData('search_comments_data');
@@ -829,7 +877,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 		}
 		$comments_data[] = array(
 			'annotation_id' => substr(strstr(elgg_strip_tags($document->id), ':'), 1),
-			'text' => $comment_str,
+			'text' => $snippet,
 			'owner_guid' => $document->owner_guid,
 			'time_created' => $document->time_created,
 		);

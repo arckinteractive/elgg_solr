@@ -4,6 +4,8 @@ x.x (mm/dd/yyyy):
 
 1.5 ():
  - enables wildcard search with *
+ - configurable search highlight wrappers
+ - fix highlighting for wildcard searches
 
 1.4.1 (05/08/2014):
  - remove from index on entity disable

@@ -63,8 +63,11 @@ $english = array(
 	'elgg_solr:time:month' => "Month(s)",
 	'elgg_solr:time:year' => "Year(s)",
 	'elgg_solr:settings:query:time_boost:by' => "with a boost of",
-	'elgg_solr:settings:query:time_boost:help' => "Boost the relevancy of recent content.  The higher the boost value the more relevant it will become.  Default: 1.5"
-	
+	'elgg_solr:settings:query:time_boost:help' => "Boost the relevancy of recent content.  The higher the boost value the more relevant it will become.  Default: 1.5",
+	'elgg_solr:settings:highlight:prefix' => "Highlight Prefix",
+	'elgg_solr:settings:highlight:prefix:help' => "HTML to insert in front of strings found to match the query.  Eg. &lt;strong&gt;",
+	'elgg_solr:settings:highlight:suffix' => "Highlight Suffix",
+	'elgg_solr:settings:highlight:suffix:help' => "HTML to insert after strings found to match the query.  Eg. &lt;/strong&gt;",
 );
 
 add_translation("en", $english);
