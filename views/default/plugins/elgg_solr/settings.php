@@ -144,7 +144,7 @@ $body .= elgg_view('output/longtext', array(
 
 $body .= '<label>' . elgg_echo('elgg_solr:settings:highlight:prefix') . '</label>';
 $body .= elgg_view('input/text', array(
-	'name' => 'params[hl_prefix]',
+	'name' => 'hl_prefix',
 	'value' => $vars['entity']->hl_prefix
 ));
 $body .= elgg_view('output/longtext', array(
@@ -154,7 +154,7 @@ $body .= elgg_view('output/longtext', array(
 
 $body .= '<label>' . elgg_echo('elgg_solr:settings:highlight:suffix') . '</label>';
 $body .= elgg_view('input/text', array(
-	'name' => 'params[hl_suffix]',
+	'name' => 'hl_suffix',
 	'value' => $vars['entity']->hl_suffix
 ));
 $body .= elgg_view('output/longtext', array(

@@ -69,6 +69,7 @@ function elgg_solr_init() {
 	elgg_register_action('elgg_solr/reindex', dirname(__FILE__) . '/actions/reindex.php', 'admin');
 	elgg_register_action('elgg_solr/delete_index', dirname(__FILE__) . '/actions/delete_index.php', 'admin');
 	elgg_register_action('elgg_solr/reindex_unlock', dirname(__FILE__) . '/actions/reindex_unlock.php', 'admin');
+	elgg_register_action('elgg_solr/settings/save', dirname(__FILE__) . '/actions/plugin_settings.php', 'admin');
 	
 	elgg_register_admin_menu_item('administer', 'solr_index', 'administer_utilities');
 }
