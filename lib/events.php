@@ -91,7 +91,7 @@ function elgg_solr_add_update_annotation($event, $type, $annotation) {
 	$doc->owner_guid = $annotation->owner_guid;
 	$doc->container_guid = $annotation->entity_guid;
 	$doc->access_id = $annotation->access_id;
-	$doc->description = $annotation->value;
+	$doc->description = elgg_strip_tags($annotation->value);
 	$doc->time_created = $annotation->time_created;
 	
 	$query->addDocument($doc);

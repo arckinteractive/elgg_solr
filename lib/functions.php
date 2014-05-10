@@ -415,8 +415,8 @@ function elgg_solr_add_update_file($entity) {
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
-	$doc->title = $entity->title;
-	$doc->description = $entity->description;
+	$doc->title = elgg_strip_tags($entity->title);
+	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
 	$doc->tags = elgg_solr_get_tags_array($entity);
 	
@@ -480,9 +480,9 @@ function elgg_solr_add_update_object_default($entity) {
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
-	$doc->title = $entity->title;
-	$doc->name = $entity->name;
-	$doc->description = $entity->description;
+	$doc->title = elgg_strip_tags($entity->title);
+	$doc->name = elgg_strip_tags($entity->name);
+	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
 	$doc->tags = elgg_solr_get_tags_array($entity);
 	
@@ -552,10 +552,10 @@ function elgg_solr_add_update_user($entity) {
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
-	$doc->title = $entity->title;
-	$doc->name = $entity->name;
+	$doc->title = elgg_strip_tags($entity->title);
+	$doc->name = elgg_strip_tags($entity->name);
 	$doc->username = $entity->username;
-	$doc->description = $desc;
+	$doc->description = elgg_strip_tags($desc);
 	$doc->time_created = $entity->time_created;
 	$doc->tags = elgg_solr_get_tags_array($entity);
 	

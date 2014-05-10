@@ -102,7 +102,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 				// note, this is to prevent partial html from breaking page layouts
 				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
 
-				$snippet = filter_tags($snippet);
+				$snippet = filter_tags($snippet); // need to filter tags to fix potential html snippets
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
 				}
@@ -246,7 +246,6 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 				// note, this is to prevent partial html from breaking page layouts
 				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
 
-				$snippet = filter_tags($snippet);
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
 				}
@@ -391,7 +390,6 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 				// note, this is to prevent partial html from breaking page layouts
 				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
 
-				$snippet = filter_tags($snippet);
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
 				}
@@ -543,7 +541,6 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 				// note, this is to prevent partial html from breaking page layouts
 				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
 
-				$snippet = filter_tags($snippet);
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
 				}
@@ -860,7 +857,6 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 				// note, this is to prevent partial html from breaking page layouts
 				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
 
-				$snippet = filter_tags($snippet);
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
 				}

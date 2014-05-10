@@ -2,10 +2,12 @@
 
 x.x (mm/dd/yyyy):
 
-1.5 ():
+1.5 (05/10/2014):
  - enables wildcard search with *
  - configurable search highlight wrappers
  - fix highlighting for wildcard searches
+ - strip tags prior to indexing
+ - downgrade vroom to suggestion instead of required
 
 1.4.1 (05/08/2014):
  - remove from index on entity disable
