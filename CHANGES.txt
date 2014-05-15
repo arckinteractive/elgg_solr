@@ -2,6 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
+1.5.1 ():
+ - fix comment index deletion
+ - add plugin setting for admin viewing of relevancy scores
+
 1.5 (05/10/2014):
  - enables wildcard search with *
  - configurable search highlight wrappers

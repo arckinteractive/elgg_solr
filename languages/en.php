@@ -68,6 +68,9 @@ $english = array(
 	'elgg_solr:settings:highlight:prefix:help' => "HTML to insert in front of strings found to match the query.  Eg. &lt;strong&gt;",
 	'elgg_solr:settings:highlight:suffix' => "Highlight Suffix",
 	'elgg_solr:settings:highlight:suffix:help' => "HTML to insert after strings found to match the query.  Eg. &lt;/strong&gt;",
+	'elgg_solr:settings:show_score' => "Show relevance score in results?",
+	'elgg_solr:settings:show_score:help' => "This will only be displayed to admins, but can be useful for testing/tweaking your boost values.",
+	'elgg_solr:relevancy' => "Relevance Score: %s",
 );
 
 add_translation("en", $english);

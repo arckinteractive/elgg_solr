@@ -5,6 +5,11 @@ $type = get_input('type', false);
 $subtype = get_input('subtype', false);
 
 if ($type) {
+	// fix comments params
+	if ($type == 'comments') {
+		$type = 'annotation';
+		$subtype = 'generic_comment';
+	}
 	$q = "type:{$type}";
 	
 	if ($subtype) {

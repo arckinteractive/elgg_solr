@@ -14,7 +14,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
     $select = array(
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','title','description'),
+        'fields' => array('id','title','description', 'score'),
     );
 
     // create a client instance
@@ -106,9 +106,11 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
 				}
+				
 				$search_results[$document->id][$field] = $snippet;
             }
         }
+		$search_results[$document->id]['score'] = $document->score;
 
 		// normalize description with attr_content
 		$search_results[$document->id]['description'] = trim($search_results[$document->id]['description'] . ' ' . $search_results[$document->id]['attr_content']);
@@ -125,9 +127,20 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 		));
 	}
 	
+	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
 	foreach ($search_results as $guid => $matches) {
 		foreach ($entities_unsorted as $e) {
 			if ($e->guid == $guid) {
+				
+				$desc_suffix = '';
+				if ($show_score == 'yes' && elgg_is_admin_logged_in()) {
+					$desc_suffix .= elgg_view('output/longtext', array(
+						'value' => elgg_echo('elgg_solr:relevancy', array($matches['score'])),
+						'class' => 'elgg-subtext'
+					));
+				}
+					
+					
 				if ($matches['title']) {
 					$e->setVolatileData('search_matched_title', $matches['title']);
 				}
@@ -136,10 +149,10 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 				}
 				
 				if ($matches['description']) {
-					$e->setVolatileData('search_matched_description', $matches['description']);
+					$e->setVolatileData('search_matched_description', $matches['description'] . $desc_suffix);
 				}
 				else {
-					$e->setVolatileData('search_matched_description', elgg_get_excerpt($e->description, 100));
+					$e->setVolatileData('search_matched_description', elgg_get_excerpt($e->description, 100) . $desc_suffix);
 				}
 				$entities[] = $e;
 			}
@@ -160,7 +173,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
     $select = array(
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','title','description')
+        'fields' => array('id','title','description','score')
     );
     // create a client instance
     $client = elgg_solr_get_client($select);
@@ -253,6 +266,8 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 				$search_results[$document->id][$field] = $snippet;
             }
         }
+		
+		$search_results[$document->id]['score'] = $document->score;
     }
 	
 	// get the entities
@@ -265,8 +280,18 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 		));
 	}
 	
+	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
 	foreach ($search_results as $guid => $matches) {
 		foreach ($entities_unsorted as $e) {
+			
+			$desc_suffix = '';
+			if ($show_score == 'yes' && elgg_is_admin_logged_in()) {
+				$desc_suffix .= elgg_view('output/longtext', array(
+					'value' => elgg_echo('elgg_solr:relevancy', array($matches['score'])),
+					'class' => 'elgg-subtext'
+				));
+			}
+			
 			if ($e->guid == $guid) {
 				if ($matches['title']) {
 					$e->setVolatileData('search_matched_title', $matches['title']);
@@ -276,10 +301,10 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 				}
 				
 				if ($matches['description']) {
-					$e->setVolatileData('search_matched_description', $matches['description']);
+					$e->setVolatileData('search_matched_description', $matches['description'] . $desc_suffix);
 				}
 				else {
-					$e->setVolatileData('search_matched_description', elgg_get_excerpt($e->description, 100));
+					$e->setVolatileData('search_matched_description', elgg_get_excerpt($e->description, 100) . $desc_suffix);
 				}
 				$entities[] = $e;
 			}
@@ -299,7 +324,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
     $select = array(
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','name','username', 'description')
+        'fields' => array('id','name','username', 'description', 'score')
     );
 
     // create a client instance
@@ -396,6 +421,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 				$search_results[$document->id][$field] = $snippet;
             }
         }
+		$search_results[$document->id]['score'] = $document->score;
     }
 
 	// get the entities
@@ -408,9 +434,19 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 		));
 	}
 	
+	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
 	foreach ($search_results as $guid => $matches) {
 		foreach ($entities_unsorted as $e) {
 			if ($e->guid == $guid) {
+				
+				$desc_suffix = '';
+				if ($show_score == 'yes' && elgg_is_admin_logged_in()) {
+					$desc_suffix .= elgg_view('output/longtext', array(
+						'value' => elgg_echo('elgg_solr:relevancy', array($matches['score'])),
+						'class' => 'elgg-subtext'
+					));
+				}
+			
 				if ($matches['name']) {
 					$name = $matches['name'];
 					if ($matches['username']) {
@@ -435,7 +471,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 				}
 				
 				$desc_hl = search_get_highlighted_relevant_substrings($e->description, $params['query']);
-				$e->setVolatileData('search_matched_description', $desc_hl);
+				$e->setVolatileData('search_matched_description', $desc_hl . $desc_suffix);
 				$entities[] = $e;
 			}
 		}
@@ -454,7 +490,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     $select = array(
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','name','description')
+        'fields' => array('id','name','description', 'score')
     );
 
     // create a client instance
@@ -547,6 +583,8 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 				$search_results[$document->id][$field] = $snippet;
             }
         }
+		
+		$search_results[$document->id]['score'] = $document->score;
     }
 
 	// get the entities
@@ -559,8 +597,18 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 		));
 	}
 	
+	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
 	foreach ($search_results as $guid => $matches) {
 		foreach ($entities_unsorted as $e) {
+			
+			$desc_suffix = '';
+			if ($show_score == 'yes' && elgg_is_admin_logged_in()) {
+				$desc_suffix .= elgg_view('output/longtext', array(
+					'value' => elgg_echo('elgg_solr:relevancy', array($matches['score'])),
+					'class' => 'elgg-subtext'
+				));
+			}
+				
 			if ($e->guid == $guid) {
 				if ($matches['name']) {
 					$name = $matches['name'];
@@ -574,11 +622,11 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 				}
 				
 				if ($matches['description']) {
-					$e->setVolatileData('search_matched_description', $matches['description']);
+					$e->setVolatileData('search_matched_description', $matches['description'] . $desc_suffix);
 				}
 				else {
 					$desc_hl = search_get_highlighted_relevant_substrings($e->description, $params['query']);
-					$e->setVolatileData('search_matched_description', $desc_hl);	
+					$e->setVolatileData('search_matched_description', $desc_hl . $desc_suffix);	
 				}
 				
 				$entities[] = $e;
@@ -648,7 +696,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
         'query'  => $q,
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id','title','description')
+        'fields' => array('id','title','description','score')
     );
 
 	$client = elgg_solr_get_client();
@@ -723,6 +771,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 				$search_results[$document->id][$field] = $display;
             }
         }
+		$search_results[$document->id]['score'] = $document->score;
     }
 	
 	// get the entities
@@ -735,13 +784,23 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 		));
 	}
 	
+	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
 	foreach ($search_results as $guid => $matches) {
 		foreach ($entities_unsorted as $e) {
 			if ($e->guid == $guid) {
+				
+				$desc_suffix = '';
+				if ($show_score == 'yes' && elgg_is_admin_logged_in()) {
+					$desc_suffix .= elgg_view('output/longtext', array(
+						'value' => elgg_echo('elgg_solr:relevancy', array($matches['score'])),
+						'class' => 'elgg-subtext'
+					));
+				}
+			
 				$title = $e->title ? $e->title : $e->name;
 				$description = $e->description;
 				$e->setVolatileData('search_matched_title', $title);
-				$e->setVolatileData('search_matched_description', elgg_get_excerpt($description));
+				$e->setVolatileData('search_matched_description', elgg_get_excerpt($description) . $desc_suffix);
 				
 				$e->setVolatileData('search_matched_extra', $matches['tags']);
 				$entities[] = $e;
@@ -764,7 +823,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
     $select = array(
         'start'  => $params['offset'],
         'rows'   => $params['limit'],
-        'fields' => array('id', 'container_guid', 'description', 'owner_guid', 'time_created'),
+        'fields' => array('id', 'container_guid', 'description', 'owner_guid', 'time_created', 'score'),
     );
 
     // create a client instance
@@ -837,6 +896,8 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	$hl_prefix = elgg_solr_get_hl_prefix();
 	$hl_suffix = elgg_solr_get_hl_suffix();
 	
+	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
+	
     foreach ($resultset as $document) {
 		// comments entity_guid stored as container_guid in solr
         $entity = get_entity($document->container_guid);
@@ -849,12 +910,12 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
         // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
         $highlightedDoc = $highlighting->getResult($document->id);
 
-		$comment_str = '';
         if($highlightedDoc){
             foreach($highlightedDoc as $highlight) {
                 $snippet = implode(' (...) ', $highlight);
 				// get our highlight based on the wrapped tokens
 				// note, this is to prevent partial html from breaking page layouts
+				$match = array();
 				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
 
 				if ($match[1]) {
@@ -865,6 +926,13 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 		
 		if (!$snippet) {
 			$snippet = search_get_highlighted_relevant_substrings(elgg_get_excerpt($document->description), $params['query']);
+		}
+		
+		if ($show_score == 'yes' && elgg_is_admin_logged_in()) {
+			$snippet .= elgg_view('output/longtext', array(
+				'value' => elgg_echo('elgg_solr:relevancy', array($document->score)),
+				'class' => 'elgg-subtext'
+			));
 		}
 		
 		$comments_data = $entity->getVolatileData('search_comments_data');

@@ -163,6 +163,21 @@ $body .= elgg_view('output/longtext', array(
 ));
 
 
+$body .= '<label>' . elgg_echo('elgg_solr:settings:show_score') . '</label><br>';
+$body .= elgg_view('input/dropdown', array(
+	'name' => 'params[show_score]',
+	'value' => $vars['entity']->show_score ? $vars['entity']->show_score : 'no',
+	'options_values' => array(
+		'yes' => elgg_echo('option:yes'),
+		'no' => elgg_echo('option:no')
+	)
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:show_score:help'),
+	'class' => 'elgg-subtext'
+));
+
+
 $body .= '<label>' . elgg_echo('elgg_solr:settings:use_solr') . '</label><br>';
 $body .= elgg_view('input/dropdown', array(
 	'name' => 'params[use_solr]',
