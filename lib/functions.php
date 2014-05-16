@@ -702,8 +702,41 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 	
 	$stats = array();
 	switch ($block) {
+		case 'minute':
+			for ($i=0; $i<60; $i++) {
+				$starttime = mktime(date('G', $time), date('i', $time), $i, date('m', $time), date('j', $time), date('Y', $time));
+				$endtime = mktime(date('G', $time), date('i', $time), $i+1, date('m', $time), date('j', $time), date('Y', $time));
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
+				
+				$stats[date('s', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => false
+				);
+			}
+			break;
 		case 'hour':
-			// I don't think we need minute resolution right now...
+			for ($i=0; $i<60; $i++) {
+				$starttime = mktime(date('G', $time), $i, 0, date('m', $time), date('j', $time), date('Y', $time));
+				$endtime = mktime(date('G', $time), $i+1, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
+				
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
+				
+				$stats[date('i', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => false
+				);
+			}
 			break;
 		case 'day':
 			for ($i=0; $i<24; $i++) {
@@ -719,7 +752,7 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 					'indexed' => $indexed,
 					'starttime' => $starttime,
 					'endtime' => $endtime,
-					'block' => false
+					'block' => 'hour'
 				);
 			}
 			break;
@@ -926,6 +959,12 @@ function elgg_solr_get_display_datetime($time, $block) {
 			break;
 		case 'day':
 			$format = 'F j, Y';
+			break;
+		case 'hour':
+			$format = 'F j, Y H:00';
+			break;
+		case 'minute':
+			$format = 'F j, Y H:i';
 			break;
 		case 'all':
 		default:
