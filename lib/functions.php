@@ -654,9 +654,12 @@ function elgg_solr_get_access_query() {
 		$fr_suffix = ')';
 	}
 	
-	if ($friends_list) {
+        if ($friends_list) {
+		$user  = elgg_get_logged_in_user_entity();
+		$return .= "owner_guid: (" . $user->getGUID() . ") OR ";
 		$return .= $fr_prefix . 'access_id:' . elgg_solr_escape_special_chars(ACCESS_FRIENDS) . ' AND owner_guid:(' . $friends_list . ')' . $fr_suffix;
 	}
+
 
 	return $return;
 }
