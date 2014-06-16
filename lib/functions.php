@@ -631,10 +631,18 @@ function elgg_solr_get_access_query() {
 		}
 	}
 
-	//$query->createFilterQuery('access')->setQuery("access_id:({$access_list}) OR (access_id:" . ACCESS_FRIENDS . " AND owner_guid:({$friends}))");
-	$return = '';
+	//$query->createFilterQuery('access')->setQuery("owner_guid: {guid} OR access_id:({$access_list}) OR (access_id:" . ACCESS_FRIENDS . " AND owner_guid:({$friends}))");
+	if (elgg_is_logged_in()) {
+		$return = "owner_guid:" . elgg_get_logged_in_user_guid();
+	}
+	else {
+		$return = '';
+	}
 	
 	if ($access_list) {
+		if ($return) {
+			$return .= ' OR ';
+		}
 		$return .= "access_id:(" . elgg_solr_escape_special_chars($access_list) . ")";
 	}
 	
