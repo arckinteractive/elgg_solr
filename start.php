@@ -10,11 +10,7 @@ elgg_register_event_handler('init', 'system', 'elgg_solr_init');
  *  Init elgg_solr plugin
  */
 function elgg_solr_init() {
-	$blog = get_entity(329);
-	if ($blog) {
-		$blog->disable();
-	}
-	
+
 	elgg_extend_view('css/admin', 'css/admin/elgg_solr');
 	
 	// if the plugin is not configured lets leave search alone
