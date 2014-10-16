@@ -1,5 +1,8 @@
 <?php
 
+$show_hidden = access_get_show_hidden_status();
+access_show_hidden_entities(true);
+
 $stats = array();
 $registered_types = get_registered_entity_types();
 
@@ -29,12 +32,6 @@ foreach ($registered_types as $type => $subtypes) {
 	
 	$stats[$type] = array('count' => $count, 'indexed' => $indexed);
 }
-
-// comments
-$stats['comments'] = array(
-	'count' => elgg_get_annotations(array('annotation_name' => 'generic_comment', 'count' => true)),
-	'indexed' => elgg_solr_get_indexed_count('type:annotation', array('subtype' => 'subtype:generic_comment'))
-);
 
 $system_total = 0;
 $indexed_total = 0;
@@ -135,14 +132,6 @@ echo elgg_view('output/longtext', array(
 ?>
 </div>
 
+<?php
 
-
-
-
-
-
-
-
-
-
-
+access_show_hidden_entities($show_hidden);

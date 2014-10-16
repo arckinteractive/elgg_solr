@@ -4,12 +4,7 @@
 	$time = get_input('time');
 	$block = get_input('block', false);
 	
-	if ($type == 'comments' && !$subtype) {
-		$stats = elgg_solr_get_comment_stats($time, $block);
-	}
-	else {
-		$stats = elgg_solr_get_stats($time, $block, $type, $subtype);
-	}
+	$stats = elgg_solr_get_stats($time, $block, $type, $subtype);
 	
 	$datetime = elgg_solr_get_display_datetime($time, $block);
 ?>

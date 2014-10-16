@@ -319,6 +319,10 @@ function elgg_solr_get_default_fq($params) {
 	if ($access_query) {
 		$fq['access'] = $access_query;
 	}
+	
+	if (!access_get_show_hidden_status()) {
+		$fq['enabled'] = 'enabled:"yes"';
+	}
 
 	return $fq;
 }
@@ -419,14 +423,10 @@ function elgg_solr_add_update_file($entity) {
 	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
 	$doc->tags = elgg_solr_get_tags_array($entity);
+	$doc->enabled = $entity->enabled;
 	
-	//@TODO - investigate these
-	// set a document boost value
-	//$document->setBoost(2.5);
-
-	// set a field boost
-	//$document->setFieldBoost('population', 4.5);
-	//$document->setField('title', $entity->title, 4.5);
+	$params = array('entity' => $entity);
+	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
 				
 	if ($extracting) {
 		$query->setDocument($doc);
@@ -485,14 +485,10 @@ function elgg_solr_add_update_object_default($entity) {
 	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
 	$doc->tags = elgg_solr_get_tags_array($entity);
+	$doc->enabled = $entity->enabled;
 	
-	//@TODO - investigate these
-	// set a document boost value
-	//$document->setBoost(2.5);
-
-	// set a field boost
-	//$document->setFieldBoost('population', 4.5);
-	//$document->setField('title', $entity->title, 4.5);
+	$params = array('entity' => $entity);
+	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
 				
 	$query->addDocument($doc);
 	if ($commit) {
@@ -558,15 +554,11 @@ function elgg_solr_add_update_user($entity) {
 	$doc->description = elgg_strip_tags($desc);
 	$doc->time_created = $entity->time_created;
 	$doc->tags = elgg_solr_get_tags_array($entity);
+	$doc->enabled = $entity->enabled;
 	
-	//@TODO - investigate these
-	// set a document boost value
-	//$document->setBoost(2.5);
-
-	// set a field boost
-	//$document->setFieldBoost('population', 4.5);
-	//$document->setField('title', $entity->title, 4.5);
-				
+	$params = array('entity' => $entity);
+	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
+	
 	$query->addDocument($doc, true);
 	if ($commit) {
 		$query->addCommit();
@@ -829,119 +821,6 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 	return $stats;
 }
 
-function elgg_solr_get_comment_stats($time, $block) {
-	$type = 'annotation';
-	$fq = array(
-		'subtype' => "subtype:generic_comment"
-	);
-	$stats = array();
-	switch ($block) {
-		case 'hour':
-			// I don't think we need minute resolution right now...
-			break;
-		case 'day':
-			for ($i=0; $i<24; $i++) {
-				$starttime = mktime($i, 0, 0, date('m', $time), date('j', $time), date('Y', $time));
-				$endtime = mktime($i+1, 0, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
-				
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
-				$system = elgg_get_annotations(array(
-					'annotation_name' => 'generic_comment',
-					'annotation_created_time_lower' => $starttime,
-					'annotation_created_time_upper' => $endtime,
-					'count' => true
-					));
-				
-				$stats[date('H', $starttime)] = array(
-					'count' => $system,
-					'indexed' => $indexed,
-					'starttime' => $starttime,
-					'endtime' => $endtime,
-					'block' => false
-				);
-			}
-			break;
-		case 'month':
-			for ($i=1; $i<date('t', $time)+1; $i++) {
-				$starttime = mktime(0, 0, 0, date('m', $time), $i, date('Y', $time));
-				$endtime = mktime(0, 0, 0, date('m', $time), $i+1, date('Y', $time)) - 1;
-				
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
-				$system = elgg_get_annotations(array(
-					'annotation_name' => 'generic_comment',
-					'annotation_created_time_lower' => $starttime,
-					'annotation_created_time_upper' => $endtime,
-					'count' => true
-					));
-				
-				$stats[date('d', $starttime)] = array(
-					'count' => $system,
-					'indexed' => $indexed,
-					'starttime' => $starttime,
-					'endtime' => $endtime,
-					'block' => 'day'
-				);
-			}
-			break;
-		case 'year':
-			for ($i=1; $i<13; $i++) {
-				$starttime = mktime(0, 0, 0, $i, 1, date('Y', $time));
-				$endtime = mktime(0, 0, 0, $i+1, 1, date('Y', $time)) - 1;
-				
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
-				$system = elgg_get_annotations(array(
-					'annotation_name' => 'generic_comment',
-					'annotation_created_time_lower' => $starttime,
-					'annotation_created_time_upper' => $endtime,
-					'count' => true
-					));
-				
-				$stats[date('F', $starttime)] = array(
-					'count' => $system,
-					'indexed' => $indexed,
-					'starttime' => $starttime,
-					'endtime' => $endtime,
-					'block' => 'month'
-				);
-			}
-			break;
-		
-		case 'all':
-		default:
-			$startyear = date('Y', elgg_get_site_entity()->time_created);
-			$currentyear = date('Y');
-
-			for ($i=$currentyear; $i>$startyear -1; $i--) {
-				$starttime = mktime(0, 0, 0, 1, 1, $i);
-				$endtime = mktime(0, 0, 0, 1, 1, $i+1) - 1;
-				
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
-				$system = elgg_get_annotations(array(
-					'annotation_name' => 'generic_comment',
-					'annotation_created_time_lower' => $starttime,
-					'annotation_created_time_upper' => $endtime,
-					'count' => true
-					));
-				
-				$stats[$i] = array(
-					'count' => $system,
-					'indexed' => $indexed,
-					'starttime' => $starttime,
-					'endtime' => $endtime,
-					'block' => 'year'
-				);
-			}
-
-			break;
-	}
-	
-	return $stats;
-}
-
 
 function elgg_solr_get_system_count($options, $starttime, $endtime) {
 	$options['wheres'] = array(
@@ -951,7 +830,12 @@ function elgg_solr_get_system_count($options, $starttime, $endtime) {
 		
 	$options['count'] = true;
 	
-	return (int) elgg_get_entities($options);
+	$access = access_get_show_hidden_status();
+	access_show_hidden_entities(true);
+	$count = elgg_get_entities($options);
+	access_show_hidden_entities($access);
+	
+	return $count;
 }
 
 
@@ -1096,4 +980,26 @@ function elgg_solr_get_hl_suffix() {
 	$hl_suffix = elgg_get_plugin_setting('hl_suffix', 'elgg_solr');
 	
 	return $hl_suffix;
+}
+
+
+function elgg_solr_defer_index_update($guid) {
+	$guids = elgg_get_config('elgg_solr_sync');
+	if (!is_array($guids)) {
+		$guids = array();
+	}
+	$guids[$guid] = 1; // use key to keep it unique
+	
+	elgg_set_config('elgg_solr_sync', $guids);
+}
+
+function elgg_solr_defer_index_delete($guid) {
+	$delete_guids = elgg_get_config('elgg_solr_delete');
+	if (!is_array($delete_guids)) {
+		$delete_guids = array();
+	}
+	
+	$delete_guids[$guid] = 1;
+	
+	elgg_set_config('elgg_solr_delete', $delete_guids);
 }

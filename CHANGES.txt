@@ -2,6 +2,15 @@
 
 x.x (mm/dd/yyyy):
 
+1.6 (10/16/2014):
+ - remove comments specific code no longer required for 1.9
+ - defer all solr interactions to shutdown for more graceful handling with vroom
+ - now index all entities even if disabled
+ - new enabled field in schema (requires schema update)
+ - searches aware of access_show_hidden_entities() status
+ - new generic schema fields elgg_string1 - elgg_string10, elgg_text1 - elgg_text10 (for custom filter queries)
+ - added plugin hooks for 'elgg_solr:index', <type> when indexing an entity
+
 1.5.1 (06/16/2014):
  - fix comment index deletion
  - add plugin setting for admin viewing of relevancy scores

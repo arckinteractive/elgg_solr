@@ -13,6 +13,7 @@
    <field name="container_guid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="access_id" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="time_created" type="int" indexed="true" stored="true" multiValued="false" />
+   <field name="enabled" type="string" indexed="true" stored="true" multiValued="false" />
    <!-- note type:string should provide exact-match capability - we want that for tags -->
    <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
 
@@ -24,6 +25,30 @@
    <field name="name" type="text_general" indexed="true" stored="true"/>
    <field name="username" type="string" indexed="true" stored="true" multiValued="false" />
    <field name="email" type="string" indexed="true" stored="true" multiValued="false" />
+   
+   <!-- generic fields for custom filter queries -->
+   <field name="elgg_string1" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string2" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string3" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string4" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string5" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string6" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string7" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string8" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string9" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string10" type="string" indexed="true" stored="true" multiValued="true" />
+
+   <!-- generic full text fields -->
+   <field name="elgg_text1" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text2" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text3" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text4" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text5" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text6" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text7" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text8" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text9" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text10" type="text_general" indexed="true" stored="true" multiValued="false" />
 
    <!-- Main body of document extracted by SolrCell.
         NOTE: This field is not indexed by default, since it is also copied to "text"

@@ -7,12 +7,6 @@ $endtime = get_input('endtime');
 $offset = get_input('offset', 0);
 $limit = get_input('limit', 10);
 
-if ($type == 'comments' && !$subtype) {
-	// show an alternate view for comments
-	echo elgg_view('admin/elgg_solr/list_comments', $vars);
-	return;
-}
-
 $options = array(
 	'type' => $type,
 	'created_time_lower' => $starttime,

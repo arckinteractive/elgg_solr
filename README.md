@@ -4,7 +4,6 @@ elgg_solr
 Speed up site search by using a dedicated Solr search index
 
 * Search Entities
-* Search comments
 * Search tags (exact match)
 * Search File contents
 

@@ -48,12 +48,8 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		return true;
 	}
-
-	$client = elgg_solr_get_client();
-	$query = $client->createUpdate();
-	$query->addDeleteById($entity->guid);
-	$query->addCommit();
-	$client->update($query);
+	
+	elgg_solr_defer_index_delete($entity->guid);
 
     return true;
 }
@@ -61,68 +57,7 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 
 
 function elgg_solr_metadata_update($event, $type, $metadata) {
-	$guids = elgg_get_config('elgg_solr_sync');
-	$guids[$metadata->entity_guid] = 1; // use key to keep it unique
-	
-	elgg_set_config('elgg_solr_sync', $guids);
-}
-
-
-
-function elgg_solr_add_update_annotation($event, $type, $annotation) {
-	if (!($annotation instanceof ElggAnnotation)) {
-		return true;
-	}
-	
-	if ($annotation->name != 'generic_comment') {
-		return true;
-	}
-	
-	$client = elgg_solr_get_client();
-	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
-	
-	$query = $client->createUpdate();
-	
-	// add document
-	$doc = $query->createDocument();
-	$doc->id = 'annotation:' . $annotation->id;
-	$doc->type = 'annotation';
-	$doc->subtype = $annotation->name;
-	$doc->owner_guid = $annotation->owner_guid;
-	$doc->container_guid = $annotation->entity_guid;
-	$doc->access_id = $annotation->access_id;
-	$doc->description = elgg_strip_tags($annotation->value);
-	$doc->time_created = $annotation->time_created;
-	
-	$query->addDocument($doc);
-	if ($commit) {
-		$query->addCommit($commit);
-	}
-
-	// this executes the query and returns the result
-	try {
-		$client->update($query);	
-	} catch (Exception $exc) {
-		error_log($exc->getMessage());
-	}
-		
-	return true;
-}
-
-
-function elgg_solr_delete_annotation($event, $type, $annotation) {
-
-	if ($annotation->name != 'generic_comment') {
-		return true;
-	}
-
-	$client = elgg_solr_get_client();
-	$query = $client->createUpdate();
-	$query->addDeleteById('annotation:' . $annotation->id);
-	$query->addCommit();
-	$client->update($query);
-
-    return true;
+	elgg_solr_defer_index_update($metadata->entity_guid);
 }
 
 
@@ -130,6 +65,9 @@ function elgg_solr_delete_annotation($event, $type, $annotation) {
 // happens after shutdown thanks to vroom
 // entity guids stored in config
 function elgg_solr_entities_sync() {
+	
+	$access = access_get_show_hidden_status();
+	access_show_hidden_entities(true);
 	$guids = elgg_get_config('elgg_solr_sync');
 	
 	if (!$guids) {
@@ -147,11 +85,31 @@ function elgg_solr_entities_sync() {
 	foreach ($entities as $e) {
 		elgg_solr_add_update_entity(null, null, $e);
 	}
+	
+	$delete_guids = elgg_get_config('elgg_solr_delete');
+	
+	if (is_array($delete_guids)) {
+		foreach ($delete_guids as $g => $foo) {
+			$client = elgg_solr_get_client();
+			$query = $client->createUpdate();
+			$query->addDeleteById($g);
+			$query->addCommit();
+			$client->update($query);
+		}
+	}
+	
+	access_show_hidden_entities($access);
 }
 
 
 function elgg_solr_profile_update($event, $type, $entity) {
-	elgg_solr_add_update_user($entity);
+	$guids = elgg_get_config('elgg_solr_sync');
+	if (!is_array($guids)) {
+		$guids = array();
+	}
+	$guids[$entity->guid] = 1; // use key to keep it unique
+	
+	elgg_set_config('elgg_solr_sync', $guids);
 }
 
 
@@ -165,13 +123,9 @@ function elgg_solr_upgrades() {
 }
 
 function elgg_solr_disable_entity($event, $type, $entity) {
-	if (elgg_instanceof($entity, $type)) {
-		elgg_solr_delete_entity(null, null, $entity);
-	}
+	elgg_solr_defer_index_update($entity->guid);
 }
 
 function elgg_solr_enable_entity($event, $type, $entity) {
-	if (elgg_instanceof($entity, $type)) {
-		elgg_solr_add_update_entity(null, null, $entity);
-	}
+	elgg_solr_defer_index_update($entity->guid);
 }
