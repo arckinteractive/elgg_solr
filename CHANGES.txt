@@ -2,6 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
+1.7 (12/05/2015):
+ - performance fix for mysql with large offsets
+ - visual feedback of reindex progress
+
 1.6 (10/16/2014):
  - remove comments specific code no longer required for 1.9
  - defer all solr interactions to shutdown for more graceful handling with vroom
