@@ -25,6 +25,7 @@
    <field name="name" type="text_general" indexed="true" stored="true"/>
    <field name="username" type="string" indexed="true" stored="true" multiValued="false" />
    <field name="email" type="string" indexed="true" stored="true" multiValued="false" />
+   <field name="banned" type="string" indexed="true" stored="true" multiValued="false" />
    
    <!-- generic fields for custom filter queries -->
    <field name="elgg_string1" type="string" indexed="true" stored="true" multiValued="true" />
@@ -37,6 +38,16 @@
    <field name="elgg_string8" type="string" indexed="true" stored="true" multiValued="true" />
    <field name="elgg_string9" type="string" indexed="true" stored="true" multiValued="true" />
    <field name="elgg_string10" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string11" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string12" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string13" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string14" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string15" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string16" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string17" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string18" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string19" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="elgg_string20" type="string" indexed="true" stored="true" multiValued="true" />
 
    <!-- generic full text fields -->
    <field name="elgg_text1" type="text_general" indexed="true" stored="true" multiValued="false" />
@@ -49,6 +60,16 @@
    <field name="elgg_text8" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="elgg_text9" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="elgg_text10" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text11" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text12" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text13" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text14" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text15" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text16" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text17" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text18" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text19" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="elgg_text20" type="text_general" indexed="true" stored="true" multiValued="false" />
 
    <!-- Main body of document extracted by SolrCell.
         NOTE: This field is not indexed by default, since it is also copied to "text"

@@ -830,5 +830,11 @@ function elgg_solr_daily_cron($hook, $type, $return, $params) {
 	$client = elgg_solr_get_client();
 	$query = $client->createUpdate();
 	$query->addOptimize(true, true, 5);
-	$client->update($query);
+	
+	try {
+		$client->update($query);
+	}
+	catch (Exception $exc) {
+		// fail silently
+	}
 }

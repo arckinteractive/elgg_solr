@@ -120,7 +120,7 @@ $body = '<label>' . elgg_echo('elgg_solr:settings:batch_size') . '</label><br>';
 $body .= elgg_view('input/dropdown', array(
 	'name' => 'params[reindex_batch_size]',
 	'value' => $vars['entity']->reindex_batch_size,
-	'options' => array(25,50,100,200,300,400,500)
+	'options' => array(200,400,600,800,1000,2000)
 ));
 $body .= elgg_view('output/longtext', array(
 	'value' => elgg_echo('elgg_solr:settings:batch_size:help'),

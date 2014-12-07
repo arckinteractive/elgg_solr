@@ -85,11 +85,14 @@ function elgg_solr_reindex() {
 			if ($first_entity) {
 				// this is the first entity in the new batch
 				$fetch_time = microtime(true) - $fetch_time_start; // the query time in seconds
+			}
+			
+			if (!($count % 200)) {
 				$qtime = round($fetch_time, 4);
 				$percent = round($count / $final_count * 100);
 				$report = array(
 					'percent' => $percent,
-					'count' => $count - 1, // report prior to indexing this entity
+					'count' => $count,
 					'typecount' => $final_count,
 					'fullcount' => $fullcount,
 					'type' => $type,

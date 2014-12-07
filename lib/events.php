@@ -118,6 +118,7 @@ function elgg_solr_upgrades() {
 	elgg_load_library('elgg_solr:upgrades');
 	
 	run_function_once('elgg_solr_upgrade_20140504b');
+	run_function_once('elgg_solr_upgrade_20141205');
 	
 	elgg_set_ignore_access($ia);
 }

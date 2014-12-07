@@ -53,3 +53,16 @@ function elgg_solr_upgrade_20140504b() {
 		elgg_set_plugin_setting('hl_suffix', '</strong>', 'elgg_solr');
 	}
 }
+
+
+function elgg_solr_upgrade_20141205() {
+	$version = (int) elgg_get_plugin_setting('upgrade_version', 'elgg_solr');
+	
+	if ($version >= ELGG_SOLR_UPGRADE_VERSION) {
+		return true;
+	}
+	
+	elgg_set_plugin_setting('reindex_batch_size', 1000, 'elgg_solr');
+	
+	elgg_set_plugin_setting('upgrade_version', 20141205);
+}
