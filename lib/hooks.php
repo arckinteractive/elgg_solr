@@ -33,6 +33,8 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost} attr_content^{$description_boost}");
+	$dismax->setQueryAlternative('*:*');
+
 	
 	$boostQuery = elgg_solr_get_boost_query();
 	if ($boostQuery) {
@@ -187,6 +189,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost}");
+	$dismax->setQueryAlternative('*:*');
 	
 	$boostQuery = elgg_solr_get_boost_query();
 	if ($boostQuery) {
@@ -343,6 +346,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("name^{$title_boost} username^{$title_boost} description^{$description_boost}");
+	$dismax->setQueryAlternative('*:*');
 	
 	// no time boost for users
 	/*
@@ -509,6 +513,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
 	$dismax->setQueryFields("name^{$title_boost} description^{$description_boost}");
+	$dismax->setQueryAlternative('*:*');
 	
 	$boostQuery = elgg_solr_get_boost_query();
 	if ($boostQuery) {

@@ -5,6 +5,8 @@ x.x (mm/dd/yyyy):
 1.7 (12/05/2015):
  - performance fix for mysql with large offsets
  - visual feedback of reindex progress
+ - added 'banned' field for user entities
+ - added additional generic fields
 
 1.6 (10/16/2014):
  - remove comments specific code no longer required for 1.9
