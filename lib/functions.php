@@ -2,9 +2,9 @@
 
 function elgg_solr_reindex() {
 	set_time_limit(0);
-	
+
 	$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
-	
+
 	$guid_getter = 'elgg_solr_get_entity_guids';
 	if ($is_elgg18) {
 		$guid_getter = 'elgg_solr_get_entity_guids_18';
@@ -156,7 +156,7 @@ function elgg_solr_reindex() {
 
 function elgg_solr_comment_reindex() {
 	set_time_limit(0);
-	
+
 	$ia = elgg_set_ignore_access(true);
 	$show_hidden = access_get_show_hidden_status();
 	access_show_hidden_entities(true);
@@ -212,7 +212,7 @@ function elgg_solr_comment_reindex() {
 
 	$final_count = elgg_get_annotations(array_merge($options, array('count' => true)));
 	$fetch_time_start = microtime(true);
-	
+
 	foreach ($comments as $comment) {
 		$count++;
 		$first_entity = (bool) (($count % $batch_size) == 1);
@@ -226,29 +226,29 @@ function elgg_solr_comment_reindex() {
 		if ($count % 10000) {
 			elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
 		}
-		
+
 		if ($comment) {
 			elgg_solr_index_annotation($comment);
 			elgg_set_config('elgg_solr_nocommit', true);
 		}
-		
-		if (!($count % 200)) {
-				$qtime = round($fetch_time, 4);
-				$percent = round($count / $final_count * 100);
-				$report = array(
-					'percent' => $percent,
-					'count' => $count,
-					'typecount' => $final_count,
-					'fullcount' => $count,
-					'type' => 'Comments',
-					'querytime' => $qtime,
-					'message' => '',
-					'date' => date('Y-M-j H:i:s')
-				);
 
-				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
-			}
-		
+		if (!($count % 200)) {
+			$qtime = round($fetch_time, 4);
+			$percent = round($count / $final_count * 100);
+			$report = array(
+				'percent' => $percent,
+				'count' => $count,
+				'typecount' => $final_count,
+				'fullcount' => $count,
+				'type' => 'Comments',
+				'querytime' => $qtime,
+				'message' => '',
+				'date' => date('Y-M-j H:i:s')
+			);
+
+			file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
+		}
+
 		if ($last_entity) {
 			$fetch_time_start = microtime(true);
 		}
@@ -258,10 +258,23 @@ function elgg_solr_comment_reindex() {
 		elgg_solr_debug_log($count . ' entities sent to Solr');
 	}
 
+	$report = array(
+		'percent' => 100,
+		'count' => $count,
+		'typecount' => $final_count,
+		'fullcount' => $count,
+		'type' => 'Comments',
+		'querytime' => 0,
+		'message' => 'Comment Reindex has been completed',
+		'date' => date('Y-M-j H:i:s')
+	);
+
+	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
+
 	elgg_set_ignore_access($ia);
+	access_show_hidden_entities($show_hidden);
 	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
 }
-
 
 function elgg_solr_get_indexable_count() {
 	$registered_types = get_registered_entity_types();
@@ -1286,38 +1299,32 @@ function elgg_solr_get_entity_guids_18($options) {
 	}
 }
 
-
 function elgg_solr_get_entity_guids(array $options = array()) {
 	global $CONFIG;
 
 	$defaults = array(
-		'types'					=>	ELGG_ENTITIES_ANY_VALUE,
-		'subtypes'				=>	ELGG_ENTITIES_ANY_VALUE,
-		'type_subtype_pairs'	=>	ELGG_ENTITIES_ANY_VALUE,
-
-		'guids'					=>	ELGG_ENTITIES_ANY_VALUE,
-		'owner_guids'			=>	ELGG_ENTITIES_ANY_VALUE,
-		'container_guids'		=>	ELGG_ENTITIES_ANY_VALUE,
-		'site_guids'			=>	$CONFIG->site_guid,
-
-		'modified_time_lower'	=>	ELGG_ENTITIES_ANY_VALUE,
-		'modified_time_upper'	=>	ELGG_ENTITIES_ANY_VALUE,
-		'created_time_lower'	=>	ELGG_ENTITIES_ANY_VALUE,
-		'created_time_upper'	=>	ELGG_ENTITIES_ANY_VALUE,
-
-		'reverse_order_by'		=>	false,
-		'order_by' 				=>	'e.time_created desc',
-		'group_by'				=>	ELGG_ENTITIES_ANY_VALUE,
-		'limit'					=>	10,
-		'offset'				=>	0,
-		'count'					=>	false,
-		'selects'				=>	array(),
-		'wheres'				=>	array(),
-		'joins'					=>	array(),
-
-		'callback'				=> false,
-
-		'__ElggBatch'			=> null,
+		'types' => ELGG_ENTITIES_ANY_VALUE,
+		'subtypes' => ELGG_ENTITIES_ANY_VALUE,
+		'type_subtype_pairs' => ELGG_ENTITIES_ANY_VALUE,
+		'guids' => ELGG_ENTITIES_ANY_VALUE,
+		'owner_guids' => ELGG_ENTITIES_ANY_VALUE,
+		'container_guids' => ELGG_ENTITIES_ANY_VALUE,
+		'site_guids' => $CONFIG->site_guid,
+		'modified_time_lower' => ELGG_ENTITIES_ANY_VALUE,
+		'modified_time_upper' => ELGG_ENTITIES_ANY_VALUE,
+		'created_time_lower' => ELGG_ENTITIES_ANY_VALUE,
+		'created_time_upper' => ELGG_ENTITIES_ANY_VALUE,
+		'reverse_order_by' => false,
+		'order_by' => 'e.time_created desc',
+		'group_by' => ELGG_ENTITIES_ANY_VALUE,
+		'limit' => 10,
+		'offset' => 0,
+		'count' => false,
+		'selects' => array(),
+		'wheres' => array(),
+		'joins' => array(),
+		'callback' => false,
+		'__ElggBatch' => null,
 	);
 
 	$options = array_merge($defaults, $options);
@@ -1326,8 +1333,7 @@ function elgg_solr_get_entity_guids(array $options = array()) {
 	// it's already an array...just need to merge it
 	if (isset($options['type_subtype_pair'])) {
 		if (isset($options['type_subtype_pairs'])) {
-			$options['type_subtype_pairs'] = array_merge($options['type_subtype_pairs'],
-				$options['type_subtype_pair']);
+			$options['type_subtype_pairs'] = array_merge($options['type_subtype_pairs'], $options['type_subtype_pair']);
 		} else {
 			$options['type_subtype_pairs'] = $options['type_subtype_pair'];
 		}
@@ -1343,16 +1349,14 @@ function elgg_solr_get_entity_guids(array $options = array()) {
 
 	$wheres = $options['wheres'];
 
-	$wheres[] = _elgg_get_entity_type_subtype_where_sql('e', $options['types'],
-		$options['subtypes'], $options['type_subtype_pairs']);
+	$wheres[] = _elgg_get_entity_type_subtype_where_sql('e', $options['types'], $options['subtypes'], $options['type_subtype_pairs']);
 
 	$wheres[] = _elgg_get_guid_based_where_sql('e.guid', $options['guids']);
 	$wheres[] = _elgg_get_guid_based_where_sql('e.owner_guid', $options['owner_guids']);
 	$wheres[] = _elgg_get_guid_based_where_sql('e.container_guid', $options['container_guids']);
 	$wheres[] = _elgg_get_guid_based_where_sql('e.site_guid', $options['site_guids']);
 
-	$wheres[] = _elgg_get_entity_time_where_sql('e', $options['created_time_upper'],
-		$options['created_time_lower'], $options['modified_time_upper'], $options['modified_time_lower']);
+	$wheres[] = _elgg_get_entity_time_where_sql('e', $options['created_time_upper'], $options['created_time_lower'], $options['modified_time_upper'], $options['modified_time_lower']);
 
 	// see if any functions failed
 	// remove empty strings on successful functions
@@ -1467,7 +1471,7 @@ function elgg_solr_get_entity_guids(array $options = array()) {
 		return $dt;
 	} else {
 		$total = get_data_row($query);
-		return (int)$total->total;
+		return (int) $total->total;
 	}
 }
 
@@ -1488,7 +1492,7 @@ function elgg_solr_index_annotation($annotation) {
 	$doc->description = elgg_strip_tags($annotation->value);
 	$doc->time_created = $annotation->time_created;
 	$doc->enabled = $annotation->enabled;
-	
+
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', 'annotation', array('annotation' => $annotation), $doc);
 
 	$query->addDocument($doc);
@@ -1503,7 +1507,6 @@ function elgg_solr_index_annotation($annotation) {
 		error_log($exc->getMessage());
 	}
 }
-
 
 /**
  * Note - only needed for 1.8
