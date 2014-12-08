@@ -22,10 +22,14 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
-	$query->addSorts(array(
+	
+	$default_sorts = array(
 		'score' => 'desc',
 		'time_created' => 'desc'
-	));
+	);
+	
+	$sorts = $params['sorts'] ? $params['sorts'] : $default_sorts;
+	$query->addSorts($sorts);
 	
 	$title_boost = elgg_solr_get_title_boost();
 	$description_boost = elgg_solr_get_description_boost();
@@ -198,10 +202,14 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	
 	// this query is now a dismax query
 	$query->setQuery($params['query']);
-	$query->addSorts(array(
+	
+	$default_sorts = array(
 		'score' => 'desc',
 		'time_created' => 'desc'
-	));
+	);
+	
+	$sorts = $params['sorts'] ? $params['sorts'] : $default_sorts;
+	$query->addSorts($sorts);
 	
 	// make sure we're only getting objectss
 	$params['fq']['type'] = 'type:object';
@@ -335,10 +343,14 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
-	$query->addSorts(array(
+	
+	$default_sorts = array(
 		'score' => 'desc',
 		'time_created' => 'desc'
-	));
+	);
+	
+	$sorts = $params['sorts'] ? $params['sorts'] : $default_sorts;
+	$query->addSorts($sorts);
 	
 	$title_boost = elgg_solr_get_title_boost();
 	$description_boost = elgg_solr_get_description_boost();
@@ -502,10 +514,14 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
     // get an update query instance
     $query = $client->createSelect($select);
-	$query->addSorts(array(
+	
+	$default_sorts = array(
 		'score' => 'desc',
 		'time_created' => 'desc'
-	));
+	);
+	
+	$sorts = $params['sorts'] ? $params['sorts'] : $default_sorts;
+	$query->addSorts($sorts);
 	
 	$title_boost = elgg_solr_get_title_boost();
 	$description_boost = elgg_solr_get_description_boost();
@@ -717,10 +733,14 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	$client = elgg_solr_get_client();
 // get an update query instance
     $query = $client->createSelect($select);
-	$query->addSorts(array(
+	
+	$default_sorts = array(
 		'score' => 'desc',
 		'time_created' => 'desc'
-	));
+	);
+	
+	$sorts = $params['sorts'] ? $params['sorts'] : $default_sorts;
+	$query->addSorts($sorts);
 	
 	$default_fq = elgg_solr_get_default_fq($params);
 	if ($params['fq']) {
@@ -842,4 +862,158 @@ function elgg_solr_daily_cron($hook, $type, $return, $params) {
 	catch (Exception $exc) {
 		// fail silently
 	}
+}
+
+
+/**
+ * NOTE - this is only used in Elgg 1.8 as comments are annotations
+ * 
+ * @param type $hook
+ * @param type $type
+ * @param type $return
+ * @param type $params
+ * @return null
+ */
+function elgg_solr_comment_search($hook, $type, $return, $params) {
+	
+	$entities = array();
+
+    $select = array(
+        'start'  => $params['offset'],
+        'rows'   => $params['limit'],
+        'fields' => array('id', 'container_guid', 'description', 'owner_guid', 'time_created', 'score'),
+    );
+
+    // create a client instance
+    $client = elgg_solr_get_client();
+
+    // get an update query instance
+    $query = $client->createSelect($select);
+	
+	$default_sort = array(
+		'score' => 'desc',
+		'time_created' => 'desc'
+	);
+	$sorts = $params['sorts'] ? $params['sorts'] : $default_sort;
+	
+	$query->addSorts($sorts);
+	
+	$description_boost = elgg_solr_get_description_boost();
+	
+	// get the dismax component and set a boost query
+	$dismax = $query->getEDisMax();
+	$dismax->setQueryFields("description^{$description_boost}");
+	
+	$boostQuery = elgg_solr_get_boost_query();
+	if ($boostQuery) {
+		$dismax->setBoostQuery($boostQuery);
+	}
+	
+	// this query is now a dismax query
+	$query->setQuery($params['query']);
+	
+	
+	// make sure we're only getting comments
+	$params['fq']['type'] = 'type:annotation';
+	$params['fq']['subtype'] = 'subtype:generic_comment';
+	
+	$default_fq = elgg_solr_get_default_fq($params);
+	if ($params['fq']) {
+		$filter_queries = array_merge($default_fq, $params['fq']);
+	}
+	else {
+		$filter_queries = $default_fq;
+	}
+
+    if (!empty($filter_queries)) {
+        foreach ($filter_queries as $key => $value) {
+            $query->createFilterQuery($key)->setQuery($value);
+        }
+    }
+
+    // get highlighting component and apply settings
+    $hl = $query->getHighlighting();
+    $hl->setFields(array('description'));
+   	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
+	$hl->setSimplePostfix('</span>');
+
+    // this executes the query and returns the result
+    try {
+        $resultset = $client->select($query);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return null;
+    }
+
+    // Get the highlighted snippet
+    try {
+        $highlighting = $resultset->getHighlighting();
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return null;
+    }
+
+    // Count the total number of documents found by solr
+    $count = $resultset->getNumFound();
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	
+	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
+	
+    foreach ($resultset as $document) {
+		// comments entity_guid stored as container_guid in solr
+        $entity = get_entity($document->container_guid);
+		
+		if (!$entity) {
+			$entity = new ElggObject();
+			$entity->setVolatileData('search_unavailable_entity', TRUE);
+		}
+
+        // highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
+        $highlightedDoc = $highlighting->getResult($document->id);
+
+        if($highlightedDoc){
+            foreach($highlightedDoc as $highlight) {
+                $snippet = implode(' (...) ', $highlight);
+				// get our highlight based on the wrapped tokens
+				// note, this is to prevent partial html from breaking page layouts
+				$match = array();
+				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+
+				if ($match[1]) {
+					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+				}
+            }
+        }
+		
+		if (!$snippet) {
+			$snippet = search_get_highlighted_relevant_substrings(elgg_get_excerpt($document->description), $params['query']);
+		}
+		
+		if ($show_score == 'yes' && elgg_is_admin_logged_in()) {
+			$snippet .= elgg_view('output/longtext', array(
+				'value' => elgg_echo('elgg_solr:relevancy', array($document->score)),
+				'class' => 'elgg-subtext'
+			));
+		}
+		
+		$comments_data = $entity->getVolatileData('search_comments_data');
+		if (!$comments_data) {
+			$comments_data = array();
+		}
+		$comments_data[] = array(
+			'annotation_id' => substr(strstr(elgg_strip_tags($document->id), ':'), 1),
+			'text' => $snippet,
+			'owner_guid' => $document->owner_guid,
+			'time_created' => $document->time_created,
+		);
+		$entity->setVolatileData('search_comments_data', $comments_data);
+
+        $entities[] = $entity;
+    }
+
+    return array(
+        'entities' => $entities,
+        'count' => $count,
+    );
 }

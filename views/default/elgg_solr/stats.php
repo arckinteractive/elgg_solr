@@ -5,6 +5,7 @@ access_show_hidden_entities(true);
 
 $stats = array();
 $registered_types = get_registered_entity_types();
+$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
 
 foreach ($registered_types as $type => $subtypes) {
 	$options = array(
@@ -31,6 +32,14 @@ foreach ($registered_types as $type => $subtypes) {
 	$indexed = elgg_solr_get_indexed_count("type:{$type}");
 	
 	$stats[$type] = array('count' => $count, 'indexed' => $indexed);
+}
+
+if ($is_elgg18) {
+	// comments
+	$stats['comments'] = array(
+		'count' => elgg_get_annotations(array('annotation_name' => 'generic_comment', 'count' => true)),
+		'indexed' => elgg_solr_get_indexed_count('type:annotation', array('subtype' => 'subtype:generic_comment'))
+	);
 }
 
 $system_total = 0;

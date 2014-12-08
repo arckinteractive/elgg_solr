@@ -5,19 +5,25 @@ if (elgg_get_plugin_setting('reindex_running', 'elgg_solr')) {
 	forward(REFERER);
 }
 
+$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+
 $starttime = get_input('starttime');
 $endtime = get_input('endtime');
 $type = get_input('type');
 
 switch ($type) {
 	case 'comments':
+		// only applies to 1.8
 		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_comment_reindex');
 		break;
 	case '':
 	case 'full':
 		//vroomed
 		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_reindex');
-		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_comment_reindex');
+		
+		if ($is_elgg18) {
+			elgg_register_event_handler('shutdown', 'system', 'elgg_solr_comment_reindex');
+		}
 		break;
 	default:
 		// set up options to use instead of all registered types

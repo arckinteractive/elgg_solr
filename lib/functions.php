@@ -2,7 +2,7 @@
 
 function elgg_solr_reindex() {
 	set_time_limit(0);
-	
+
 	$ia = elgg_set_ignore_access(true);
 	$show_hidden = access_get_show_hidden_status();
 	access_show_hidden_entities(true);
@@ -86,7 +86,7 @@ function elgg_solr_reindex() {
 				// this is the first entity in the new batch
 				$fetch_time = microtime(true) - $fetch_time_start; // the query time in seconds
 			}
-			
+
 			if (!($count % 200)) {
 				$qtime = round($fetch_time, 4);
 				$percent = round($count / $final_count * 100);
@@ -139,13 +139,17 @@ function elgg_solr_reindex() {
 		error_log($e->getMessage());
 		return false;
 	}
-	
+
 	access_show_hidden_entities($show_hidden);
 	elgg_set_ignore_access($ia);
 }
 
 function elgg_solr_comment_reindex() {
 	set_time_limit(0);
+	
+	$ia = elgg_set_ignore_access(true);
+	$show_hidden = access_get_show_hidden_status();
+	access_show_hidden_entities(true);
 
 	$debug = get_input('debug', false);
 	if ($debug) {
@@ -155,7 +159,27 @@ function elgg_solr_comment_reindex() {
 	// lock the function
 	elgg_set_plugin_setting('reindex_running', 1, 'elgg_solr');
 
-	$ia = elgg_set_ignore_access(true);
+	if (!file_exists(elgg_get_config('dataroot') . 'elgg_solr')) {
+		mkdir(elgg_get_config('dataroot') . 'elgg_solr');
+	}
+
+	$time = time();
+	$log = elgg_get_config('dataroot') . 'elgg_solr/' . $time . '.txt';
+	elgg_set_plugin_setting('current_log', $time, 'elgg_solr');
+
+	// initialize the csv
+	$report = array(
+		'percent' => '',
+		'count' => 0, // report prior to indexing this entity
+		'typecount' => 0,
+		'fullcount' => 0,
+		'type' => 'Comments',
+		'querytime' => 0,
+		'message' => 'Initializing Reindex',
+		'date' => date('Y-M-j H:i:s')
+	);
+	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
+
 
 	elgg_set_config('elgg_solr_nocommit', true); // tell our indexer not to commit right away
 
@@ -176,14 +200,48 @@ function elgg_solr_comment_reindex() {
 	$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 	$comments = new ElggBatch('elgg_get_annotations', $options, null, $batch_size);
 
+	$final_count = elgg_get_annotations(array_merge($options, array('count' => true)));
+	$fetch_time_start = microtime(true);
+	
 	foreach ($comments as $comment) {
 		$count++;
+		$first_entity = (bool) (($count % $batch_size) == 1);
+		$last_entity = (bool) (($count % $batch_size) == 0);
+
+		if ($first_entity) {
+			// this is the first entity in the new batch
+			$fetch_time = microtime(true) - $fetch_time_start; // the query time in seconds
+		}
+
 		if ($count % 10000) {
 			elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
 		}
-		elgg_solr_add_update_annotation(null, null, $comment);
+		
+		if ($comment) {
+			elgg_solr_index_annotation($comment);
+			elgg_set_config('elgg_solr_nocommit', true);
+		}
+		
+		if (!($count % 200)) {
+				$qtime = round($fetch_time, 4);
+				$percent = round($count / $final_count * 100);
+				$report = array(
+					'percent' => $percent,
+					'count' => $count,
+					'typecount' => $final_count,
+					'fullcount' => $count,
+					'type' => 'Comments',
+					'querytime' => $qtime,
+					'message' => '',
+					'date' => date('Y-M-j H:i:s')
+				);
 
-		elgg_set_config('elgg_solr_nocommit', true);
+				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
+			}
+		
+		if ($last_entity) {
+			$fetch_time_start = microtime(true);
+		}
 	}
 
 	if ($debug) {
@@ -193,6 +251,7 @@ function elgg_solr_comment_reindex() {
 	elgg_set_ignore_access($ia);
 	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
 }
+
 
 function elgg_solr_get_indexable_count() {
 	$registered_types = get_registered_entity_types();
@@ -1039,6 +1098,28 @@ function elgg_solr_defer_index_delete($guid) {
 	elgg_set_config('elgg_solr_delete', $delete_guids);
 }
 
+function elgg_solr_defer_annotation_delete($id) {
+	$delete_ids = elgg_get_config('elgg_solr_annotation_delete');
+	if (!is_array($delete_ids)) {
+		$delete_ids = array();
+	}
+
+	$delete_ids[$id] = 1;
+
+	elgg_set_config('elgg_solr_annotation_delete', $delete_ids);
+}
+
+function elgg_solr_defer_annotation_update($id) {
+	$ids = elgg_get_config('elgg_solr_annotation_update');
+	if (!is_array($ids)) {
+		$ids = array();
+	}
+
+	$ids[$id] = 1;
+
+	elgg_set_config('elgg_solr_annotation_update', $ids);
+}
+
 // copy of elgg_get_entities
 // but only returns guids for performance
 // ignores access
@@ -1192,4 +1273,158 @@ function elgg_solr_get_entity_guids($options) {
 		$total = get_data_row($query);
 		return (int) $total->total;
 	}
+}
+
+function elgg_solr_index_annotation($annotation) {
+	$client = elgg_solr_get_client();
+	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
+
+	$query = $client->createUpdate();
+
+	// add document
+	$doc = $query->createDocument();
+	$doc->id = 'annotation:' . $annotation->id;
+	$doc->type = 'annotation';
+	$doc->subtype = $annotation->name;
+	$doc->owner_guid = $annotation->owner_guid;
+	$doc->container_guid = $annotation->entity_guid;
+	$doc->access_id = $annotation->access_id;
+	$doc->description = elgg_strip_tags($annotation->value);
+	$doc->time_created = $annotation->time_created;
+	$doc->enabled = $annotation->enabled;
+	
+	$doc = elgg_trigger_plugin_hook('elgg_solr:index', 'annotation', array('annotation' => $annotation), $doc);
+
+	$query->addDocument($doc);
+	if ($commit) {
+		$query->addCommit($commit);
+	}
+
+	// this executes the query and returns the result
+	try {
+		$client->update($query);
+	} catch (Exception $exc) {
+		error_log($exc->getMessage());
+	}
+}
+
+
+/**
+ * Note - only needed for 1.8
+ * 
+ * @param type $time
+ * @param type $block
+ * @return type
+ */
+function elgg_solr_get_comment_stats($time, $block) {
+	$type = 'annotation';
+	$fq = array(
+		'subtype' => "subtype:generic_comment"
+	);
+	$stats = array();
+	switch ($block) {
+		case 'hour':
+			// I don't think we need minute resolution right now...
+			break;
+		case 'day':
+			for ($i = 0; $i < 24; $i++) {
+				$starttime = mktime($i, 0, 0, date('m', $time), date('j', $time), date('Y', $time));
+				$endtime = mktime($i + 1, 0, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
+
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+				));
+
+				$stats[date('H', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => false
+				);
+			}
+			break;
+		case 'month':
+			for ($i = 1; $i < date('t', $time) + 1; $i++) {
+				$starttime = mktime(0, 0, 0, date('m', $time), $i, date('Y', $time));
+				$endtime = mktime(0, 0, 0, date('m', $time), $i + 1, date('Y', $time)) - 1;
+
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+				));
+
+				$stats[date('d', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'day'
+				);
+			}
+			break;
+		case 'year':
+			for ($i = 1; $i < 13; $i++) {
+				$starttime = mktime(0, 0, 0, $i, 1, date('Y', $time));
+				$endtime = mktime(0, 0, 0, $i + 1, 1, date('Y', $time)) - 1;
+
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+				));
+
+				$stats[date('F', $starttime)] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'month'
+				);
+			}
+			break;
+
+		case 'all':
+		default:
+			$startyear = date('Y', elgg_get_site_entity()->time_created);
+			$currentyear = date('Y');
+
+			for ($i = $currentyear; $i > $startyear - 1; $i--) {
+				$starttime = mktime(0, 0, 0, 1, 1, $i);
+				$endtime = mktime(0, 0, 0, 1, 1, $i + 1) - 1;
+
+				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$system = elgg_get_annotations(array(
+					'annotation_name' => 'generic_comment',
+					'annotation_created_time_lower' => $starttime,
+					'annotation_created_time_upper' => $endtime,
+					'count' => true
+				));
+
+				$stats[$i] = array(
+					'count' => $system,
+					'indexed' => $indexed,
+					'starttime' => $starttime,
+					'endtime' => $endtime,
+					'block' => 'year'
+				);
+			}
+
+			break;
+	}
+
+	return $stats;
 }
