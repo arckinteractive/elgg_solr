@@ -74,6 +74,7 @@ function elgg_solr_reindex() {
 		$entities = new ElggBatch('elgg_solr_get_entity_guids', $options, null, $batch_size);
 		$final_count = elgg_solr_get_entity_guids(array_merge($options, array('count' => true)));
 
+		elgg_set_config('elgg_solr_nocommit', true); // disable committing on each entity for performance
 		$count = 0;
 		$fetch_time_start = microtime(true);
 		foreach ($entities as $e) {
@@ -102,11 +103,13 @@ function elgg_solr_reindex() {
 				);
 
 				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
+				elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
 			}
 
 			$entity = get_entity($e->guid);
 			if ($entity) {
 				elgg_solr_add_update_entity(null, null, $entity);
+				elgg_set_config('elgg_solr_nocommit', true);
 			}
 
 			if ($last_entity) {
