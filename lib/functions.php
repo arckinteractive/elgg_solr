@@ -2,6 +2,13 @@
 
 function elgg_solr_reindex() {
 	set_time_limit(0);
+	
+	$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+	
+	$guid_getter = 'elgg_solr_get_entity_guids';
+	if ($is_elgg18) {
+		$guid_getter = 'elgg_solr_get_entity_guids_18';
+	}
 
 	$ia = elgg_set_ignore_access(true);
 	$show_hidden = access_get_show_hidden_status();
@@ -71,8 +78,8 @@ function elgg_solr_reindex() {
 		// uses a custom getter which only fetches the guids in a single large-batch query
 		// which is much more efficient than standard egef
 		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
-		$entities = new ElggBatch('elgg_solr_get_entity_guids', $options, null, $batch_size);
-		$final_count = elgg_solr_get_entity_guids(array_merge($options, array('count' => true)));
+		$entities = new ElggBatch($guid_getter, $options, null, $batch_size);
+		$final_count = $guid_getter(array_merge($options, array('count' => true)));
 
 		elgg_set_config('elgg_solr_nocommit', true); // disable committing on each entity for performance
 		$count = 0;
@@ -1123,10 +1130,11 @@ function elgg_solr_defer_annotation_update($id) {
 	elgg_set_config('elgg_solr_annotation_update', $ids);
 }
 
+// 1.8 only
 // copy of elgg_get_entities
 // but only returns guids for performance
 // ignores access
-function elgg_solr_get_entity_guids($options) {
+function elgg_solr_get_entity_guids_18($options) {
 	global $CONFIG;
 
 	$defaults = array(
@@ -1275,6 +1283,191 @@ function elgg_solr_get_entity_guids($options) {
 	} else {
 		$total = get_data_row($query);
 		return (int) $total->total;
+	}
+}
+
+
+function elgg_solr_get_entity_guids(array $options = array()) {
+	global $CONFIG;
+
+	$defaults = array(
+		'types'					=>	ELGG_ENTITIES_ANY_VALUE,
+		'subtypes'				=>	ELGG_ENTITIES_ANY_VALUE,
+		'type_subtype_pairs'	=>	ELGG_ENTITIES_ANY_VALUE,
+
+		'guids'					=>	ELGG_ENTITIES_ANY_VALUE,
+		'owner_guids'			=>	ELGG_ENTITIES_ANY_VALUE,
+		'container_guids'		=>	ELGG_ENTITIES_ANY_VALUE,
+		'site_guids'			=>	$CONFIG->site_guid,
+
+		'modified_time_lower'	=>	ELGG_ENTITIES_ANY_VALUE,
+		'modified_time_upper'	=>	ELGG_ENTITIES_ANY_VALUE,
+		'created_time_lower'	=>	ELGG_ENTITIES_ANY_VALUE,
+		'created_time_upper'	=>	ELGG_ENTITIES_ANY_VALUE,
+
+		'reverse_order_by'		=>	false,
+		'order_by' 				=>	'e.time_created desc',
+		'group_by'				=>	ELGG_ENTITIES_ANY_VALUE,
+		'limit'					=>	10,
+		'offset'				=>	0,
+		'count'					=>	false,
+		'selects'				=>	array(),
+		'wheres'				=>	array(),
+		'joins'					=>	array(),
+
+		'callback'				=> false,
+
+		'__ElggBatch'			=> null,
+	);
+
+	$options = array_merge($defaults, $options);
+
+	// can't use helper function with type_subtype_pair because
+	// it's already an array...just need to merge it
+	if (isset($options['type_subtype_pair'])) {
+		if (isset($options['type_subtype_pairs'])) {
+			$options['type_subtype_pairs'] = array_merge($options['type_subtype_pairs'],
+				$options['type_subtype_pair']);
+		} else {
+			$options['type_subtype_pairs'] = $options['type_subtype_pair'];
+		}
+	}
+
+	$singulars = array('type', 'subtype', 'guid', 'owner_guid', 'container_guid', 'site_guid');
+	$options = _elgg_normalize_plural_options_array($options, $singulars);
+
+	// evaluate where clauses
+	if (!is_array($options['wheres'])) {
+		$options['wheres'] = array($options['wheres']);
+	}
+
+	$wheres = $options['wheres'];
+
+	$wheres[] = _elgg_get_entity_type_subtype_where_sql('e', $options['types'],
+		$options['subtypes'], $options['type_subtype_pairs']);
+
+	$wheres[] = _elgg_get_guid_based_where_sql('e.guid', $options['guids']);
+	$wheres[] = _elgg_get_guid_based_where_sql('e.owner_guid', $options['owner_guids']);
+	$wheres[] = _elgg_get_guid_based_where_sql('e.container_guid', $options['container_guids']);
+	$wheres[] = _elgg_get_guid_based_where_sql('e.site_guid', $options['site_guids']);
+
+	$wheres[] = _elgg_get_entity_time_where_sql('e', $options['created_time_upper'],
+		$options['created_time_lower'], $options['modified_time_upper'], $options['modified_time_lower']);
+
+	// see if any functions failed
+	// remove empty strings on successful functions
+	foreach ($wheres as $i => $where) {
+		if ($where === false) {
+			return false;
+		} elseif (empty($where)) {
+			unset($wheres[$i]);
+		}
+	}
+
+	// remove identical where clauses
+	$wheres = array_unique($wheres);
+
+	// evaluate join clauses
+	if (!is_array($options['joins'])) {
+		$options['joins'] = array($options['joins']);
+	}
+
+	// remove identical join clauses
+	$joins = array_unique($options['joins']);
+
+	foreach ($joins as $i => $join) {
+		if ($join === false) {
+			return false;
+		} elseif (empty($join)) {
+			unset($joins[$i]);
+		}
+	}
+
+	// evalutate selects
+	if ($options['selects']) {
+		$selects = '';
+		foreach ($options['selects'] as $select) {
+			$selects .= ", $select";
+		}
+	} else {
+		$selects = '';
+	}
+
+	if (!$options['count']) {
+		$distinct = '';
+		if ($options['require_distinct']) {
+			$distinct = ' DISTINCT';
+		}
+		$query = "SELECT{$distinct} e.guid{$selects} FROM {$CONFIG->dbprefix}entities e ";
+	} else {
+		$query = "SELECT count(DISTINCT e.guid) as total FROM {$CONFIG->dbprefix}entities e ";
+	}
+
+	// add joins
+	foreach ($joins as $j) {
+		$query .= " $j ";
+	}
+
+	// add wheres
+	$query .= ' WHERE ';
+
+	foreach ($wheres as $w) {
+		$query .= " $w AND ";
+	}
+
+	// Add access controls
+	$query .= _elgg_get_access_where_sql();
+
+	// reverse order by
+	if ($options['reverse_order_by']) {
+		$options['order_by'] = _elgg_sql_reverse_order_by_clause($options['order_by']);
+	}
+
+	if (!$options['count']) {
+		if ($options['group_by']) {
+			$query .= " GROUP BY {$options['group_by']}";
+		}
+
+		if ($options['order_by']) {
+			$query .= " ORDER BY {$options['order_by']}";
+		}
+
+		if ($options['limit']) {
+			$limit = sanitise_int($options['limit'], false);
+			$offset = sanitise_int($options['offset'], false);
+			$query .= " LIMIT $offset, $limit";
+		}
+
+		if ($options['callback'] === 'entity_row_to_elggstar') {
+			$dt = _elgg_fetch_entities_from_sql($query, $options['__ElggBatch']);
+		} else {
+			$dt = get_data($query, $options['callback']);
+		}
+
+		if ($dt) {
+			// populate entity and metadata caches
+			$guids = array();
+			foreach ($dt as $item) {
+				// A custom callback could result in items that aren't ElggEntity's, so check for them
+				if ($item instanceof ElggEntity) {
+					_elgg_cache_entity($item);
+					// plugins usually have only settings
+					if (!$item instanceof ElggPlugin) {
+						$guids[] = $item->guid;
+					}
+				}
+			}
+			// @todo Without this, recursive delete fails. See #4568
+			reset($dt);
+
+			if ($guids) {
+				_elgg_get_metadata_cache()->populateFromEntities($guids);
+			}
+		}
+		return $dt;
+	} else {
+		$total = get_data_row($query);
+		return (int)$total->total;
 	}
 }
 
