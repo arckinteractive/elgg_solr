@@ -798,10 +798,12 @@ function elgg_solr_add_update_group_default($entity) {
 function elgg_solr_escape_special_chars($string) {
 	// Lucene characters that need escaping with \ are + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 	$luceneReservedCharacters = preg_quote('+-&|!(){}[]^"~*?:\\');
-	$query = preg_replace_callback('/([' . $luceneReservedCharacters . '])/', function($matches) {
-		return '\\' . $matches[0];
-	}, $string);
+	$query = preg_replace_callback('/([' . $luceneReservedCharacters . '])/', 'elgg_solr_escape_special_chars_callback', $string);
 	return $query;
+}
+
+function elgg_solr_escape_special_chars_callback($matches) {
+	return '\\' . $matches[0];
 }
 
 /**
