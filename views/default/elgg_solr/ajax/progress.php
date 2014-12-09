@@ -3,42 +3,12 @@ admin_gatekeeper();
 
 $time = $vars['time'];
 
-$line = '';
-
 $filename = elgg_get_config("dataroot") . "elgg_solr/{$time}.txt";
 
-$f = false;
-if (file_exists($filename)) {
-	$f = @fopen($filename, 'r');
-}
+$line = elgg_solr_get_log_line($filename);
 
-if ($f === false) {
+if (!$line) {
 	return;
-} else {
-	$cursor = -1;
-
-	fseek($f, $cursor, SEEK_END);
-	$char = fgetc($f);
-
-	/**
-	 * Trim trailing newline chars of the file
-	 */
-	while ($char === "\n" || $char === "\r") {
-		fseek($f, $cursor--, SEEK_END);
-		$char = fgetc($f);
-	}
-
-	/**
-	 * Read until the start of file or first newline char
-	 */
-	while ($char !== false && $char !== "\n" && $char !== "\r") {
-		/**
-		 * Prepend the new char
-		 */
-		$line = $char . $line;
-		fseek($f, $cursor--, SEEK_END);
-		$char = fgetc($f);
-	}
 }
 
 if (elgg_is_xhr()) {
@@ -67,6 +37,7 @@ echo '<div>Batch Complete: <span class="percent"></span></div>';
 echo '<div>Batch Query Time: <span class="querytime"></span></div>';
 echo '<div>Last Log Update: <span class="logdate"></span></div>';
 echo '<div>Message: <span class="message"></span></div>';
+echo '<div><span class="restart"></span></div>';
 echo '</div>';
 ?>
 
@@ -85,6 +56,17 @@ echo '</div>';
 					$('#solr-progress-results span.querytime').text(result.querytime);
 					$('#solr-progress-results span.message').text(result.message);
 					$('#solr-progress-results span.logdate').text(result.date);
+					
+					if (result.logtime && result.cacheoptions) {
+						var url = elgg.get_site_url() + 'action/elgg_solr/restart_reindex?logtime='+result.logtime;
+						var link = '<a class="elgg-button elgg-button-action elgg-requires-confirmation" href="' + elgg.security.addToken(url) + '">Restart</a>';
+						var html = elgg.echo('elgg_solr:reindex:restart', [link]);
+						$('#solr-progress-results span.restart').html(html);
+					}
+					else {
+						$('#solr-progress-results span.restart').html('');
+					}
+					
 					window.setTimeout(function() { refresh_log(); }, 3000);
 				}
 			});

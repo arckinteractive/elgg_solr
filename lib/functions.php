@@ -21,9 +21,9 @@ function elgg_solr_reindex() {
 		mkdir(elgg_get_config('dataroot') . 'elgg_solr');
 	}
 
-	$time = time();
-	$log = elgg_get_config('dataroot') . 'elgg_solr/' . $time . '.txt';
-	elgg_set_plugin_setting('current_log', $time, 'elgg_solr');
+	$logtime = time();
+	$log = elgg_get_config('dataroot') . 'elgg_solr/' . $logtime . '.txt';
+	elgg_set_plugin_setting('current_log', $logtime, 'elgg_solr');
 
 	// initialize the csv
 	$report = array(
@@ -34,7 +34,8 @@ function elgg_solr_reindex() {
 		'type' => '',
 		'querytime' => 0,
 		'message' => 'Initializing Reindex',
-		'date' => date('Y-M-j H:i:s')
+		'date' => date('Y-M-j H:i:s'),
+		'logtime' => $logtime
 	);
 	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
 
@@ -50,21 +51,38 @@ function elgg_solr_reindex() {
 		$registered_types = get_registered_entity_types();
 	}
 
+	// build our options and cache them in case we need to restart it
+	$cacheoptions = array(
+		'types' => $registered_types
+	);
+
+	$options = array();
+	$time = elgg_get_config('elgg_solr_time_options');
+	if ($time && is_array($time)) {
+		$options['wheres'] = array(
+			"e.time_created >= {$time['starttime']}",
+			"e.time_created <= {$time['endtime']}",
+		);
+
+		$cacheoptions['starttime'] = $time['starttime'];
+		$cacheoptions['endtime'] = $time['endtime'];
+	}
+
 	elgg_set_config('elgg_solr_nocommit', true); // tell our indexer not to commit right away
 
 	$fullcount = 0;
 	foreach ($registered_types as $type => $subtypes) {
-		$options = array(
-			'type' => $type,
-			'limit' => false
-		);
-
-		$time = elgg_get_config('elgg_solr_time_options');
-		if ($time && is_array($time)) {
-			$options['wheres'] = array(
-				"e.time_created >= {$time['starttime']}",
-				"e.time_created <= {$time['endtime']}",
-			);
+		$options['type'] = $type;
+		$options['limit'] = false;
+		
+		$restart_time = elgg_get_config('elgg_solr_restart_time');
+		if ($restart_time) {
+			elgg_set_config('elgg_solr_restart_time', false);
+			
+			$options['wheres'][1] = "e.time_created <= {$restart_time}";
+		}
+		elseif ($time['endtime']) {
+			$options['wheres'][1] = "e.time_created <= {$time['endtime']}";
 		}
 
 		if ($subtypes) {
@@ -95,9 +113,18 @@ function elgg_solr_reindex() {
 				$fetch_time = microtime(true) - $fetch_time_start; // the query time in seconds
 			}
 
+			$entity = get_entity($e->guid);
+			if ($entity) {
+				elgg_solr_add_update_entity(null, null, $entity);
+				elgg_set_config('elgg_solr_nocommit', true);
+			}
+
 			if (!($count % 200)) {
 				$qtime = round($fetch_time, 4);
 				$percent = round($count / $final_count * 100);
+				if ($entity) {
+					$restart_time = $entity->time_created;
+				}
 				$report = array(
 					'percent' => $percent,
 					'count' => $count,
@@ -106,23 +133,23 @@ function elgg_solr_reindex() {
 					'type' => $type,
 					'querytime' => $qtime,
 					'message' => '',
-					'date' => date('Y-M-j H:i:s')
+					'date' => date('Y-M-j H:i:s'),
+					'cacheoptions' => $cacheoptions,
+					'logtime' => $logtime,
+					'restart_time' => $restart_time
 				);
 
 				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
 				elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
 			}
 
-			$entity = get_entity($e->guid);
-			if ($entity) {
-				elgg_solr_add_update_entity(null, null, $entity);
-				elgg_set_config('elgg_solr_nocommit', true);
-			}
-
 			if ($last_entity) {
 				$fetch_time_start = microtime(true);
 			}
 		}
+
+		// we've finished this type, unset from the cache options
+		unset($cacheoptions['types'][$type]);
 	}
 
 	$report = array(
@@ -133,7 +160,8 @@ function elgg_solr_reindex() {
 		'type' => '',
 		'querytime' => 0,
 		'message' => 'Reindex complete',
-		'date' => date('Y-M-j H:i:s')
+		'date' => date('Y-M-j H:i:s'),
+		'logtime' => $logtime
 	);
 	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
 	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
@@ -1628,4 +1656,43 @@ function elgg_solr_get_comment_stats($time, $block) {
 	}
 
 	return $stats;
+}
+
+function elgg_solr_get_log_line($filename) {
+	$line = false;
+	$f = false;
+	if (file_exists($filename)) {
+		$f = @fopen($filename, 'r');
+	}
+
+	if ($f === false) {
+		return false;
+	} else {
+		$cursor = -1;
+
+		fseek($f, $cursor, SEEK_END);
+		$char = fgetc($f);
+
+		/**
+		 * Trim trailing newline chars of the file
+		 */
+		while ($char === "\n" || $char === "\r") {
+			fseek($f, $cursor--, SEEK_END);
+			$char = fgetc($f);
+		}
+
+		/**
+		 * Read until the start of file or first newline char
+		 */
+		while ($char !== false && $char !== "\n" && $char !== "\r") {
+			/**
+			 * Prepend the new char
+			 */
+			$line = $char . $line;
+			fseek($f, $cursor--, SEEK_END);
+			$char = fgetc($f);
+		}
+	}
+
+	return $line;
 }
