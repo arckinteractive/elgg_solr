@@ -1,5 +1,4 @@
-elgg_solr
-=========
+# elgg_solr
 
 Speed up site search by using a dedicated Solr search index
 
@@ -10,22 +9,19 @@ Speed up site search by using a dedicated Solr search index
 This plugin follows the structure of the default Elgg search plugin, can be extended using the same search plugin hooks.
 
 
-Elgg Dependencies
-=========
+## Elgg Dependencies
 
 This plugin depends on the default elgg search plugin (bundled with Elgg)
 
 This plugin depends on the vroom plugin - https://github.com/jumbojett/vroom
 
 
-Git Dev
-=========
+## Git Dev
 
 If grabbing the plugin from Github, install dependencies by running ```composer install```
 
 
-Installation
-=========
+## Installation
 
 Install to elgg mod directory as 'elgg_solr'.
 
@@ -37,4 +33,4 @@ Enter and save the connection information on the plugin settings page.
 
 Trigger a reindex from the plugin setting page.
 
-Ensure hourly cron is configured and active
+Ensure daily cron is configured and active

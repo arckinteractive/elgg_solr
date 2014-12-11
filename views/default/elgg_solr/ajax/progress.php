@@ -59,8 +59,12 @@ echo '</div>';
 					
 					if (result.logtime && result.cacheoptions) {
 						var url = elgg.get_site_url() + 'action/elgg_solr/restart_reindex?logtime='+result.logtime;
-						var link = '<a class="elgg-button elgg-button-action elgg-requires-confirmation" href="' + elgg.security.addToken(url) + '">Restart</a>';
-						var html = elgg.echo('elgg_solr:reindex:restart', [link]);
+						var link = '<a class="elgg-button elgg-button-action elgg-requires-confirmation mhs" href="' + elgg.security.addToken(url) + '">Restart</a>';
+						
+						var stop_url = elgg.get_site_url() + 'action/elgg_solr/stop_reindex?logtime='+result.logtime;
+						var stop_link = '<a class="elgg-button elgg-button-action elgg-requires-confirmation mhs" href="' + elgg.security.addToken(stop_url) + '">Stop</a>';
+						
+						var html = elgg.echo('elgg_solr:reindex:restart', [link+stop_link]);
 						$('#solr-progress-results span.restart').html(html);
 					}
 					else {

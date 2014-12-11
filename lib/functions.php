@@ -21,7 +21,10 @@ function elgg_solr_reindex() {
 		mkdir(elgg_get_config('dataroot') . 'elgg_solr');
 	}
 
-	$logtime = time();
+	$logtime = elgg_get_config('elgg_solr_restart_logtime');
+	if (!$logtime) {
+		$logtime = time();
+	}
 	$log = elgg_get_config('dataroot') . 'elgg_solr/' . $logtime . '.txt';
 	elgg_set_plugin_setting('current_log', $logtime, 'elgg_solr');
 
@@ -45,9 +48,8 @@ function elgg_solr_reindex() {
 		elgg_set_config('elgg_solr_debug', 1);
 	}
 
-	if (elgg_get_config('elgg_solr_reindex_options')) {
-		$registered_types = elgg_get_config('elgg_solr_reindex_options');
-	} else {
+	$registered_types = elgg_get_config('elgg_solr_reindex_options');
+	if (!$registered_types) {
 		$registered_types = get_registered_entity_types();
 	}
 
@@ -74,14 +76,13 @@ function elgg_solr_reindex() {
 	foreach ($registered_types as $type => $subtypes) {
 		$options['type'] = $type;
 		$options['limit'] = false;
-		
+
 		$restart_time = elgg_get_config('elgg_solr_restart_time');
 		if ($restart_time) {
 			elgg_set_config('elgg_solr_restart_time', false);
-			
+
 			$options['wheres'][1] = "e.time_created <= {$restart_time}";
-		}
-		elseif ($time['endtime']) {
+		} elseif ($time['endtime']) {
 			$options['wheres'][1] = "e.time_created <= {$time['endtime']}";
 		}
 
@@ -141,6 +142,27 @@ function elgg_solr_reindex() {
 
 				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
 				elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
+
+				// check for the termination signal
+				if ($logtime == elgg_get_plugin_setting('stop_reindex', 'elgg_solr')) {
+					$report = array(
+						'percent' => $percent,
+						'count' => $count,
+						'typecount' => $final_count,
+						'fullcount' => $fullcount,
+						'type' => $type,
+						'querytime' => $qtime,
+						'message' => 'Reindex has been stopped',
+						'date' => date('Y-M-j H:i:s'),
+						'cacheoptions' => $cacheoptions,
+						'logtime' => $logtime,
+						'restart_time' => $restart_time
+					);
+					
+					file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
+					error_log('Stopping reindex due to termination signal');
+					exit;
+				}
 			}
 
 			if ($last_entity) {

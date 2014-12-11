@@ -73,7 +73,8 @@ $english = array(
 	'elgg_solr:settings:show_score' => "Show relevance score in results?",
 	'elgg_solr:settings:show_score:help' => "This will only be displayed to admins, but can be useful for testing/tweaking your boost values.",
 	'elgg_solr:relevancy' => "Relevance Score: %s",
-	'elgg_solr:reindex:restart' => "If the reindex stops unexpectedly you can restart it from where it left off: %s<br>Note: only use this if you are sure the process has halted."
+	'elgg_solr:reindex:restart' => "If the reindex stops unexpectedly you can restart it from where it left off: %s<br>Note: only use this if you are sure the process has halted.",
+	'elgg_solr:admin:stop_reindex' => "Reindex has been stopped (it may take up to a few minutes to take effect)",
 );
 
 add_translation("en", $english);

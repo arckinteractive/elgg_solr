@@ -7,6 +7,8 @@ x.x (mm/dd/yyyy):
  - visual feedback of reindex progress
  - added 'banned' field for user entities
  - added additional generic fields
+ - controls to stop/restart reindex threads
+ - compatibility layer for Elgg 1.8 and 1.9
 
 1.6 (10/16/2014):
  - remove comments specific code no longer required for 1.9
