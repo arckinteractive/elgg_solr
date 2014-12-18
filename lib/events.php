@@ -64,20 +64,18 @@ function elgg_solr_entities_sync() {
 	access_show_hidden_entities(true);
 	$guids = elgg_get_config('elgg_solr_sync');
 
-	if (!$guids) {
-		return true;
-	}
+	if ($guids) {
+		$options = array(
+        	        'guids' => array_keys($guids),
+                	'limit' => false
+	        );
 
-	$options = array(
-		'guids' => array_keys($guids),
-		'limit' => false
-	);
+        	$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
+	        $entities = new ElggBatch('elgg_get_entities', $options, null, $batch_size);
 
-	$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
-	$entities = new ElggBatch('elgg_get_entities', $options, null, $batch_size);
-
-	foreach ($entities as $e) {
-		elgg_solr_add_update_entity(null, null, $e);
+        	foreach ($entities as $e) {
+                	elgg_solr_add_update_entity(null, null, $e);
+	        }	
 	}
 
 	$delete_guids = elgg_get_config('elgg_solr_delete');

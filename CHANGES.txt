@@ -2,7 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
-1.7 (12/05/2015):
+1.7.1 (12/18/2014):
+ - fix issue with entities not being deleted from solr index
+
+1.7 (12/05/2014):
  - performance fix for mysql with large offsets
  - visual feedback of reindex progress
  - added 'banned' field for user entities
