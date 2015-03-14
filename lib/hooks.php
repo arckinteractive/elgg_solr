@@ -396,7 +396,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	
 	// this query is now a dismax query
 	$query->setQuery($params['query']);
-	
+
 	// make sure we're only getting users
 	$params['fq']['type'] = 'type:user';
 

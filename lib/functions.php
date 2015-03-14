@@ -597,12 +597,14 @@ function elgg_solr_add_update_file($entity) {
 	} else {
 		$query = $client->createUpdate();
 	}
+	
+	$subtype = $entity->getSubtype() ? $entity->getSubtype() : '';
 
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
-	$doc->subtype = $entity->getSubtype();
+	$doc->subtype = $subtype;
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
@@ -661,12 +663,14 @@ function elgg_solr_add_update_object_default($entity) {
 	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 
 	$query = $client->createUpdate();
+	
+	$subtype = $entity->getSubtype() ? $entity->getSubtype() : '';
 
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
-	$doc->subtype = $entity->getSubtype();
+	$doc->subtype = $subtype;
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
@@ -732,12 +736,13 @@ function elgg_solr_add_update_user($entity) {
 	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 
 	$query = $client->createUpdate();
+	$subtype = $entity->getSubtype() ? $entity->getSubtype() : '';
 
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
-	$doc->subtype = $entity->getSubtype();
+	$doc->subtype = $subtype;
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
