@@ -11,6 +11,7 @@ x.x (mm/dd/yyyy):
  - added core selecting dropdown on settings when host/port/path are set
  - allow plugins to prevent the index of an entity - return false in 'solr:index', <type> plugin hook
  - ability to pass override query fields to search hooks in $params['qf']
+ - ability to pass override select vars to search hooks in $params['select']
 
 1.7.1 (12/18/2014):
  - fix issue with entities not being deleted from solr index
