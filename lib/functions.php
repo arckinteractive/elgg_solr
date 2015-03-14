@@ -614,6 +614,10 @@ function elgg_solr_add_update_file($entity) {
 
 	$params = array('entity' => $entity);
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
+	
+	if (!$doc) {
+		return true; // a plugin hook has stopped the indexing
+	}
 
 	if ($extracting) {
 		$query->setDocument($doc);
@@ -675,6 +679,10 @@ function elgg_solr_add_update_object_default($entity) {
 
 	$params = array('entity' => $entity);
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
+	
+	if (!$doc) {
+		return true; // a plugin has stopped the index
+	}
 
 	$query->addDocument($doc);
 	if ($commit) {
@@ -743,6 +751,10 @@ function elgg_solr_add_update_user($entity) {
 
 	$params = array('entity' => $entity);
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
+	
+	if (!$doc) {
+		return true; // a plugin has stopped the index
+	}
 
 	$query->addDocument($doc, true);
 	if ($commit) {
@@ -1574,6 +1586,10 @@ function elgg_solr_index_annotation($annotation) {
 	$doc->enabled = $annotation->enabled;
 
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', 'annotation', array('annotation' => $annotation), $doc);
+	
+	if (!$doc) {
+		return true; // a plugin has stopped the index
+	}
 
 	$query->addDocument($doc);
 	if ($commit) {
