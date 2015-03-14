@@ -10,6 +10,7 @@ x.x (mm/dd/yyyy):
  - upgrade to solarium 3.3.0
  - added core selecting dropdown on settings when host/port/path are set
  - allow plugins to prevent the index of an entity - return false in 'solr:index', <type> plugin hook
+ - ability to pass override query fields to search hooks in $params['qf']
 
 1.7.1 (12/18/2014):
  - fix issue with entities not being deleted from solr index

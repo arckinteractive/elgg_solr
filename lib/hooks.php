@@ -16,6 +16,10 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
         'rows'   => $params['limit'],
         'fields' => array('id','title','description', 'score'),
     );
+	
+	if ($params['select'] && is_array($params['select'])) {
+        array_merge($select, $params['select']);
+    }
 
     // create a client instance
     $client = elgg_solr_get_client();
@@ -36,7 +40,11 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
-	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost} attr_content^{$description_boost}");
+	$qf = "title^{$title_boost} description^{$description_boost} attr_content^{$description_boost}";
+	if ($params['qf']) {
+		$qf = $params['qf'];
+	}
+	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 
 	
@@ -181,6 +189,11 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
         'rows'   => $params['limit'],
         'fields' => array('id','title','description','score')
     );
+	
+	if ($params['select'] && is_array($params['select'])) {
+        array_merge($select, $params['select']);
+    }
+	
     // create a client instance
     $client = elgg_solr_get_client($select);
 
@@ -192,7 +205,11 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
-	$dismax->setQueryFields("title^{$title_boost} description^{$description_boost}");
+	$qf = "title^{$title_boost} description^{$description_boost}";
+	if ($params['qf']) {
+		$qf = $params['qf'];
+	}
+	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 	
 	$boostQuery = elgg_solr_get_boost_query();
@@ -337,6 +354,10 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
         'rows'   => $params['limit'],
         'fields' => array('id','name','username', 'description', 'score')
     );
+	
+	if ($params['select'] && is_array($params['select'])) {
+        array_merge($select, $params['select']);
+    }
 
     // create a client instance
     $client = elgg_solr_get_client();
@@ -357,7 +378,11 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
-	$dismax->setQueryFields("name^{$title_boost} username^{$title_boost} description^{$description_boost}");
+	$qf = "name^{$title_boost} username^{$title_boost} description^{$description_boost}";
+	if ($params['qf']) {
+		$qf = $params['qf'];
+	}
+	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 	
 	// no time boost for users
@@ -508,6 +533,10 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
         'rows'   => $params['limit'],
         'fields' => array('id','name','description', 'score')
     );
+	
+	if ($params['select'] && is_array($params['select'])) {
+        array_merge($select, $params['select']);
+    }
 
     // create a client instance
     $client = elgg_solr_get_client();
@@ -528,7 +557,11 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
-	$dismax->setQueryFields("name^{$title_boost} description^{$description_boost}");
+	$qf = "name^{$title_boost} description^{$description_boost}";
+	if ($params['qf']) {
+		$qf = $params['qf'];
+	}
+	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 	
 	$boostQuery = elgg_solr_get_boost_query();
@@ -729,6 +762,10 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
         'rows'   => $params['limit'],
         'fields' => array('id','title','description','score')
     );
+	
+	if ($params['select'] && is_array($params['select'])) {
+        array_merge($select, $params['select']);
+    }
 
 	$client = elgg_solr_get_client();
 // get an update query instance
@@ -907,6 +944,10 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
         'rows'   => $params['limit'],
         'fields' => array('id', 'container_guid', 'description', 'owner_guid', 'time_created', 'score'),
     );
+	
+	if ($params['select'] && is_array($params['select'])) {
+        array_merge($select, $params['select']);
+    }
 
     // create a client instance
     $client = elgg_solr_get_client();
@@ -926,7 +967,11 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
-	$dismax->setQueryFields("description^{$description_boost}");
+	$qf = "description^{$description_boost}";
+	if ($params['qf']) {
+		$qf = $params['qf'];
+	}
+	$dismax->setQueryFields($qf);
 	
 	$boostQuery = elgg_solr_get_boost_query();
 	if ($boostQuery) {
