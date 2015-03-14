@@ -2,10 +2,13 @@
 
 x.x (mm/dd/yyyy):
 
-1.7.2 (03/13/2015):
+1.8.0 (03/13/2015):
  - ensure all exceptions are caught when trying to contact solr
  - cache missed delete events and try again on daily cron
  - added individual tag name indexing as "tag_{$tagname}_ss" multi-valued string
+ - removed superfluous schema fields in favor of dynamic fields
+ - upgrade to solarium 3.3.0
+ - added core selecting dropdown on settings when host/port/path are set
 
 1.7.1 (12/18/2014):
  - fix issue with entities not being deleted from solr index

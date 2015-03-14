@@ -1746,3 +1746,39 @@ function elgg_solr_get_log_line($filename) {
 
 	return $line;
 }
+
+
+function elgg_solr_get_cores() {
+	$options = elgg_solr_get_adapter_options();
+	
+	if (!$options['host'] || !$options['port'] || !$options['path']) {
+		return array();
+	}
+	
+	$cores = array();
+
+    $url = "http://{$options['host']}:{$options['port']}{$options['path']}admin/cores?action=STATUS&wt=json";
+
+    // Initialize cURL
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: text/xml"));
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_VERBOSE, 1);
+
+    $response = curl_exec($ch);
+
+    $status = json_decode($response);
+
+	if (is_object($status)) {
+		$array = json_decode(json_encode($status), true);
+		
+		foreach ($array['status'] as $name => $params) {
+			$cores[] = $name;
+		}
+	}
+	
+	return $cores;
+}

@@ -34,11 +34,22 @@ $body .= elgg_view('output/longtext', array(
 	'class' => 'elgg-subtext'
 ));
 
+$cores = elgg_solr_get_cores();
+
 $body .= '<label>' . elgg_echo('elgg_solr:settings:core') . '</label>';
-$body .= elgg_view('input/text', array(
-	'name' => 'params[solr_core]',
-	'value' => $vars['entity']->solr_core
-));
+if ($cores) {
+	$body .= elgg_view('input/dropdown', array(
+		'name' => 'params[solr_core]',
+		'value' => $vars['entity']->solr_core,
+		'options' => $cores
+	));
+}
+else {
+	$body .= elgg_view('input/text', array(
+		'name' => 'params[solr_core]',
+		'value' => $vars['entity']->solr_core
+	));
+}
 $body .= elgg_view('output/longtext', array(
 	'value' => elgg_echo('elgg_solr:settings:core:help'),
 	'class' => 'elgg-subtext'
