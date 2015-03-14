@@ -36,7 +36,11 @@ $update->addDeleteQuery($q);
 $update->addCommit();
 
 // this executes the query and returns the result
-$client->update($update);
+try {
+	$client->update($update);
+	system_message(elgg_echo('elgg_solr:success:delete_index'));
+} catch (Exception $exc) {
+	register_error($exc->getTraceAsString());
+}
 
-system_message(elgg_echo('elgg_solr:success:delete_index'));
 forward(REFERER);

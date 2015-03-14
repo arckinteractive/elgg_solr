@@ -90,7 +90,8 @@ function elgg_solr_entities_sync() {
 			try {
 				$client->update($query);
 			} catch (Exception $ex) {
-				// fail silently
+				//something went wrong, lets cache the id and try again on cron
+				elgg_get_site_entity()->annotate('elgg_solr_delete_cache', $g, ACCESS_PUBLIC);
 			}
 		}
 	}
@@ -190,7 +191,12 @@ function elgg_solr_annotations_sync() {
 			$query = $client->createUpdate();
 			$query->addDeleteById('annotation:' . $g);
 			$query->addCommit();
-			$client->update($query);
+			
+			try {
+				$client->update($query);
+			} catch (Exception $exc) {
+				elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:'.$g, ACCESS_PUBLIC);
+			}
 		}
 	}
 

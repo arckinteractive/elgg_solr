@@ -2,6 +2,11 @@
 
 x.x (mm/dd/yyyy):
 
+1.7.2 (03/13/2015):
+ - ensure all exceptions are caught when trying to contact solr
+ - cache missed delete events and try again on daily cron
+ - added individual tag name indexing as "tag_{$tagname}_ss" multi-valued string
+
 1.7.1 (12/18/2014):
  - fix issue with entities not being deleted from solr index
 

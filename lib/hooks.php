@@ -862,6 +862,30 @@ function elgg_solr_daily_cron($hook, $type, $return, $params) {
 	catch (Exception $exc) {
 		// fail silently
 	}
+	
+	
+	// try to catch any missed deletions
+	$options = array(
+		'guid' => elgg_get_site_entity()->guid,
+		'annotation_names' => array('elgg_solr_delete_cache'),
+		'limit' => false
+	);
+	
+	$annotations = new ElggBatch('elgg_get_annotations', $options, null, 25, false);
+	foreach ($annotations as $a) {
+		$client = elgg_solr_get_client();
+		$query = $client->createUpdate();
+		$query->addDeleteById($a->value);
+		$query->addCommit();
+			
+		try {
+			$client->update($query);
+		} catch (Exception $exc) {
+			// well we tried...
+		}
+		
+		$a->delete();
+	}
 }
 
 

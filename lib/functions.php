@@ -609,7 +609,7 @@ function elgg_solr_add_update_file($entity) {
 	$doc->title = elgg_strip_tags($entity->title);
 	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
-	$doc->tags = elgg_solr_get_tags_array($entity);
+	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
 	$params = array('entity' => $entity);
@@ -670,7 +670,7 @@ function elgg_solr_add_update_object_default($entity) {
 	$doc->name = elgg_strip_tags($entity->name);
 	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
-	$doc->tags = elgg_solr_get_tags_array($entity);
+	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
 	$params = array('entity' => $entity);
@@ -738,7 +738,7 @@ function elgg_solr_add_update_user($entity) {
 	$doc->username = $entity->username;
 	$doc->description = elgg_strip_tags($desc);
 	$doc->time_created = $entity->time_created;
-	$doc->tags = elgg_solr_get_tags_array($entity);
+	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
 	$params = array('entity' => $entity);
@@ -1068,6 +1068,34 @@ function elgg_solr_get_tags_array($entity) {
 	}
 
 	return $t;
+}
+
+
+function elgg_solr_add_tags($doc, $entity) {
+	if (!elgg_instanceof($entity)) {
+		return $doc;
+	}
+	
+	// store tags the old way - lumped together in $doc->tags as $name . '%%' . $value'
+	$doc->tags = elgg_solr_get_tags_array($entity);
+	
+	// also store them separately with magick fields
+	// store in different field types for different search types
+	$valid_tag_names = elgg_get_registered_tag_metadata_names();
+
+	if ($valid_tag_names && is_array($valid_tag_names)) {
+		foreach ($valid_tag_names as $tagname) {
+			$tags = $entity->$tagname;
+			if ($tags && !is_array($tags)) {
+				$tags = array($tags);
+			}
+
+			$name = 'tag_' . $tagname . '_ss'; // multivalued string
+			$doc->$name = $tags;
+		}
+	}
+	
+	return $doc;
 }
 
 function elgg_solr_get_title_boost() {
