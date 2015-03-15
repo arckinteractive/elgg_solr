@@ -2,6 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
+1.8.1 (03/15/2015):
+ - fix some deprecation errors in 1.9+
+ - fix some notices in error logs
+
 1.8.0 (03/13/2015):
  - ensure all exceptions are caught when trying to contact solr
  - cache missed delete events and try again on daily cron
