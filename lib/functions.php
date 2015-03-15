@@ -3,7 +3,7 @@
 function elgg_solr_reindex() {
 	set_time_limit(0);
 
-	$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+	$is_elgg18 = elgg_solr_is_elgg18();
 
 	$guid_getter = 'elgg_solr_get_entity_guids';
 	if ($is_elgg18) {
@@ -1802,4 +1802,15 @@ function elgg_solr_get_cores() {
 	}
 	
 	return $cores;
+}
+
+
+function elgg_solr_is_elgg18() {
+	if (is_callable('elgg_get_version')) {
+		return false; // this is newer than 1.8
+	}
+	
+	$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+	
+	return $is_elgg18;
 }

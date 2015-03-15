@@ -5,7 +5,10 @@ access_show_hidden_entities(true);
 
 $stats = array();
 $registered_types = get_registered_entity_types();
-$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+$is_elgg18 = elgg_solr_is_elgg18();
+
+$show_hidden = access_get_show_hidden_status();
+access_show_hidden_entities(true);
 
 foreach ($registered_types as $type => $subtypes) {
 	$options = array(
@@ -44,6 +47,8 @@ if ($is_elgg18) {
 
 $system_total = 0;
 $indexed_total = 0;
+
+access_show_hidden_entities($show_hidden);
 ?>
 <div class="elgg-solr-stats">
 <table>
@@ -82,7 +87,7 @@ $indexed_total = 0;
 				$type_subtype = explode(':', $key);
 				
 				$url = "action/elgg_solr/reindex?type={$type_subtype[0]}";
-				if ($type_subtype[1]) {
+				if (isset($type_subtype[1])) {
 					$url .= "&subtype={$type_subtype[1]}";
 				}
 				echo elgg_view('output/url', array(
@@ -96,7 +101,7 @@ $indexed_total = 0;
 				echo ' | ';
 				
 				$delete_index = 'action/elgg_solr/delete_index?type=' . $type_subtype[0];
-				if ($type_subtype[1]) {
+				if (isset($type_subtype[1])) {
 					$delete_index .= "&subtype={$type_subtype[1]}";
 				}
 				echo elgg_view('output/url', array(
@@ -109,9 +114,13 @@ $indexed_total = 0;
 				
 				echo ' | ';
 				
+				$href = 'admin/elgg_solr/stats?time=year&block=all&type=' . $type_subtype[0];
+				if (isset($type_subtype[1])) {
+					$href .= '&subtype=' . $type_subtype[1];
+				}
 				echo elgg_view('output/url', array(
 					'text' => elgg_echo('elgg_solr:stats:byyear'),
-					'href' => 'admin/elgg_solr/stats?time=year&block=all&type=' . $type_subtype[0] . '&subtype=' . $type_subtype[1]
+					'href' => $href
 				));
 			?>
 		</td>

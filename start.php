@@ -20,7 +20,7 @@ function elgg_solr_init() {
 		return true;
 	}
 	
-	$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+	$is_elgg18 = elgg_solr_is_elgg18();
 
 	elgg_register_library('Solarium', dirname(__FILE__) . '/vendor/autoload.php');
 	elgg_register_library('elgg_solr:upgrades', dirname(__FILE__) . '/lib/upgrades.php');

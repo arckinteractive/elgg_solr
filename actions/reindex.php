@@ -5,7 +5,7 @@ if (elgg_get_plugin_setting('reindex_running', 'elgg_solr')) {
 	forward(REFERER);
 }
 
-$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+$is_elgg18 = elgg_solr_is_elgg18();
 
 $starttime = get_input('starttime');
 $endtime = get_input('endtime');
