@@ -1,5 +1,7 @@
 <?php
-$pieces = explode('#', array_shift(explode('?', current_page_url()))); // quick separation of query/fragment elements
+$url = current_page_url();
+$url_split = explode('?', $url);
+$pieces = explode('#', array_shift($url_split)); // quick separation of query/fragment elements
 $current_url = $pieces[0];
 
 $tabs = array(

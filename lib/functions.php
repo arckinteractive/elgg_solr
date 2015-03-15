@@ -551,15 +551,15 @@ function elgg_solr_get_solr_function($type, $subtype) {
 
 	$solr_entities = elgg_get_config('solr_entities');
 
-	if (is_callable($solr_entities[$type][$subtype])) {
+	if (isset($solr_entities[$type][$subtype]) && is_callable($solr_entities[$type][$subtype])) {
 		return $solr_entities[$type][$subtype];
 	}
 
-	if (is_callable($solr_entities[$type]['default'])) {
+	if (isset($solr_entities[$type]['default']) && is_callable($solr_entities[$type]['default'])) {
 		return $solr_entities[$type]['default'];
 	}
 
-	if (is_callable($solr_entities['entity']['default'])) {
+	if (isset($solr_entities['entity']['default']) && is_callable($solr_entities['entity']['default'])) {
 		return $solr_entities['entity']['default'];
 	}
 
