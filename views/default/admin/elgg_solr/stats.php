@@ -1,6 +1,9 @@
 <?php
 echo elgg_view('elgg_solr/admin_header');
 
+$show_hidden = access_get_show_hidden_status();
+access_show_hidden_entities(true);
+
 $type = get_input('type');
 $subtype = get_input('subtype');
 $time = get_input('time');
@@ -14,6 +17,8 @@ else {
 }
 
 $datetime = elgg_solr_get_display_datetime($time, $block);
+
+access_show_hidden_entities($show_hidden);
 ?>
 <div class="elgg-solr-stats">
 	<h2><?php echo $type;

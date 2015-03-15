@@ -7,9 +7,6 @@ $stats = array();
 $registered_types = get_registered_entity_types();
 $is_elgg18 = elgg_solr_is_elgg18();
 
-$show_hidden = access_get_show_hidden_status();
-access_show_hidden_entities(true);
-
 foreach ($registered_types as $type => $subtypes) {
 	$options = array(
 		'type' => $type,
