@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.8.2 ():
+ - fixed merging of select parameters in search hooks
+
 1.8.1 (03/15/2015):
  - fix some deprecation errors in 1.9+
  - fix some notices in error logs

@@ -18,7 +18,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
     );
 	
 	if ($params['select'] && is_array($params['select'])) {
-        array_merge($select, $params['select']);
+        $select = array_merge($select, $params['select']);
     }
 
     // create a client instance
@@ -191,7 +191,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
     );
 	
 	if ($params['select'] && is_array($params['select'])) {
-        array_merge($select, $params['select']);
+        $select = array_merge($select, $params['select']);
     }
 	
     // create a client instance
@@ -356,7 +356,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
     );
 	
 	if ($params['select'] && is_array($params['select'])) {
-        array_merge($select, $params['select']);
+        $select = array_merge($select, $params['select']);
     }
 
     // create a client instance
@@ -535,7 +535,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     );
 	
 	if ($params['select'] && is_array($params['select'])) {
-        array_merge($select, $params['select']);
+        $select = array_merge($select, $params['select']);
     }
 
     // create a client instance
@@ -764,7 +764,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
     );
 	
 	if ($params['select'] && is_array($params['select'])) {
-        array_merge($select, $params['select']);
+        $select = array_merge($select, $params['select']);
     }
 
 	$client = elgg_solr_get_client();
@@ -946,7 +946,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
     );
 	
 	if ($params['select'] && is_array($params['select'])) {
-        array_merge($select, $params['select']);
+        $select = array_merge($select, $params['select']);
     }
 
     // create a client instance
