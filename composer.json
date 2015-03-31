@@ -1,5 +1,6 @@
 {
     "require": {
-		"solarium/solarium": "3.3.0"
-	}
+        "solarium/solarium": "3.3.0",
+        "ezyang/htmlpurifier": "4.6.0"
+    }
 }

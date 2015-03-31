@@ -102,6 +102,10 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
+	
+	$config = HTMLPurifier_Config::createDefault();
+	$purifier = new HTMLPurifier($config);
+	
     foreach ($resultset as $document) {
 		$search_results[$document->id] = array();
 		$snippet = '';
@@ -119,6 +123,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 				$snippet = filter_tags($snippet); // need to filter tags to fix potential html snippets
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$snippet = $purifier->purify($snippet);
 				}
 				
 				$search_results[$document->id][$field] = $snippet;
@@ -271,6 +276,9 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
     $count = $resultset->getNumFound();
 	$hl_prefix = elgg_solr_get_hl_prefix();
 	$hl_suffix = elgg_solr_get_hl_suffix();
+	
+	$config = HTMLPurifier_Config::createDefault();
+	$purifier = new HTMLPurifier($config);
 
     $search_results = array();
     foreach ($resultset as $document) {
@@ -289,6 +297,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$snippet = $purifier->purify($snippet);
 				}
 				
 				$search_results[$document->id][$field] = $snippet;
@@ -442,6 +451,10 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	$hl_suffix = elgg_solr_get_hl_suffix();
 	
 	$search_results = array();
+	
+	$config = HTMLPurifier_Config::createDefault();
+	$purifier = new HTMLPurifier($config);
+	
     foreach ($resultset as $document) {
 		$search_results[$document->id] = array();
 		$snippet = '';
@@ -458,6 +471,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$snippet[] = $purifier->purify($snippet);
 				}
 				$search_results[$document->id][$field] = $snippet;
             }
@@ -617,6 +631,10 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	$hl_suffix = elgg_solr_get_hl_suffix();	
 
 	$search_results = array();
+	
+	$config = HTMLPurifier_Config::createDefault();
+	$purifier = new HTMLPurifier($config);
+	
     foreach ($resultset as $document) {
 		$search_results[$document->id] = array();
 		$snippet = '';
@@ -633,6 +651,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$snippet = $purifier->purify($snippet);
 				}
 				$search_results[$document->id][$field] = $snippet;
             }
@@ -821,6 +840,10 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
+	
+	$config = HTMLPurifier_Config::createDefault();
+	$purifier = new HTMLPurifier($config);
+	
     foreach ($resultset as $document) {
 		$search_results[$document->id] = array();
         $snippet = '';
@@ -836,7 +859,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 					$matched = $hl_prefix;
 					$matched .= substr(strstr(elgg_strip_tags($h), '%%'), 2);
 					$matched .= $hl_suffix;
-					$snippet[] = $matched;
+					$snippet[] = $purifier->purify($matched);
 				}
 
 				$display = implode(', ', $snippet);
@@ -1029,6 +1052,9 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	
 	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
 	
+	$config = HTMLPurifier_Config::createDefault();
+	$purifier = new HTMLPurifier($config);
+	
     foreach ($resultset as $document) {
 		// comments entity_guid stored as container_guid in solr
         $entity = get_entity($document->container_guid);
@@ -1051,6 +1077,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$snippet = $purifier->purify($snippet);
 				}
             }
         }

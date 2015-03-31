@@ -2,8 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
-1.8.2 ():
+1.8.2 (03/29/2015):
  - fixed merging of select parameters in search hooks
+ - purify html from highlighted snippets
 
 1.8.1 (03/15/2015):
  - fix some deprecation errors in 1.9+
