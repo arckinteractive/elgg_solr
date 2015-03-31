@@ -471,7 +471,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
 				if ($match[1]) {
 					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
-					$snippet[] = $purifier->purify($snippet);
+					$snippet = $purifier->purify($snippet);
 				}
 				$search_results[$document->id][$field] = $snippet;
             }

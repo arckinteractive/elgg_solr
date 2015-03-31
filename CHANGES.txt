@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.8.3 (03/29/2015):
+ - fixed fixed wsod on comment search due to variable typo
+
 1.8.2 (03/29/2015):
  - fixed merging of select parameters in search hooks
  - purify html from highlighted snippets
