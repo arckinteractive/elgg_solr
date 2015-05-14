@@ -13,7 +13,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
     $select = array(
         'start'  => $params['offset'],
-        'rows'   => $params['limit'],
+        'rows'   => $params['limit'] ? $params['limit'] : 10,
         'fields' => array('id','title','description', 'score'),
     );
 	
@@ -206,7 +206,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
     $select = array(
         'start'  => $params['offset'],
-        'rows'   => $params['limit'],
+        'rows'   => $params['limit'] ? $params['limit'] : 10,
         'fields' => array('id','title','description','score')
     );
 	
@@ -389,7 +389,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
     $select = array(
         'start'  => $params['offset'],
-        'rows'   => $params['limit'],
+        'rows'   => $params['limit'] ? $params['limit'] : 10,
         'fields' => array('id','name','username', 'description', 'score')
     );
 	
@@ -586,7 +586,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
     $select = array(
         'start'  => $params['offset'],
-        'rows'   => $params['limit'],
+        'rows'   => $params['limit'] ? $params['limit'] : 10,
         'fields' => array('id','name','description', 'score')
     );
 	
@@ -1021,7 +1021,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 
     $select = array(
         'start'  => $params['offset'],
-        'rows'   => $params['limit'],
+        'rows'   => $params['limit'] ? $params['limit'] : 10,
         'fields' => array('id', 'container_guid', 'description', 'owner_guid', 'time_created', 'score'),
     );
 	

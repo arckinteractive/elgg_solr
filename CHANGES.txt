@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.9.1 (05/14/2015):
+ - adds default limit to searches if one isn't passed to the hook
+
 1.9.0 (05/14/2015):
  - smaller query string for access (reported by Steve Clay)
  - search hooks now accept 'hlfields' parameter for custom highlighting matches
