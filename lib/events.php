@@ -144,7 +144,14 @@ function elgg_solr_add_update_annotation($event, $type, $annotation) {
 		return true;
 	}
 
-
+	$ids = elgg_get_config('elgg_solr_annotation_sync');
+	if (!is_array($ids)) {
+		$ids = array();
+	}
+	
+	$ids[] = $annotation->id;
+	
+	elgg_set_config('elgg_solr_annotation_sync', $ids);
 
 	return true;
 }

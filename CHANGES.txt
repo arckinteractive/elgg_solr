@@ -2,6 +2,12 @@
 
 x.x (mm/dd/yyyy):
 
+1.9.0 (05/14/2015):
+ - smaller query string for access (reported by Steve Clay)
+ - search hooks now accept 'hlfields' parameter for custom highlighting matches
+ - fix highlighting of multi-term searches
+ - fix issue with comment indexing for 1.8 - reindex comments on upgrade
+
 1.8.3 (03/29/2015):
  - fixed fixed wsod on comment search due to variable typo
 

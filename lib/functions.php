@@ -795,7 +795,7 @@ function elgg_solr_get_access_query() {
 
 	// access filter query
 	if ($access) {
-		$access_list = implode(" OR ", $access);
+		$access_list = implode(' ', $access);
 	}
 
 	if (elgg_is_logged_in()) {
@@ -819,7 +819,7 @@ function elgg_solr_get_access_query() {
 
 		$friends_list = '';
 		if ($friend_guids) {
-			$friends_list = elgg_solr_escape_special_chars(implode(' OR ', $friend_guids));
+			$friends_list = elgg_solr_escape_special_chars(implode(' ', $friend_guids));
 		}
 	}
 

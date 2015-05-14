@@ -76,7 +76,11 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
-    $hl->setFields(array('title', 'attr_content', 'description'));
+	$hlfields = array('title', 'attr_content', 'description');
+	if ($params['hlfields']) {
+		$hlfields = $params['hlfields'];
+	}
+    $hl->setFields($hlfields);
     $hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
 
@@ -118,11 +122,13 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
                 $snippet = implode(' (...) ', $highlight);
 				// get our highlight based on the wrapped tokens
 				// note, this is to prevent partial html from breaking page layouts
-				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+				preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
-				$snippet = filter_tags($snippet); // need to filter tags to fix potential html snippets
 				if ($match[1]) {
-					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$matches = array_unique($match[1]);
+					foreach ($matches as $m) {
+						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);	
+					}
 					$snippet = $purifier->purify($snippet);
 				}
 				
@@ -168,11 +174,20 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 				}
 				
 				if ($matches['description']) {
-					$e->setVolatileData('search_matched_description', $matches['description'] . $desc_suffix);
+					$desc = $matches['description'];
 				}
 				else {
-					$e->setVolatileData('search_matched_description', elgg_get_excerpt($e->description, 100) . $desc_suffix);
+					$desc = elgg_get_excerpt($e->description, 100);
 				}
+				
+												
+				unset($matches['title']);
+				unset($matches['description']);
+				unset($matches['score']);
+				$desc .= implode('...', $matches);
+				
+				$e->setVolatileData('search_matched_description', $desc . $desc_suffix);
+				
 				$entities[] = $e;
 			}
 		}
@@ -252,7 +267,11 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
-    $hl->setFields(array('title', 'description'));
+	$hlfields = array('title', 'description');
+	if ($params['hlfields']) {
+		$hlfields = $params['hlfields'];
+	}
+    $hl->setFields($hlfields);
 	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
 	
@@ -293,10 +312,13 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
                 $snippet = implode(' (...) ', $highlight);
 				// get our highlight based on the wrapped tokens
 				// note, this is to prevent partial html from breaking page layouts
-				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+				preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
 				if ($match[1]) {
-					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$matches = array_unique($match[1]);
+					foreach ($matches as $m) {
+						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);	
+					}
 					$snippet = $purifier->purify($snippet);
 				}
 				
@@ -338,11 +360,18 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 				}
 				
 				if ($matches['description']) {
-					$e->setVolatileData('search_matched_description', $matches['description'] . $desc_suffix);
+					$desc = $matches['description'];
 				}
 				else {
-					$e->setVolatileData('search_matched_description', elgg_get_excerpt($e->description, 100) . $desc_suffix);
+					$desc = elgg_get_excerpt($e->description, 100);
 				}
+				
+				unset($matches['title']);
+				unset($matches['description']);
+				unset($matches['score']);
+				$desc .= implode('...', $matches);
+				
+				$e->setVolatileData('search_matched_description', $desc . $desc_suffix);
 				$entities[] = $e;
 			}
 		}
@@ -425,7 +454,11 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
-    $hl->setFields(array('name', 'username', 'description'));
+	$hlfields = array('name', 'username', 'description');
+	if ($params['hlfields']) {
+		$hlfields = $params['hlfields'];
+	}
+    $hl->setFields($hlfields);
 	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
 
@@ -467,12 +500,16 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
                 $snippet = implode(' (...) ', $highlight);
 				// get our highlight based on the wrapped tokens
 				// note, this is to prevent partial html from breaking page layouts
-				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+				preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
 				if ($match[1]) {
-					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$matches = array_unique($match[1]);
+					foreach ($matches as $m) {
+						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);	
+					}
 					$snippet = $purifier->purify($snippet);
 				}
+				
 				$search_results[$document->id][$field] = $snippet;
             }
         }
@@ -524,6 +561,11 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 					$e->setVolatileData('search_matched_name', $name);
 					$e->setVolatileData('search_matched_title', $name);
 				}
+				
+				// anything not already matched can be lumped in with the description
+				unset($matches['username']);
+				unset($matches['score']);
+				$desc_suffix .= implode('...', $matches);
 				
 				$desc_hl = search_get_highlighted_relevant_substrings($e->description, $params['query']);
 				$e->setVolatileData('search_matched_description', $desc_hl . $desc_suffix);
@@ -605,7 +647,11 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
-    $hl->setFields(array('name', 'description'));
+	$hlfields = array('name', 'description');
+	if ($params['hlfields']) {
+		$hlfields = $params['hlfields'];
+	}
+    $hl->setFields($hlfields);
 	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
 
@@ -647,12 +693,16 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
                 $snippet = implode(' (...) ', $highlight);
 				// get our highlight based on the wrapped tokens
 				// note, this is to prevent partial html from breaking page layouts
-				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
+					preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
 				if ($match[1]) {
-					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
+					$matches = array_unique($match[1]);
+					foreach ($matches as $m) {
+						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);	
+					}
 					$snippet = $purifier->purify($snippet);
 				}
+				
 				$search_results[$document->id][$field] = $snippet;
             }
         }
@@ -695,12 +745,19 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 				}
 				
 				if ($matches['description']) {
-					$e->setVolatileData('search_matched_description', $matches['description'] . $desc_suffix);
+					$desc = $matches['description'];
 				}
 				else {
-					$desc_hl = search_get_highlighted_relevant_substrings($e->description, $params['query']);
-					$e->setVolatileData('search_matched_description', $desc_hl . $desc_suffix);	
+					$desc = search_get_highlighted_relevant_substrings($e->description, $params['query']);
 				}
+				
+								
+				unset($matches['name']);
+				unset($matches['description']);
+				unset($matches['score']);
+				$desc .= implode('...', $matches);
+				
+				$e->setVolatileData('search_matched_description', $desc . $desc_suffix);
 				
 				$entities[] = $e;
 			}
