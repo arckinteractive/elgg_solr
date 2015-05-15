@@ -174,6 +174,17 @@ $body .= elgg_view('output/longtext', array(
 ));
 
 
+$body .= '<label>' . elgg_echo('elgg_solr:settings:fragsize') . '</label>';
+$body .= elgg_view('input/text', array(
+	'name' => 'params[fragsize]',
+	'value' => is_numeric($vars['entity']->fragsize) ? $vars['entity']->fragsize : 100
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:fragsize:help'),
+	'class' => 'elgg-subtext'
+));
+
+
 $body .= '<label>' . elgg_echo('elgg_solr:settings:show_score') . '</label><br>';
 $body .= elgg_view('input/dropdown', array(
 	'name' => 'params[show_score]',

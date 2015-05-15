@@ -2,6 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
+1.9.2 (05/15/2015):
+ - adds configurable highlighted snippet length
+ - adds highlight snippet length override in search hooks ('fragsize') parameter
+
 1.9.1 (05/14/2015):
  - adds default limit to searches if one isn't passed to the hook
 

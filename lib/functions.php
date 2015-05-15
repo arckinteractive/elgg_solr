@@ -1814,3 +1814,21 @@ function elgg_solr_is_elgg18() {
 	
 	return $is_elgg18;
 }
+
+
+function elgg_solr_get_fragsize() {
+	static $fragsize;
+	if ($fragsize) {
+		return (int) $fragsize;
+	}
+	
+	$setting = elgg_get_plugin_setting('fragsize', 'elgg_solr');
+	if (is_numeric($setting)) {
+		$fragsize = (int) $setting;
+	}
+	else {
+		$fragsize = 100;
+	}
+	
+	return $fragsize;
+}

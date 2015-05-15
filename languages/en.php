@@ -75,6 +75,8 @@ $english = array(
 	'elgg_solr:relevancy' => "Relevance Score: %s",
 	'elgg_solr:reindex:restart' => "If the reindex stops unexpectedly you can restart it from where it left off: %s<br>Note: only use this if you are sure the process has halted.",
 	'elgg_solr:admin:stop_reindex' => "Reindex has been stopped (it may take up to a few minutes to take effect)",
+	'elgg_solr:settings:fragsize' => "Length of highlighted snippets (chars)",
+	'elgg_solr:settings:fragsize:help' => "Enter the max length in characters of snippets used for showing highlighted results",
 );
 
 add_translation("en", $english);

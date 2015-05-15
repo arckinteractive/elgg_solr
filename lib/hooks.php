@@ -83,6 +83,13 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
     $hl->setFields($hlfields);
     $hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
+	
+	$fragsize = elgg_solr_get_fragsize();
+	if (isset($params['fragsize'])) {
+		$fragsize = (int) $params['fragsize'];
+	}
+	$hl->setFragSize($fragsize);
+
 
     // this executes the query and returns the result
     try {
@@ -275,6 +282,13 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
 	
+	$fragsize = elgg_solr_get_fragsize();
+	if (isset($params['fragsize'])) {
+		$fragsize = (int) $params['fragsize'];
+	}
+	$hl->setFragSize($fragsize);
+
+	
     // this executes the query and returns the result
     try {
         $resultset = $client->select($query);
@@ -461,6 +475,12 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
     $hl->setFields($hlfields);
 	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
+	
+	$fragsize = elgg_solr_get_fragsize();
+	if (isset($params['fragsize'])) {
+		$fragsize = (int) $params['fragsize'];
+	}
+	$hl->setFragSize($fragsize);
 
     // this executes the query and returns the result
     try {
@@ -654,6 +674,13 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     $hl->setFields($hlfields);
 	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
+	
+	$fragsize = elgg_solr_get_fragsize();
+	if (isset($params['fragsize'])) {
+		$fragsize = (int) $params['fragsize'];
+	}
+	$hl->setFragSize($fragsize);
+
 
     // this executes the query and returns the result
     try {
@@ -1085,6 +1112,13 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
     $hl->setFields(array('description'));
    	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
 	$hl->setSimplePostfix('</span>');
+	
+	$fragsize = elgg_solr_get_fragsize();
+	if (isset($params['fragsize'])) {
+		$fragsize = (int) $params['fragsize'];
+	}
+	$hl->setFragSize($fragsize);
+
 
     // this executes the query and returns the result
     try {
