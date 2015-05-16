@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.9.3 ():
+ - fix duplicate name in user results
+
 1.9.2 (05/15/2015):
  - adds configurable highlighted snippet length
  - adds highlight snippet length override in search hooks ('fragsize') parameter

@@ -583,6 +583,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 				}
 				
 				// anything not already matched can be lumped in with the description
+				unset($matches['name']);
 				unset($matches['username']);
 				unset($matches['score']);
 				$desc_suffix .= implode('...', $matches);
