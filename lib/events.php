@@ -28,7 +28,11 @@ function elgg_solr_add_update_entity($event, $type, $entity) {
 			elgg_solr_debug_log('processing entity with function - ' . $function);
 		}
 
+		// make sure info indexed isn't dependent on the access
+		// of the logged in user
+		$ia = elgg_set_ignore_access(true);
 		$function($entity);
+		elgg_set_ignore_access($ia);
 	} else {
 		if ($debug) {
 			elgg_solr_debug_log('Not a callable function - ' . $function);
@@ -57,7 +61,7 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 			$client->update($query);
 		} catch (Exception $ex) {
 			//something went wrong, lets cache the id and try again on cron
-			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', $g, ACCESS_PUBLIC);
+			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', $entity->guid, ACCESS_PUBLIC);
 		}
 	} else {
 		elgg_solr_defer_index_delete($entity->guid);
@@ -93,12 +97,14 @@ function elgg_solr_entities_sync() {
 			'limit' => false
 		);
 
+		$ia = elgg_set_ignore_access(true);
 		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 		$entities = new ElggBatch('elgg_get_entities', $options, null, $batch_size);
 
 		foreach ($entities as $e) {
 			elgg_solr_add_update_entity(null, null, $e);
 		}
+		elgg_set_ignore_access($ia);
 	}
 
 	// reset the config

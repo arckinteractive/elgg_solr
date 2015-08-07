@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.9.5 (08/07/2015):
+ - override access while indexing to prevent missing index data due to viewer permissions
+
 1.9.4 (08/06/2015):
  - better checking for deferable solr writes, write immediately if not able to defer
 

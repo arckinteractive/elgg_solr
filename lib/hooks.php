@@ -997,6 +997,8 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 
 // optimize our index daily
 function elgg_solr_daily_cron($hook, $type, $return, $params) {
+	$ia = elgg_set_ignore_access(true);
+	
 	$client = elgg_solr_get_client();
 	$query = $client->createUpdate();
 	$query->addOptimize(true, true, 5);
@@ -1031,6 +1033,8 @@ function elgg_solr_daily_cron($hook, $type, $return, $params) {
 		
 		$a->delete();
 	}
+	
+	elgg_set_ignore_access($ia);
 }
 
 
