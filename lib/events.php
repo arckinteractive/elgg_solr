@@ -220,7 +220,7 @@ function elgg_solr_delete_annotation($event, $type, $annotation) {
 		try {
 			$client->update($query);
 		} catch (Exception $exc) {
-			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:' . $g, ACCESS_PUBLIC);
+			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:' . $annotation->id, ACCESS_PUBLIC);
 		}
 	} else {
 		elgg_solr_defer_annotation_delete($annotation->id);
