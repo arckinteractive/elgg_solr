@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.9.6 ():
+ - refactor 1.8 check in case elgg_get_version is defined by another plugin
+
 1.9.5 (08/07/2015):
  - override access while indexing to prevent missing index data due to viewer permissions
 

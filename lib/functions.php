@@ -1796,11 +1796,12 @@ function elgg_solr_get_cores() {
 
 
 function elgg_solr_is_elgg18() {
+	$version_getter = 'get_version';
 	if (is_callable('elgg_get_version')) {
-		return false; // this is newer than 1.8
+		$version_getter = 'elgg_get_version';
 	}
 	
-	$is_elgg18 = (strpos(get_version(true), '1.8') === 0);
+	$is_elgg18 = (strpos($version_getter(true), '1.8') === 0);
 	
 	return $is_elgg18;
 }
