@@ -46,13 +46,36 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 		return true;
 	}
 
-	elgg_solr_defer_index_delete($entity->guid);
+	// if shutdown just do it, otherwise defer
+	if ($GLOBALS['shutdown_flag']) {
+		$client = elgg_solr_get_client();
+		$query = $client->createUpdate();
+		$query->addDeleteById($entity->guid);
+		$query->addCommit();
+
+		try {
+			$client->update($query);
+		} catch (Exception $ex) {
+			//something went wrong, lets cache the id and try again on cron
+			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', $g, ACCESS_PUBLIC);
+		}
+	} else {
+		elgg_solr_defer_index_delete($entity->guid);
+	}
 
 	return true;
 }
 
 function elgg_solr_metadata_update($event, $type, $metadata) {
-	elgg_solr_defer_index_update($metadata->entity_guid);
+	if ($GLOBALS['shutdown_flag']) {
+		$entity = get_entity($metadata->entity_guid);
+		if ($entity) {
+			elgg_solr_add_update_entity(null, null, $entity);
+		}
+	}
+	else {
+		elgg_solr_defer_index_update($metadata->entity_guid);
+	}
 }
 
 // reindexes entities by guid
@@ -66,17 +89,20 @@ function elgg_solr_entities_sync() {
 
 	if ($guids) {
 		$options = array(
-        	        'guids' => array_keys($guids),
-                	'limit' => false
-	        );
+			'guids' => array_keys($guids),
+			'limit' => false
+		);
 
-        	$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
-	        $entities = new ElggBatch('elgg_get_entities', $options, null, $batch_size);
+		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
+		$entities = new ElggBatch('elgg_get_entities', $options, null, $batch_size);
 
-        	foreach ($entities as $e) {
-                	elgg_solr_add_update_entity(null, null, $e);
-	        }	
+		foreach ($entities as $e) {
+			elgg_solr_add_update_entity(null, null, $e);
+		}
 	}
+
+	// reset the config
+	elgg_set_config('elgg_solr_sync', array());
 
 	$delete_guids = elgg_get_config('elgg_solr_delete');
 
@@ -96,17 +122,24 @@ function elgg_solr_entities_sync() {
 		}
 	}
 
+	// reset the config
+	elgg_set_config('elgg_solr_delete', array());
+
 	access_show_hidden_entities($access);
 }
 
 function elgg_solr_profile_update($event, $type, $entity) {
-	$guids = elgg_get_config('elgg_solr_sync');
-	if (!is_array($guids)) {
-		$guids = array();
-	}
-	$guids[$entity->guid] = 1; // use key to keep it unique
+	if ($GLOBALS['shutdown_flag']) {
+		elgg_solr_add_update_entity(null, null, $entity);
+	} else {
+		$guids = elgg_get_config('elgg_solr_sync');
+		if (!is_array($guids)) {
+			$guids = array();
+		}
+		$guids[$entity->guid] = 1; // use key to keep it unique
 
-	elgg_set_config('elgg_solr_sync', $guids);
+		elgg_set_config('elgg_solr_sync', $guids);
+	}
 }
 
 function elgg_solr_upgrades() {
@@ -120,11 +153,19 @@ function elgg_solr_upgrades() {
 }
 
 function elgg_solr_disable_entity($event, $type, $entity) {
-	elgg_solr_defer_index_update($entity->guid);
+	if ($GLOBALS['shutdown_flag']) {
+		elgg_solr_add_update_entity(null, null, $entity);
+	} else {
+		elgg_solr_defer_index_update($entity->guid);
+	}
 }
 
 function elgg_solr_enable_entity($event, $type, $entity) {
-	elgg_solr_defer_index_update($entity->guid);
+	if ($GLOBALS['shutdown_flag']) {
+		elgg_solr_add_update_entity(null, null, $entity);
+	} else {
+		elgg_solr_defer_index_update($entity->guid);
+	}
 }
 
 /**
@@ -144,14 +185,18 @@ function elgg_solr_add_update_annotation($event, $type, $annotation) {
 		return true;
 	}
 
-	$ids = elgg_get_config('elgg_solr_annotation_sync');
-	if (!is_array($ids)) {
-		$ids = array();
+	if ($GLOBALS['shutdown_flag']) {
+		elgg_solr_index_annotation($annotation);
+	} else {
+		$ids = elgg_get_config('elgg_solr_annotation_sync');
+		if (!is_array($ids)) {
+			$ids = array();
+		}
+
+		$ids[] = $annotation->id;
+
+		elgg_set_config('elgg_solr_annotation_sync', $ids);
 	}
-	
-	$ids[] = $annotation->id;
-	
-	elgg_set_config('elgg_solr_annotation_sync', $ids);
 
 	return true;
 }
@@ -166,7 +211,20 @@ function elgg_solr_delete_annotation($event, $type, $annotation) {
 		return true;
 	}
 
-	elgg_solr_defer_annotation_delete($annotation->id);
+	if ($GLOBALS['shutdown_flag']) {
+		$client = elgg_solr_get_client();
+		$query = $client->createUpdate();
+		$query->addDeleteById('annotation:' . $annotation->id);
+		$query->addCommit();
+
+		try {
+			$client->update($query);
+		} catch (Exception $exc) {
+			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:' . $g, ACCESS_PUBLIC);
+		}
+	} else {
+		elgg_solr_defer_annotation_delete($annotation->id);
+	}
 
 	return true;
 }
@@ -186,7 +244,7 @@ function elgg_solr_annotations_sync() {
 		if (!$annotation) {
 			continue;
 		}
-		
+
 		elgg_solr_index_annotation($annotation);
 	}
 
@@ -198,11 +256,11 @@ function elgg_solr_annotations_sync() {
 			$query = $client->createUpdate();
 			$query->addDeleteById('annotation:' . $g);
 			$query->addCommit();
-			
+
 			try {
 				$client->update($query);
 			} catch (Exception $exc) {
-				elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:'.$g, ACCESS_PUBLIC);
+				elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:' . $g, ACCESS_PUBLIC);
 			}
 		}
 	}

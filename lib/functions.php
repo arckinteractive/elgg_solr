@@ -1229,16 +1229,6 @@ function elgg_solr_defer_annotation_delete($id) {
 	elgg_set_config('elgg_solr_annotation_delete', $delete_ids);
 }
 
-function elgg_solr_defer_annotation_update($id) {
-	$ids = elgg_get_config('elgg_solr_annotation_update');
-	if (!is_array($ids)) {
-		$ids = array();
-	}
-
-	$ids[$id] = 1;
-
-	elgg_set_config('elgg_solr_annotation_update', $ids);
-}
 
 // 1.8 only
 // copy of elgg_get_entities
