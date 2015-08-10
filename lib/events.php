@@ -1,6 +1,14 @@
 <?php
 
 function elgg_solr_add_update_entity($event, $type, $entity) {
+	
+	if (elgg_get_config('solr_is_indexing')) {
+		// this flag indicates that we're already updating this entity
+		// an event handler may have triggered an event leading to 
+		// an infinite loop, and we're breaking it
+		return true;
+	}
+			
 	$debug = false;
 	if (elgg_get_config('elgg_solr_debug')) {
 		$debug = true;
@@ -31,7 +39,9 @@ function elgg_solr_add_update_entity($event, $type, $entity) {
 		// make sure info indexed isn't dependent on the access
 		// of the logged in user
 		$ia = elgg_set_ignore_access(true);
+		elgg_set_config('solr_is_indexing', true);
 		$function($entity);
+		elgg_set_config('solr_is_indexing', false);
 		elgg_set_ignore_access($ia);
 	} else {
 		if ($debug) {

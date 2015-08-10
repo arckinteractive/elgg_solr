@@ -2,7 +2,8 @@
 
 x.x (mm/dd/yyyy):
 
-1.9.6 ():
+1.9.6 (08/10/2015):
+ - prevent infinite loop if entity is updated by plugin during index event
  - refactor 1.8 check in case elgg_get_version is defined by another plugin
 
 1.9.5 (08/07/2015):
