@@ -2,7 +2,7 @@
     "name": "arckinteractive/elgg_solr",
     "type": "elgg-plugin",
     "require": {
-        "solarium/solarium": "3.3.0",
+        "solarium/solarium": "3.4.1",
         "ezyang/htmlpurifier": "4.6.0"
     }
 }

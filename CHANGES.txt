@@ -2,6 +2,10 @@
 
 x.x (mm/dd/yyyy):
 
+1.10 (08/12/2015):
+ - add schema.solr5.xml for solr 5+
+ - update solarium to 3.4.1 to support solr 5+
+
 1.9.6 (08/10/2015):
  - prevent infinite loop if entity is updated by plugin during index event
  - refactor 1.8 check in case elgg_get_version is defined by another plugin
