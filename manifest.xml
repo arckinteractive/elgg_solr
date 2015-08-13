@@ -22,8 +22,8 @@
 		<plugin>search</plugin>
 		<priority>after</priority>
 	</requires>
-	<suggests>
+	<requires>
 		<type>plugin</type>
-		<plugin>vroom</plugin>
-	</suggests>
+		<name>vroom</name>
+	</requires>
 </plugin_manifest>
