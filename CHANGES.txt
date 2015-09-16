@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+ - chore: packagist composer.json info
+ - add id to manifest for 1.9+
+
 1.10 (08/12/2015):
  - add schema.solr5.xml for solr 5+
  - update solarium to 3.4.1 to support solr 5+
