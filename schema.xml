@@ -7,7 +7,7 @@
    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
 
    <!-- ElggEntity -->
-   <field name="type" type="string" indexed="true" stored="true" multiValued="false" />
+   <field name="type" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="subtype" type="string" indexed="true" stored="true" multiValued="false" />
    <field name="owner_guid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="container_guid" type="int" indexed="true" stored="true" multiValued="false" />
