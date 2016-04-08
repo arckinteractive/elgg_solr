@@ -5,8 +5,6 @@ if (elgg_get_plugin_setting('reindex_running', 'elgg_solr')) {
 	forward(REFERER);
 }
 
-$is_elgg18 = elgg_solr_is_elgg18();
-
 $starttime = get_input('starttime');
 $endtime = get_input('endtime');
 $type = get_input('type');
@@ -21,9 +19,6 @@ switch ($type) {
 		//vroomed
 		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_reindex');
 		
-		if ($is_elgg18) {
-			elgg_register_event_handler('shutdown', 'system', 'elgg_solr_comment_reindex');
-		}
 		break;
 	default:
 		// set up options to use instead of all registered types

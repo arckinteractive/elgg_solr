@@ -1,5 +1,10 @@
 <?php
 
+$version = elgg_get_plugin_setting('version', 'elgg_solr');
+if (!$version) {
+	elgg_set_plugin_setting('version', ELGG_SOLR_PLUGIN_VERSION, 'elgg_solr');
+}
+
 $batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 
 if (empty($batch_size)) {

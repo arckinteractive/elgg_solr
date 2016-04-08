@@ -1,6 +1,6 @@
 <?php
 
-const ELGG_SOLR_UPGRADE_VERSION = 20141205;
+const ELGG_SOLR_PLUGIN_VERSION = 20141205;
 
 require_once __DIR__ . '/lib/functions.php';
 require_once __DIR__ . '/lib/hooks.php';
@@ -20,10 +20,9 @@ function elgg_solr_init() {
 		return true;
 	}
 	
-	$is_elgg18 = elgg_solr_is_elgg18();
 
-	elgg_register_library('Solarium', dirname(__FILE__) . '/vendor/autoload.php');
-	elgg_register_library('elgg_solr:upgrades', dirname(__FILE__) . '/lib/upgrades.php');
+	elgg_register_library('Solarium', __DIR__ . '/vendor/autoload.php');
+
 
 	if (elgg_get_plugin_setting('use_solr', 'elgg_solr') != 'no') {
 		// unregister default search hooks
@@ -37,13 +36,6 @@ function elgg_solr_init() {
 		elgg_register_plugin_hook_handler('search', 'user', 'elgg_solr_user_search');
 		elgg_register_plugin_hook_handler('search', 'group', 'elgg_solr_group_search');
 		elgg_register_plugin_hook_handler('search', 'tags', 'elgg_solr_tag_search');
-
-
-		if ($is_elgg18) {
-			// this is elgg 1.8 need to handle comments as annotations
-			elgg_unregister_plugin_hook_handler('search', 'comments', 'search_comments_hook');
-			elgg_register_plugin_hook_handler('search', 'comments', 'elgg_solr_comment_search');
-		}
 	}
 
 	elgg_register_plugin_hook_handler('cron', 'daily', 'elgg_solr_daily_cron');
@@ -58,16 +50,9 @@ function elgg_solr_init() {
 	elgg_register_event_handler('disable', 'all', 'elgg_solr_disable_entity');
 	elgg_register_event_handler('enable', 'all', 'elgg_solr_enable_entity');
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_entities_sync');
-	
-	if ($is_elgg18) {
-		elgg_register_event_handler('create', 'all', 'elgg_solr_add_update_annotation', 1000);
-		elgg_register_event_handler('update', 'all', 'elgg_solr_add_update_annotation', 1000);
-		elgg_register_event_handler('delete', 'annotations', 'elgg_solr_delete_annotation', 1000);
-		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_annotations_sync');
-	}
 
-	elgg_set_config('elgg_solr_sync', array());
-	elgg_set_config('elgg_solr_delete', array());
+	elgg_set_config('elgg_solr_sync', []);
+	elgg_set_config('elgg_solr_delete', []);
 
 	// when to update the user index
 	elgg_register_plugin_hook_handler('usersettings:save', 'user', 'elgg_solr_user_settings_save', 1000);
@@ -80,12 +65,12 @@ function elgg_solr_init() {
 	elgg_solr_register_solr_entity_type('object', 'default', 'elgg_solr_add_update_object_default');
 	elgg_solr_register_solr_entity_type('group', 'default', 'elgg_solr_add_update_group_default');
 
-	elgg_register_action('elgg_solr/reindex', dirname(__FILE__) . '/actions/reindex.php', 'admin');
-	elgg_register_action('elgg_solr/delete_index', dirname(__FILE__) . '/actions/delete_index.php', 'admin');
-	elgg_register_action('elgg_solr/reindex_unlock', dirname(__FILE__) . '/actions/reindex_unlock.php', 'admin');
-	elgg_register_action('elgg_solr/settings/save', dirname(__FILE__) . '/actions/plugin_settings.php', 'admin');
-	elgg_register_action('elgg_solr/restart_reindex', dirname(__FILE__) . '/actions/restart_reindex.php', 'admin');
-	elgg_register_action('elgg_solr/stop_reindex', dirname(__FILE__) . '/actions/stop_reindex.php', 'admin');
+	elgg_register_action('elgg_solr/reindex', __DIR__ . '/actions/reindex.php', 'admin');
+	elgg_register_action('elgg_solr/delete_index', __DIR__ . '/actions/delete_index.php', 'admin');
+	elgg_register_action('elgg_solr/reindex_unlock', __DIR__ . '/actions/reindex_unlock.php', 'admin');
+	elgg_register_action('elgg_solr/settings/save', __DIR__ . '/actions/plugin_settings.php', 'admin');
+	elgg_register_action('elgg_solr/restart_reindex', __DIR__ . '/actions/restart_reindex.php', 'admin');
+	elgg_register_action('elgg_solr/stop_reindex', __DIR__ . '/actions/stop_reindex.php', 'admin');
 
 	elgg_register_admin_menu_item('administer', 'solr_index', 'administer_utilities');
 

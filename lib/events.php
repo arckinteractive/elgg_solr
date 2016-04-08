@@ -160,10 +160,8 @@ function elgg_solr_profile_update($event, $type, $entity) {
 
 function elgg_solr_upgrades() {
 	$ia = elgg_set_ignore_access(true);
-	elgg_load_library('elgg_solr:upgrades');
-
-	run_function_once('elgg_solr_upgrade_20140504b');
-	run_function_once('elgg_solr_upgrade_20141205');
+	
+	require_once __DIR__ . '/upgrades.php';
 
 	elgg_set_ignore_access($ia);
 }
