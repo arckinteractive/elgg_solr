@@ -2,9 +2,9 @@
 
 const ELGG_SOLR_UPGRADE_VERSION = 20141205;
 
-require_once 'lib/functions.php';
-require_once 'lib/hooks.php';
-require_once 'lib/events.php';
+require_once __DIR__ . '/lib/functions.php';
+require_once __DIR__ . '/lib/hooks.php';
+require_once __DIR__ . '/lib/events.php';
 
 elgg_register_event_handler('init', 'system', 'elgg_solr_init');
 
