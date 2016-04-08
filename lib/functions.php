@@ -75,6 +75,7 @@ function elgg_solr_reindex() {
 	$fullcount = 0;
 	foreach ($registered_types as $type => $subtypes) {
 		$options['type'] = $type;
+		$options['subtypes'] = ELGG_ENTITIES_ANY_VALUE;
 		$options['limit'] = false;
 
 		$restart_time = elgg_get_config('elgg_solr_restart_time');
@@ -88,9 +89,11 @@ function elgg_solr_reindex() {
 
 		if ($subtypes) {
 			if (!is_array($subtypes)) {
-				$subtypes = array($subtypes);
+				$options['subtypes'] = array($subtypes);
 			}
-			$options['subtypes'] = $subtypes;
+			else {
+				$options['subtypes'] = $subtypes;
+			}
 		}
 
 		// this iteration fixes a bug https://github.com/Elgg/Elgg/issues/7561
