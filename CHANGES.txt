@@ -6,6 +6,11 @@ x.x (mm/dd/yyyy):
  - Elgg 2.0 compatibility, drop support for 1.x
  - deprecation fixes
  - js to AMD
+ - some code cleanup (not enough yet...)
+ - add time_updated to standard entity index document
+ - add last_login, prev_last_login, banned to standard user index
+ - update Solarium to v3.5.1
+ - update Htmlpurifier to v4.7.0 
 
 1.10.1 (04/07/2016):
  - fix groups not indexed on full reindex action

@@ -622,6 +622,8 @@ function elgg_solr_add_update_user($entity) {
 	$doc->time_created = $entity->time_created;
 	$doc->time_updated = $entity->time_updated;
 	$doc->last_login_i = (int) $entity->last_login;
+	$doc->prev_last_login_i = (int) $entity->prev_last_login;
+	$doc->banned = $entity->banned;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
