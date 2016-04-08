@@ -83,7 +83,7 @@ access_show_hidden_entities($show_hidden);
 					'href' => $url,
 					'is_trusted' => true,
 					'is_action' => true,
-					'class' => 'elgg-requires-confirmation'
+					'confirm' => true
 				));
 				
 				echo ' | ';
@@ -97,7 +97,7 @@ access_show_hidden_entities($show_hidden);
 					'href' => $delete_index,
 					'is_trusted' => true,
 					'is_action' => true,
-					'class' => 'elgg-requires-confirmation'
+					'confirm' => true
 				));
 				
 				echo ' | ';

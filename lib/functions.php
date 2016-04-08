@@ -3,8 +3,6 @@
 function elgg_solr_reindex() {
 	set_time_limit(0);
 
-	$guid_getter = 'elgg_solr_get_entity_guids';
-
 	$ia = elgg_set_ignore_access(true);
 	$show_hidden = access_get_show_hidden_status();
 	access_show_hidden_entities(true);
@@ -95,8 +93,9 @@ function elgg_solr_reindex() {
 		// uses a custom getter which only fetches the guids in a single large-batch query
 		// which is much more efficient than standard egef
 		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
-		$entities = new ElggBatch($guid_getter, $options, null, $batch_size);
-		$final_count = $guid_getter(array_merge($options, array('count' => true)));
+		$batch_size = $batch_size ? $batch_size : 1000;
+		$entities = new ElggBatch('elgg_solr_get_entity_guids', $options, null, $batch_size);
+		$final_count = elgg_solr_get_entity_guids(array_merge($options, array('count' => true)));
 
 		elgg_set_config('elgg_solr_nocommit', true); // disable committing on each entity for performance
 		$count = 0;
@@ -202,128 +201,6 @@ function elgg_solr_reindex() {
 	elgg_set_ignore_access($ia);
 }
 
-function elgg_solr_comment_reindex() {
-	set_time_limit(0);
-
-	$ia = elgg_set_ignore_access(true);
-	$show_hidden = access_get_show_hidden_status();
-	access_show_hidden_entities(true);
-
-	$debug = get_input('debug', false);
-	if ($debug) {
-		elgg_set_config('elgg_solr_debug', 1);
-	}
-
-	// lock the function
-	elgg_set_plugin_setting('reindex_running', 1, 'elgg_solr');
-
-	if (!file_exists(elgg_get_config('dataroot') . 'elgg_solr')) {
-		mkdir(elgg_get_config('dataroot') . 'elgg_solr');
-	}
-
-	$time = time();
-	$log = elgg_get_config('dataroot') . 'elgg_solr/' . $time . '.txt';
-	elgg_set_plugin_setting('current_log', $time, 'elgg_solr');
-
-	// initialize the csv
-	$report = array(
-		'percent' => '',
-		'count' => 0, // report prior to indexing this entity
-		'typecount' => 0,
-		'fullcount' => 0,
-		'type' => 'Comments',
-		'querytime' => 0,
-		'message' => 'Initializing Reindex',
-		'date' => date('Y-M-j H:i:s')
-	);
-	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
-
-
-	elgg_set_config('elgg_solr_nocommit', true); // tell our indexer not to commit right away
-
-	$count = 0;
-
-	// index comments
-	$options = array(
-		'annotation_name' => 'generic_comment',
-		'limit' => false
-	);
-
-	$time = elgg_get_config('elgg_solr_time_options');
-	if ($time && is_array($time)) {
-		$options['annotation_created_time_lower'] = $time['starttime'];
-		$options['annotation_created_time_upper'] = $time['endtime'];
-	}
-
-	$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
-	$comments = new ElggBatch('elgg_get_annotations', $options, null, $batch_size);
-
-	$final_count = elgg_get_annotations(array_merge($options, array('count' => true)));
-	$fetch_time_start = microtime(true);
-
-	foreach ($comments as $comment) {
-		$count++;
-		$first_entity = (bool) (($count % $batch_size) == 1);
-		$last_entity = (bool) (($count % $batch_size) == 0);
-
-		if ($first_entity) {
-			// this is the first entity in the new batch
-			$fetch_time = microtime(true) - $fetch_time_start; // the query time in seconds
-		}
-
-		if ($count % 10000) {
-			elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
-		}
-
-		if ($comment) {
-			elgg_solr_index_annotation($comment);
-			elgg_set_config('elgg_solr_nocommit', true);
-		}
-
-		if (!($count % 200)) {
-			$qtime = round($fetch_time, 4);
-			$percent = round($count / $final_count * 100);
-			$report = array(
-				'percent' => $percent,
-				'count' => $count,
-				'typecount' => $final_count,
-				'fullcount' => $count,
-				'type' => 'Comments',
-				'querytime' => $qtime,
-				'message' => '',
-				'date' => date('Y-M-j H:i:s')
-			);
-
-			file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
-		}
-
-		if ($last_entity) {
-			$fetch_time_start = microtime(true);
-		}
-	}
-
-	if ($debug) {
-		elgg_solr_debug_log($count . ' entities sent to Solr');
-	}
-
-	$report = array(
-		'percent' => 100,
-		'count' => $count,
-		'typecount' => $final_count,
-		'fullcount' => $count,
-		'type' => 'Comments',
-		'querytime' => 0,
-		'message' => 'Comment Reindex has been completed',
-		'date' => date('Y-M-j H:i:s')
-	);
-
-	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
-
-	elgg_set_ignore_access($ia);
-	access_show_hidden_entities($show_hidden);
-	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
-}
-
 function elgg_solr_get_indexable_count() {
 	$registered_types = get_registered_entity_types();
 
@@ -342,13 +219,6 @@ function elgg_solr_get_indexable_count() {
 
 		$count += elgg_get_entities($options);
 	}
-
-	// count comments
-	$options = array(
-		'annotation_name' => 'generic_comment',
-		'count' => true
-	);
-	$count += elgg_get_annotations($options);
 
 	elgg_set_ignore_access($ia);
 
@@ -386,7 +256,6 @@ function elgg_solr_get_indexed_count($query = '*:*', $fq = array()) {
 }
 
 function elgg_solr_get_client() {
-	elgg_load_library('Solarium');
 
 	Solarium\Autoloader::register();
 
@@ -443,7 +312,7 @@ function elgg_solr_get_default_fq($params) {
 
 	if ($params['types'] && $params['types'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['types'])) {
-			$fq['type'] = 'type:(' . implode(' OR ', $params['types']) . ')';
+			$fq['type'] = 'type:(' . implode(' ', $params['types']) . ')';
 		} else {
 			if ($params['types'] === ELGG_ENTITIES_NO_VALUE) {
 				//$fq['type'] = '-type:[* TO *]';
@@ -466,7 +335,7 @@ function elgg_solr_get_default_fq($params) {
 
 	if (isset($params['subtypes']) && $params['subtypes'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['subtypes'])) {
-			$fq['subtype'] = 'subtype:(' . implode(' OR ', $params['subtypes']) . ')';
+			$fq['subtype'] = 'subtype:(' . implode(' ', $params['subtypes']) . ')';
 		} else {
 			if ($params['subtypes'] === ELGG_ENTITIES_NO_VALUE) {
 				//$fq['subtype'] = '-subtype:[* TO *]';
@@ -485,7 +354,7 @@ function elgg_solr_get_default_fq($params) {
 
 	if (isset($params['container_guids']) && $params['container_guids'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['container_guids'])) {
-			$fq['container'] = 'container_guid:(' . implode(' OR ', $params['container_guids']) . ')';
+			$fq['container'] = 'container_guid:(' . implode(' ', $params['container_guids']) . ')';
 		} else {
 			$fq['container'] = 'container_guid:' . $params['container_guid'];
 		}
@@ -498,7 +367,7 @@ function elgg_solr_get_default_fq($params) {
 
 	if (isset($params['owner_guids']) && $params['owner_guids'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['owner_guids'])) {
-			$fq['owner'] = 'owner_guid:(' . implode(' OR ', $params['owner_guids']) . ')';
+			$fq['owner'] = 'owner_guid:(' . implode(' ', $params['owner_guids']) . ')';
 		} else {
 			$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
 		}
@@ -609,6 +478,7 @@ function elgg_solr_add_update_file($entity) {
 	$doc->title = elgg_strip_tags($entity->title);
 	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
+	$doc->time_updated = $entity->time_updated;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
@@ -676,6 +546,7 @@ function elgg_solr_add_update_object_default($entity) {
 	$doc->name = elgg_strip_tags($entity->name);
 	$doc->description = elgg_strip_tags($entity->description);
 	$doc->time_created = $entity->time_created;
+	$doc->time_updated = $entity->time_updated;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
@@ -749,6 +620,8 @@ function elgg_solr_add_update_user($entity) {
 	$doc->username = $entity->username;
 	$doc->description = elgg_strip_tags($desc);
 	$doc->time_created = $entity->time_created;
+	$doc->time_updated = $entity->time_updated;
+	$doc->last_login_i = (int) $entity->last_login;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
@@ -1230,7 +1103,7 @@ function elgg_solr_defer_annotation_delete($id) {
 
 
 function elgg_solr_get_entity_guids(array $options = array()) {
-	global $CONFIG;
+	$dbprefix = elgg_get_config('dbprefix');
 
 	$defaults = array(
 		'types' => ELGG_ENTITIES_ANY_VALUE,
@@ -1239,7 +1112,7 @@ function elgg_solr_get_entity_guids(array $options = array()) {
 		'guids' => ELGG_ENTITIES_ANY_VALUE,
 		'owner_guids' => ELGG_ENTITIES_ANY_VALUE,
 		'container_guids' => ELGG_ENTITIES_ANY_VALUE,
-		'site_guids' => $CONFIG->site_guid,
+		'site_guids' => elgg_get_site_entity()->guid,
 		'modified_time_lower' => ELGG_ENTITIES_ANY_VALUE,
 		'modified_time_upper' => ELGG_ENTITIES_ANY_VALUE,
 		'created_time_lower' => ELGG_ENTITIES_ANY_VALUE,
@@ -1332,9 +1205,9 @@ function elgg_solr_get_entity_guids(array $options = array()) {
 		if ($options['require_distinct']) {
 			$distinct = ' DISTINCT';
 		}
-		$query = "SELECT{$distinct} e.guid{$selects} FROM {$CONFIG->dbprefix}entities e ";
+		$query = "SELECT{$distinct} e.guid{$selects} FROM {$dbprefix}entities e ";
 	} else {
-		$query = "SELECT count(DISTINCT e.guid) as total FROM {$CONFIG->dbprefix}entities e ";
+		$query = "SELECT count(DISTINCT e.guid) as total FROM {$dbprefix}entities e ";
 	}
 
 	// add joins

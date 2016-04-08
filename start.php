@@ -1,10 +1,11 @@
 <?php
 
-const ELGG_SOLR_PLUGIN_VERSION = 20141205;
+const ELGG_SOLR_PLUGIN_VERSION = 20160408;
 
 require_once __DIR__ . '/lib/functions.php';
 require_once __DIR__ . '/lib/hooks.php';
 require_once __DIR__ . '/lib/events.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 elgg_register_event_handler('init', 'system', 'elgg_solr_init');
 
@@ -13,15 +14,12 @@ elgg_register_event_handler('init', 'system', 'elgg_solr_init');
  */
 function elgg_solr_init() {
 
-	elgg_extend_view('css/admin', 'css/admin/elgg_solr');
+	elgg_extend_view('admin.css', 'css/elgg_solr.css');
 
 	// if the plugin is not configured lets leave search alone
 	if (!elgg_solr_has_settings()) {
 		return true;
 	}
-	
-
-	elgg_register_library('Solarium', __DIR__ . '/vendor/autoload.php');
 
 
 	if (elgg_get_plugin_setting('use_solr', 'elgg_solr') != 'no') {
@@ -53,11 +51,6 @@ function elgg_solr_init() {
 
 	elgg_set_config('elgg_solr_sync', []);
 	elgg_set_config('elgg_solr_delete', []);
-
-	// when to update the user index
-	elgg_register_plugin_hook_handler('usersettings:save', 'user', 'elgg_solr_user_settings_save', 1000);
-	elgg_register_event_handler('profileupdate', 'user', 'elgg_solr_profile_update', 1000);
-
 
 	// register functions for indexing
 	elgg_solr_register_solr_entity_type('object', 'file', 'elgg_solr_add_update_file');

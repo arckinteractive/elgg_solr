@@ -73,7 +73,7 @@ echo $subtype ? ':' . $subtype : ''; ?></h2>
 						'href' => $url,
 						'is_trusted' => true,
 						'is_action' => true,
-						'class' => 'elgg-requires-confirmation'
+						'confirm' => true
 					));
 
 					echo ' | ';
@@ -88,7 +88,7 @@ echo $subtype ? ':' . $subtype : ''; ?></h2>
 						'href' => $delete_index,
 						'is_trusted' => true,
 						'is_action' => true,
-						'class' => 'elgg-requires-confirmation'
+						'confirm' => true
 					));
 
 					if ($value['block']) {
