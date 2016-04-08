@@ -13,8 +13,6 @@ if (!$line) {
 	forward(REFERER);
 }
 
-elgg_register_event_handler('shutdown', 'system', 'elgg_solr_reindex');
-
 $querycache = json_decode($line);
 
 

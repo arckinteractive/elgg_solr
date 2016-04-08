@@ -2,6 +2,11 @@
 
 x.x (mm/dd/yyyy):
 
+2.0.0 (04/08/2016):
+ - Elgg 2.0 compatibility, drop support for 1.x
+ - deprecation fixes
+ - js to AMD
+
 1.10.1 (04/07/2016):
  - fix groups not indexed on full reindex action
  - chore: packagist composer.json info

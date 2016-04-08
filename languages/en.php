@@ -1,6 +1,6 @@
 <?php
 
-$english = array(
+return [
 	'admin:administer_utilities:solr_index' => "Solr Index",
 	'elgg_solr' => "Elgg Solr",
 	'elgg_solr:index:controls' => "Solr Index Controls",
@@ -77,6 +77,4 @@ $english = array(
 	'elgg_solr:admin:stop_reindex' => "Reindex has been stopped (it may take up to a few minutes to take effect)",
 	'elgg_solr:settings:fragsize' => "Length of highlighted snippets (chars)",
 	'elgg_solr:settings:fragsize:help' => "Enter the max length in characters of snippets used for showing highlighted results",
-);
-
-add_translation("en", $english);
+];
