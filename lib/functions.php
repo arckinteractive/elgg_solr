@@ -417,7 +417,7 @@ function elgg_solr_get_adapter_options() {
 function elgg_solr_has_settings() {
 	$host = elgg_get_plugin_setting('host', 'elgg_solr');
 	$port = elgg_get_plugin_setting('port', 'elgg_solr');
-	$path = elgg_get_plugin_setting('path', 'elgg_solr');
+	$path = elgg_get_plugin_setting('solr_path', 'elgg_solr');
 
 	if (empty($host) || empty($port) || empty($path)) {
 		return false;
@@ -1439,7 +1439,7 @@ function elgg_solr_get_entity_guids(array $options = array()) {
 
 	$wheres = $options['wheres'];
 
-	$wheres[] = _elgg_get_entity_type_subtype_where_sql('e', $options['types'], $options['subtypes'], $options['type_subtype_pairs']);
+	$wheres[] = _elgg_services()->entityTable->getEntityTypeSubtypeWhereSql('e', $options['types'], $options['subtypes'], $options['type_subtype_pairs']);
 
 	$wheres[] = _elgg_get_guid_based_where_sql('e.guid', $options['guids']);
 	$wheres[] = _elgg_get_guid_based_where_sql('e.owner_guid', $options['owner_guids']);
