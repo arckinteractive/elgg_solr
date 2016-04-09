@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+2.0.1 (04/09/2016):
+ - use dynamic fields for time_updated for better schema BC
+
 2.0.0 (04/08/2016):
  - Elgg 2.0 compatibility, drop support for 1.x
  - deprecation fixes
