@@ -1209,3 +1209,82 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
         'count' => $count,
     );
 }
+
+/**
+ * Manipulate the DocumentInterface for the user
+ *
+ * @param string $hook
+ * @param string $type
+ * @param \Solarium\QueryType\Update\Query\Document\DocumentInterface $return
+ * @param array $params
+ * @return \Solarium\QueryType\Update\Query\Document\DocumentInterface
+ */
+function elgg_solr_index_user($hook, $type, $return, $params) {
+	$entity = elgg_extract('entity', $params);
+
+	// Add username to doc
+	$return->username = $entity->username;
+
+	// Add profile fields to additional fields
+	$profile_fields = elgg_get_config('profile_fields');
+	if (is_array($profile_fields) && sizeof($profile_fields) > 0) {
+		foreach ($profile_fields as $shortname => $valtype) {
+			if (is_array($entity->$shortname)) {
+				$key = 'profile_' . $shortname . '_ss';
+			} else {
+				$key = 'profile_' . $shortname . '_s';
+			}
+
+			$return->$key = $entity->$shortname;
+		}
+	}
+
+	// Add group guids to the list
+	$groups = [];
+
+	foreach ($entity->getGroups() as $group) {
+		$groups[] = $group->getGUID();
+	}
+
+	$return->groups_is = $groups;
+
+	return $return;
+}
+
+/**
+ * Manipulate the DocumentInterface for the group
+ *
+ * @param string $hook
+ * @param string $type
+ * @param \Solarium\QueryType\Update\Query\Document\DocumentInterface $return
+ * @param array $params
+ * @return \Solarium\QueryType\Update\Query\Document\DocumentInterface
+ */
+function elgg_solr_index_group($hook, $type, $return, $params) {
+	$entity = elgg_extract('entity', $params);
+
+	// Add group fields to additional fields
+	$group_fields = elgg_get_config('group');
+	if (is_array($group_fields) && sizeof($group_fields) > 0) {
+		foreach ($group_fields as $shortname => $valtype) {
+			if (is_array($entity->$shortname)) {
+				$key = 'group_' . $shortname . '_ss';
+			} else {
+				$key = 'group_' . $shortname . '_s';
+			}
+
+			$return->$key = $entity->$shortname;
+		}
+	}
+
+	// Add all members to the doc
+	$members = [];
+
+	foreach ($entity->getMembers() as $member) {
+		$members[] = $member->getGUID();
+	}
+
+	$return->members_is = $members;
+
+	return $return;
+}

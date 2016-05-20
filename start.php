@@ -54,9 +54,13 @@ function elgg_solr_init() {
 
 	// register functions for indexing
 	elgg_solr_register_solr_entity_type('object', 'file', 'elgg_solr_add_update_file');
-	elgg_solr_register_solr_entity_type('user', 'default', 'elgg_solr_add_update_user');
-	elgg_solr_register_solr_entity_type('object', 'default', 'elgg_solr_add_update_object_default');
-	elgg_solr_register_solr_entity_type('group', 'default', 'elgg_solr_add_update_group_default');
+	elgg_solr_register_solr_entity_type('user', 'default', 'elgg_solr_add_update');
+	elgg_solr_register_solr_entity_type('object', 'default', 'elgg_solr_add_update');
+	elgg_solr_register_solr_entity_type('group', 'default', 'elgg_solr_add_update');
+
+	// register hooks for indexing special objects
+	elgg_register_plugin_hook_handler('elgg_solr:index', 'user', 'elgg_solr_index_user');
+	elgg_register_plugin_hook_handler('elgg_solr:index', 'group', 'elgg_solr_index_group');
 
 	elgg_register_action('elgg_solr/reindex', __DIR__ . '/actions/reindex.php', 'admin');
 	elgg_register_action('elgg_solr/delete_index', __DIR__ . '/actions/delete_index.php', 'admin');

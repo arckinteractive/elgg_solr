@@ -521,7 +521,7 @@ function elgg_solr_add_update_file($entity) {
  * @param type $entity
  * @return boolean
  */
-function elgg_solr_add_update_object_default($entity) {
+function elgg_solr_add_update($entity) {
 
 	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		return false;
@@ -551,7 +551,7 @@ function elgg_solr_add_update_object_default($entity) {
 	$doc->enabled = $entity->enabled;
 
 	$params = array('entity' => $entity);
-	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
+	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type . (($subtype != '') ? ':' . $subtype : ''), $params, $doc);
 	
 	if (!$doc) {
 		return true; // a plugin has stopped the index
@@ -569,82 +569,6 @@ function elgg_solr_add_update_object_default($entity) {
 		error_log($exc->getMessage());
 	}
 
-	return true;
-}
-
-function elgg_solr_add_update_user($entity) {
-
-	if (!elgg_instanceof($entity, 'user')) {
-		return false;
-	}
-
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
-		return false;
-	}
-
-	// lump public profile fields in with description
-	$profile_fields = elgg_get_config('profile_fields');
-	$desc = '';
-	if (is_array($profile_fields) && sizeof($profile_fields) > 0) {
-		$walled = elgg_get_config('walled_garden');
-		foreach ($profile_fields as $shortname => $valtype) {
-			$md = elgg_get_metadata(array(
-				'guid' => $entity->guid,
-				'metadata_names' => array($shortname)
-			));
-
-			foreach ($md as $m) {
-				if ($m->access_id == ACCESS_PUBLIC || ($walled && $m->access_id == ACCESS_LOGGED_IN)) {
-					$desc .= $m->value . ' ';
-				}
-			}
-		}
-	}
-
-	$client = elgg_solr_get_client();
-	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
-
-	$query = $client->createUpdate();
-	$subtype = $entity->getSubtype() ? $entity->getSubtype() : '';
-
-	// add document
-	$doc = $query->createDocument();
-	$doc->id = $entity->guid;
-	$doc->type = $entity->type;
-	$doc->subtype = $subtype;
-	$doc->owner_guid = $entity->owner_guid;
-	$doc->container_guid = $entity->container_guid;
-	$doc->access_id = $entity->access_id;
-	$doc->title = elgg_strip_tags($entity->title);
-	$doc->name = elgg_strip_tags($entity->name);
-	$doc->username = $entity->username;
-	$doc->description = elgg_strip_tags($desc);
-	$doc->time_created = $entity->time_created;
-	$doc->time_updated_i = $entity->time_updated;
-	$doc->last_login_i = (int) $entity->last_login;
-	$doc->prev_last_login_i = (int) $entity->prev_last_login;
-	$doc->banned = $entity->banned;
-	$doc = elgg_solr_add_tags($doc, $entity);
-	$doc->enabled = $entity->enabled;
-
-	$params = array('entity' => $entity);
-	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
-	
-	if (!$doc) {
-		return true; // a plugin has stopped the index
-	}
-
-	$query->addDocument($doc, true);
-	if ($commit) {
-		$query->addCommit();
-	}
-
-	// this executes the query and returns the result
-	try {
-		$client->update($query);
-	} catch (Exception $exc) {
-		error_log($exc->getMessage());
-	}
 	return true;
 }
 
@@ -723,16 +647,6 @@ function elgg_solr_get_access_query() {
 	}
 
 	return $return;
-}
-
-/**
- * by default there's nothing we need to do different with this
- * so it's just a wrapper for object add
- * 
- * @param type $entity
- */
-function elgg_solr_add_update_group_default($entity) {
-	elgg_solr_add_update_object_default($entity);
 }
 
 function elgg_solr_escape_special_chars($string) {
