@@ -33,6 +33,19 @@ foreach ($registered_types as $type => $subtypes) {
 	$stats[$type] = array('count' => $count, 'indexed' => $indexed);
 }
 
+$indexable = _elgg_services()->hooks->trigger('elgg_solr:can_index', 'annotation', [], []);
+foreach ($indexable as $name) {
+	$options = [
+		'annotation_names' => $name,
+		'count' => true
+	];
+	
+	$stats['annotation:' . $name] = [
+		'count' => elgg_get_annotations($options),
+		'indexed' => elgg_solr_get_indexed_count('type:annotation', ['subtype' => "subtype:{$name}"])
+	];
+}
+
 $system_total = 0;
 $indexed_total = 0;
 

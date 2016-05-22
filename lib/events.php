@@ -92,6 +92,20 @@ function elgg_solr_metadata_update($event, $type, $metadata) {
 	}
 }
 
+
+function elgg_solr_annotation_update($event, $type, $annotation) {
+		
+	$entity = $annotation->getEntity();
+	if ($GLOBALS['shutdown_flag']) {
+		elgg_solr_add_update_entity(null, null, $entity);
+		elgg_solr_index_annotation($annotation);
+	}
+	else {
+		elgg_solr_defer_index_update($entity->guid);
+		elgg_solr_defer_annotation_update($annotation->id);
+	}
+}
+
 // reindexes entities by guid
 // happens after shutdown thanks to vroom
 // entity guids stored in config
@@ -182,46 +196,39 @@ function elgg_solr_enable_entity($event, $type, $entity) {
 	}
 }
 
-/**
- * Note - only used in Elgg 1.8 where comments are annotations
- * 
- * @param type $event
- * @param type $type
- * @param ElggAnnotation $annotation
- * @return boolean
- */
-function elgg_solr_add_update_annotation($event, $type, $annotation) {
-	if (!($annotation instanceof ElggAnnotation)) {
-		return true;
-	}
-
-	if ($annotation->name != 'generic_comment') {
-		return true;
-	}
-
+function elgg_solr_relationship_create($event, $type, $relationship) {
 	if ($GLOBALS['shutdown_flag']) {
-		elgg_solr_index_annotation($annotation);
-	} else {
-		$ids = elgg_get_config('elgg_solr_annotation_sync');
-		if (!is_array($ids)) {
-			$ids = array();
-		}
-
-		$ids[] = $annotation->id;
-
-		elgg_set_config('elgg_solr_annotation_sync', $ids);
+		$entity1 = get_entity($relationship->guid_one);
+		$entity2 = get_entity($relationship->guid_two);
+		elgg_solr_add_update_entity(null, null, $entity1);
+		elgg_solr_add_update_entity(null, null, $entity2);
 	}
-
-	return true;
+	else {
+		elgg_solr_defer_index_update($relationship->guid_one);
+		elgg_solr_defer_index_update($relationship->guid_two);
+	}
 }
 
-function elgg_solr_delete_annotation($event, $type, $annotation) {
-
-	if (!($annotation instanceof ElggAnnotation)) {
-		return true;
+//@TODO - this fires before the relationship is actually deleted
+// but there's no :after event for relationships
+// add to core, or relationships deleted on shutdown will be incorrectly indexed
+function elgg_solr_relationship_delete($event, $type, $relationship) {
+	if ($GLOBALS['shutdown_flag']) {
+		$entity1 = get_entity($relationship->guid_one);
+		$entity2 = get_entity($relationship->guid_two);
+		elgg_solr_add_update_entity(null, null, $entity1);
+		elgg_solr_add_update_entity(null, null, $entity2);
 	}
+	else {
+		elgg_solr_defer_index_update($relationship->guid_one);
+		elgg_solr_defer_index_update($relationship->guid_two);
+	}
+}
 
-	if ($annotation->name != 'generic_comment') {
+
+function elgg_solr_annotation_delete($event, $type, $annotation) {
+
+	if (!($annotation instanceof \ElggAnnotation)) {
 		return true;
 	}
 
@@ -247,19 +254,19 @@ function elgg_solr_annotations_sync() {
 
 	$access = access_get_show_hidden_status();
 	access_show_hidden_entities(true);
-	$ids = elgg_get_config('elgg_solr_annotation_sync');
+	$ia = elgg_set_ignore_access(true);
+	
+	$ids = elgg_get_config('elgg_solr_annotation_update');
 
-	if (!$ids) {
-		return true;
-	}
+	if (is_array($ids)) {
+		foreach ($ids as $id => $foo) {
+			$annotation = elgg_get_annotation_from_id($id);
+			if (!$annotation) {
+				continue;
+			}
 
-	foreach ($ids as $id) {
-		$annotation = elgg_get_annotation_from_id($id);
-		if (!$annotation) {
-			continue;
+			elgg_solr_index_annotation($annotation);
 		}
-
-		elgg_solr_index_annotation($annotation);
 	}
 
 	$delete_ids = elgg_get_config('elgg_solr_annotation_delete');
@@ -280,4 +287,5 @@ function elgg_solr_annotations_sync() {
 	}
 
 	access_show_hidden_entities($access);
+	elgg_set_ignore_access($ia);
 }

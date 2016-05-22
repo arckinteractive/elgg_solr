@@ -9,8 +9,8 @@ $subtype = get_input('subtype');
 $time = get_input('time');
 $block = get_input('block', false);
 
-if ($type == 'comments' && !$subtype) {
-	$stats = elgg_solr_get_comment_stats($time, $block);
+if ($type == 'annotation') {
+	$stats = elgg_solr_get_annotation_stats($time, $block, $subtype);
 }
 else {
 	$stats = elgg_solr_get_stats($time, $block, $type, $subtype);

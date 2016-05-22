@@ -1,11 +1,16 @@
 <?php
 
-const ELGG_SOLR_PLUGIN_VERSION = 20160408;
+const ELGG_SOLR_PLUGIN_VERSION = 20160522;
 
 require_once __DIR__ . '/lib/functions.php';
 require_once __DIR__ . '/lib/hooks.php';
 require_once __DIR__ . '/lib/events.php';
-require_once __DIR__ . '/vendor/autoload.php';
+
+// load if it exists.  If not then it's not been composer installed or
+// core has it in its vendor dir
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+	require_once __DIR__ . '/vendor/autoload.php';
+}
 
 elgg_register_event_handler('init', 'system', 'elgg_solr_init');
 
@@ -44,10 +49,19 @@ function elgg_solr_init() {
 	elgg_register_event_handler('delete', 'all', 'elgg_solr_delete_entity', 1000);
 	elgg_register_event_handler('create', 'metadata', 'elgg_solr_metadata_update');
 	elgg_register_event_handler('update', 'metadata', 'elgg_solr_metadata_update');
+	elgg_register_event_handler('delete', 'metadata', 'elgg_solr_metadata_update');
+	elgg_register_event_handler('create', 'annotation', 'elgg_solr_annotation_update');
+	elgg_register_event_handler('update', 'annotation', 'elgg_solr_annotation_update');
+	elgg_register_event_handler('delete', 'annotation', 'elgg_solr_annotation_delete');
+	elgg_register_event_handler('create', 'relationship', 'elgg_solr_relationship_create');
+	elgg_register_event_handler('delete', 'relationship', 'elgg_solr_relationship_delete');
 	elgg_register_event_handler('upgrade', 'system', 'elgg_solr_upgrades');
 	elgg_register_event_handler('disable', 'all', 'elgg_solr_disable_entity');
 	elgg_register_event_handler('enable', 'all', 'elgg_solr_enable_entity');
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_entities_sync');
+	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_annotations_sync');
+	
+	elgg_register_plugin_hook_handler('elgg_solr:can_index', 'annotation', 'elgg_solr_annotation_can_index');
 
 	elgg_set_config('elgg_solr_sync', []);
 	elgg_set_config('elgg_solr_delete', []);

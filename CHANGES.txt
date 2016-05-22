@@ -2,6 +2,18 @@
 
 x.x (mm/dd/yyyy):
 
+2.1.0 (05/20/2016):
+ - entities being indexed can be customized with the plugin hook 'elgg_solr:index', <type>:<subtype>
+ - automatically index admin defined profile fields
+ - automatically index user group membership
+ - can register for the hook 'elgg_solr:can_index', 'annotation' - add annotation name to return array to allow indexing of that annotation
+ - can register for the hook 'elgg_sor:index', 'annotation' to modify/prevent the annotation document before index
+ - entity index properly triggered for relationship create/delete events
+ - list indexed annotations on index page
+ - add annotations to full reindex
+ - moved js to appropriate view name
+ - removed vendors from repository - use 'composer install' if necessary
+
 2.0.1 (04/09/2016):
  - use dynamic fields for time_updated for better schema BC
 

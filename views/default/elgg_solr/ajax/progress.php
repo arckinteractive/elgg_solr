@@ -18,7 +18,7 @@ if (elgg_is_xhr()) {
 	return;
 }
 
-elgg_require_js('elgg_solr/js/progress');
+elgg_require_js('elgg_solr/progress');
 
 /*
  * 'percent' => '',
