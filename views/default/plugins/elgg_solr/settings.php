@@ -159,8 +159,8 @@ $body .= elgg_view('input/dropdown', array(
 	'name' => 'params[addortoaccess_glue]',
 	'value' => $vars['entity']->addortoaccess_glue,
 	'options_values' => array(
-		'yes' => elgg_echo('option:yes'),
-		'no' => elgg_echo('option:no')
+		'no' => elgg_echo('option:no'),
+		'yes' => elgg_echo('option:yes')
 	)
 ));
 $body .= elgg_view('output/longtext', array(
