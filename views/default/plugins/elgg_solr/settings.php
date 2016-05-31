@@ -163,7 +163,10 @@ $body .= elgg_view('input/dropdown', array(
 		'no' => elgg_echo('option:no')
 	)
 ));
-$body .= '<br><br>';
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:addortoaccess:help'),
+	'class' => 'elgg-subtext'
+));
 
 
 $body .= '<label>' . elgg_echo('elgg_solr:settings:highlight:prefix') . '</label>';

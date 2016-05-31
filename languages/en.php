@@ -66,6 +66,7 @@ return [
 	'elgg_solr:time:year' => "Year(s)",
 	'elgg_solr:settings:query:time_boost:by' => "with a boost of",
 	'elgg_solr:settings:addortoaccess' => "Add 'OR' to access id list:",
+	'elgg_solr:settings:addortoaccess:help' => "This will add the 'OR' to the access_id list. This is useful when you've long access_id lists. See <a href=\"https://github.com/arckinteractive/elgg_solr/pull/29\">issue #29</a> for more details about this issue.",
 	'elgg_solr:settings:query:time_boost:help' => "Boost the relevancy of recent content.  The higher the boost value the more relevant it will become.  Default: 1.5",
 	'elgg_solr:settings:highlight:prefix' => "Highlight Prefix",
 	'elgg_solr:settings:highlight:prefix:help' => "HTML to insert in front of strings found to match the query.  Eg. &lt;strong&gt;",
