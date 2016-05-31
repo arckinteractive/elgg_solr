@@ -596,7 +596,13 @@ function elgg_solr_get_access_query() {
 
 	// access filter query
 	if ($access) {
-		$access_list = implode(' ', $access);
+		$access_list_glue = elgg_get_plugin_setting('addortoaccess_glue', 'elgg_solr');
+		if ($access_list_glue == 'yes') {
+			$access_list_glue = ' OR ';
+		} else {
+			$access_list_glue = ' ';
+		}
+		$access_list = implode($access_list_glue, $access);
 	}
 
 	if (elgg_is_logged_in()) {

@@ -153,6 +153,22 @@ $body .= elgg_view('output/longtext', array(
 	'class' => 'elgg-subtext'
 ));
 
+
+$body .= '<label>' . elgg_echo('elgg_solr:settings:addortoaccess') . '</label><br>';
+$body .= elgg_view('input/dropdown', array(
+	'name' => 'params[addortoaccess_glue]',
+	'value' => $vars['entity']->addortoaccess_glue,
+	'options_values' => array(
+		'no' => elgg_echo('option:no'),
+		'yes' => elgg_echo('option:yes')
+	)
+));
+$body .= elgg_view('output/longtext', array(
+	'value' => elgg_echo('elgg_solr:settings:addortoaccess:help'),
+	'class' => 'elgg-subtext'
+));
+
+
 $body .= '<label>' . elgg_echo('elgg_solr:settings:highlight:prefix') . '</label>';
 $body .= elgg_view('input/text', array(
 	'name' => 'hl_prefix',
