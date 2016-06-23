@@ -607,11 +607,11 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
     $select = array(
         'start'  => $params['offset'],
-        'rows'   => $params['limit'] ? $params['limit'] : 10,
+        'rows'   => isset($params['limit']) ? $params['limit'] : 10,
         'fields' => array('id','name','description', 'score')
     );
 	
-	if ($params['select'] && is_array($params['select'])) {
+	if (isset($params['select']) && is_array($params['select'])) {
         $select = array_merge($select, $params['select']);
     }
 
@@ -626,7 +626,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 		'time_created' => 'desc'
 	);
 	
-	$sorts = $params['sorts'] ? $params['sorts'] : $default_sorts;
+	$sorts = isset($params['sorts']) ? $params['sorts'] : $default_sorts;
 	$query->addSorts($sorts);
 	
 	$title_boost = elgg_solr_get_title_boost();
@@ -635,7 +635,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	// get the dismax component and set a boost query
 	$dismax = $query->getEDisMax();
 	$qf = "name^{$title_boost} description^{$description_boost}";
-	if ($params['qf']) {
+	if (isset($params['qf'])) {
 		$qf = $params['qf'];
 	}
 	$dismax->setQueryFields($qf);
@@ -669,7 +669,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
     // get highlighting component and apply settings
     $hl = $query->getHighlighting();
 	$hlfields = array('name', 'description');
-	if ($params['hlfields']) {
+	if (isset($params['hlfields'])) {
 		$hlfields = $params['hlfields'];
 	}
     $hl->setFields($hlfields);
@@ -772,7 +772,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 					$e->setVolatileData('search_matched_title', $name);
 				}
 				
-				if ($matches['description']) {
+				if (isset($matches['description'])) {
 					$desc = $matches['description'];
 				}
 				else {
