@@ -310,7 +310,7 @@ function elgg_solr_get_default_fq($params) {
 		}
 	}
 
-	if ($params['types'] && $params['types'] !== ELGG_ENTITIES_ANY_VALUE) {
+	if (isset($params['types']) && $params['types'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['types'])) {
 			$fq['type'] = 'type:(' . implode(' ', $params['types']) . ')';
 		} else {
