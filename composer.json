@@ -21,7 +21,7 @@
     "require": {
         "php": ">=5.4",
         "composer/installers": "1.0.*",
-        "solarium/solarium": "^3.6.*",
+        "solarium/solarium": "3.6.*",
         "ezyang/htmlpurifier": "4.7.0"
     }
 }
