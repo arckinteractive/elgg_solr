@@ -2,6 +2,13 @@
 
 x.x (mm/dd/yyyy):
 
+2.1.1 (07/22/2016):
+ - fix package.json author list formatting
+ - reindex users on login
+ - additional default indexed user information: last_action_i, last_login_i, friends_count_i, has_pic_b
+ - reindex entities and logged in user on river creation (captures last_action)
+ - make solarium client a static singleton, reducing queries
+
 2.1.0 (05/20/2016):
  - entities being indexed can be customized with the plugin hook 'elgg_solr:index', <type>:<subtype>
  - automatically index admin defined profile fields

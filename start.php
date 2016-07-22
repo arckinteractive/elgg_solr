@@ -1,6 +1,6 @@
 <?php
 
-const ELGG_SOLR_PLUGIN_VERSION = 20160522;
+const ELGG_SOLR_PLUGIN_VERSION = 20160722;
 
 require_once __DIR__ . '/lib/functions.php';
 require_once __DIR__ . '/lib/hooks.php';
@@ -60,6 +60,8 @@ function elgg_solr_init() {
 	elgg_register_event_handler('enable', 'all', 'elgg_solr_enable_entity');
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_entities_sync');
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_annotations_sync');
+	elgg_register_event_handler('login', 'user', 'elgg_solr_add_update_entity');
+	elgg_register_event_handler('created', 'river', 'elgg_solr_river_creation');
 	
 	elgg_register_plugin_hook_handler('elgg_solr:can_index', 'annotation', 'elgg_solr_annotation_can_index');
 

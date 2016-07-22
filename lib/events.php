@@ -289,3 +289,16 @@ function elgg_solr_annotations_sync() {
 	access_show_hidden_entities($access);
 	elgg_set_ignore_access($ia);
 }
+
+/*
+ * defer indexing for river affected items
+ */
+function elgg_solr_river_creation($event, $type, $river) {
+	elgg_solr_defer_index_update($river->subject_guid);
+	elgg_solr_defer_index_delete($river->object_guid);
+	elgg_solr_defer_index_update($river->target_guid);
+
+	if (elgg_is_logged_in()) {
+		elgg_solr_defer_index_update(elgg_get_logged_in_user_guid());
+	}
+}

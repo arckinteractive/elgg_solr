@@ -256,6 +256,11 @@ function elgg_solr_get_indexed_count($query = '*:*', $fq = array()) {
 }
 
 function elgg_solr_get_client() {
+	static $client;
+	
+	if ($client) {
+		return $client;
+	}
 
 	Solarium\Autoloader::register();
 
@@ -266,7 +271,8 @@ function elgg_solr_get_client() {
 	));
 
 	// create a client instance
-	return new Solarium\Client($config);
+	$client = new Solarium\Client($config);
+	return $client;
 }
 
 function elgg_solr_get_adapter_options() {

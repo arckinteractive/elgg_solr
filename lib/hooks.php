@@ -1248,6 +1248,11 @@ function elgg_solr_index_user($hook, $type, $return, $params) {
 	}
 
 	$return->groups_is = $groups;
+	
+	$return->last_login_i = (int) $entity->last_login;
+	$return->last_action_i = (int) $entity->last_action;
+	$return->friends_count_i = (int) $entity->getFriends(['count' => true]);
+	$return->has_pic_b	= (bool) $entity->icontime;
 
 	return $return;
 }
