@@ -1201,26 +1201,6 @@ function elgg_solr_get_entity_guids(array $options = array()) {
 			$dt = get_data($query, $options['callback']);
 		}
 
-		if ($dt) {
-			// populate entity and metadata caches
-			$guids = array();
-			foreach ($dt as $item) {
-				// A custom callback could result in items that aren't ElggEntity's, so check for them
-				if ($item instanceof ElggEntity) {
-					_elgg_cache_entity($item);
-					// plugins usually have only settings
-					if (!$item instanceof ElggPlugin) {
-						$guids[] = $item->guid;
-					}
-				}
-			}
-			// @todo Without this, recursive delete fails. See #4568
-			reset($dt);
-
-			if ($guids) {
-				_elgg_get_metadata_cache()->populateFromEntities($guids);
-			}
-		}
 		return $dt;
 	} else {
 		$total = get_data_row($query);
