@@ -54,6 +54,13 @@ function elgg_solr_reindex() {
 	$options = array();
 	$time = elgg_get_config('elgg_solr_time_options');
 	if ($time && is_array($time)) {
+		if (!$time['starttime']) {
+			$time['starttime'] = 0;
+		}
+		if (!$time['endtime']) {
+			$time['endtime'] = 0;
+		}
+		
 		$options['wheres'] = array(
 			"e.time_created >= {$time['starttime']}",
 			"e.time_created <= {$time['endtime']}",
