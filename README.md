@@ -2,35 +2,32 @@
 
 Speed up site search by using a dedicated Solr search index
 
-* Search Entities
-* Search tags (exact match)
-* Search File contents
+ * Search Entities
+ * Search tags (exact match)
+ * Search File contents
 
 This plugin follows the structure of the default Elgg search plugin, can be extended using the same search plugin hooks.
 
 
-## Elgg Dependencies
+## Dependencies
 
-This plugin depends on the default elgg search plugin (bundled with Elgg)
-
-This plugin depends on the vroom plugin - https://github.com/jumbojett/vroom
-
-
-## Git Dev
-
-If grabbing the plugin from Github, install dependencies by running ```composer install```
+ * This plugin depends on the default elgg search plugin (bundled with Elgg)
+ * This plugin depends on the vroom plugin - https://github.com/jumbojett/vroom
 
 
 ## Installation
 
-Install to elgg mod directory as 'elgg_solr'.
+ 1. Download the plugin and upload it to `/mod/elgg_solr`,
+    or install with composer `composer require arckinteractive/elgg_solr:~2.0`
 
-Enable the plugin in the Admin page, move to position below the search plugin.
+ 2. In Admin > Plugins, reorder the `elgg_solr` plugin to be positioned under `search` plugin, and enable it
 
-Configure Solr with the schema.xml included in the root directory of this plugin.
+ 3. Create a new Solr instance and configure it:
+	* Make sure that `/<instance>/conf/solrconfig.xml` is set to use classic index schema: `<schemaFactory class="ClassicIndexSchemaFactory"></schemaFactory>`
+	* Copy contents of `schema.xml` (or `schema.solr5.xml` for Solr 5+) included in the root of the plugin to `/<instance>/conf/schema.xml`
 
-Enter and save the connection information on the plugin settings page.
+ 4. Update `elgg_solr` plugin settings to point to the new Solr instance
 
-Trigger a reindex from the plugin setting page.
+ 5. Trigger a reindex from the plugin setting page
 
-Ensure daily cron is configured and active
+ 6. Ensure that daily cron is configured and active
