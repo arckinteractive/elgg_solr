@@ -31,3 +31,18 @@ This plugin follows the structure of the default Elgg search plugin, can be exte
  5. Trigger a reindex from the plugin setting page
 
  6. Ensure that daily cron is configured and active
+
+
+## Plugin hooks
+
+**search, <search_type>**
+**search, <entity_type>**
+**search, <entity_type>:<entity_subtype>**
+
+These hooks can be used to modify search criteria
+
+
+**elgg_solr:index, <entity_type>**
+**elgg_solr:index, annotation**
+
+These hooks can be used to customize indexed fields
