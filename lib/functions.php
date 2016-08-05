@@ -53,6 +53,17 @@ function elgg_solr_reindex() {
 	if (!$registered_types) {
 		$registered_types = get_registered_entity_types();
 	}
+	$solr_entities = elgg_get_config('solr_entities');
+	if (is_array($solr_entities)) {
+		foreach ($solr_entities as $type => $subtypes) {
+			foreach ($subtypes as $subtype => $callback) {
+				if ($subtype == 'default') {
+					continue;
+				}
+				$registered_types[$type][] = $subtype;
+			}
+		}
+	}
 
 	// build our options and cache them in case we need to restart it
 	$cacheoptions = array(
@@ -220,6 +231,17 @@ function elgg_solr_reindex() {
  */
 function elgg_solr_get_indexable_count() {
 	$registered_types = get_registered_entity_types();
+	$solr_entities = elgg_get_config('solr_entities');
+	if (is_array($solr_entities)) {
+		foreach ($solr_entities as $type => $subtypes) {
+			foreach ($subtypes as $subtype => $callback) {
+				if ($subtype == 'default') {
+					continue;
+				}
+				$registered_types[$type][] = $subtype;
+			}
+		}
+	}
 
 	$ia = elgg_set_ignore_access(true);
 
@@ -336,7 +358,7 @@ function elgg_solr_has_settings() {
 
 /**
  * Parse defualt filter queries from ege* options
- * 
+ *
  * @param array $params ege* options
  * @return array
  */
@@ -430,7 +452,7 @@ function elgg_solr_get_default_fq($params) {
 
 /**
  * Register a function to define specific configuration of an entity in solr
- * 
+ *
  * @param string   $type     Entity type
  * @param string   $subtype  Entity subtype
  * @param callable $function Callback function
@@ -454,7 +476,7 @@ function elgg_solr_register_solr_entity_type($type, $subtype, $function) {
  * Get callable for indexing the entity of given type and subtype
  *
  * @see elgg_solr_register_solr_entity_type
- * 
+ *
  * @param string $type    Entity type
  * @param string $subtype Entity subtype
  * @return callbale|false
@@ -488,10 +510,10 @@ function elgg_solr_get_solr_function($type, $subtype) {
 /**
  * Determine if entity type/subtype is registered for search,
  * or is registered solr entity
- * 
+ *
  * @see elgg_register_entity_type
  * @see elgg_solr_register_solr_entity_type
- * 
+ *
  * @param string $type    Entity type
  * @param string $subtype Entity subtype
  * @return bool
@@ -512,7 +534,7 @@ function elgg_solr_is_registered_entity_type($type, $subtype = null) {
 
 /**
  * Index a file entity
- * 
+ *
  * @param ElggFile $entity File entity
  * @return bool
  */
@@ -572,7 +594,7 @@ function elgg_solr_add_update_file(ElggFile $entity) {
 
 /**
  * Index an Elgg entity
- * 
+ *
  * @param ElggEntity $entity Entity
  * @return bool
  */
@@ -685,7 +707,7 @@ function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity
 	$doc->responses_count_i = count($responses);
 
 	$doc->likes_i = $entity->countAnnotations('likes');
-	
+
 	$params = array('entity' => $entity);
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
 	if ($entity->getSubtype()) {
@@ -777,7 +799,7 @@ function elgg_solr_escape_special_chars_callback($matches) {
 }
 
 /**
- * 
+ *
  * @param type $time - timestamp of the start of the block
  * @param type $block - the block of time, hour/day/month/year/all
  * @param type $type
@@ -964,7 +986,7 @@ function elgg_solr_get_display_datetime($time, $block) {
 
 /**
  * Returns an array of tags for indexing
- * 
+ *
  * @param type $entity
  * @return string
  */
@@ -994,7 +1016,7 @@ function elgg_solr_get_tags_array($entity) {
  * Index entity tags (registered tag metadata names)
  *
  * @see elgg_get_registered_tag_metadata_names
- * 
+ *
  * @param DocumentInterface $doc    Solr document
  * @param ElggEntity        $entity Indexed entity
  * @return DocumentInterface
@@ -1375,7 +1397,7 @@ function elgg_solr_index_annotation($annotation) {
 }
 
 /**
- * 
+ *
  * @param type $time
  * @param type $block
  * @return type
