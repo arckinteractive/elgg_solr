@@ -62,6 +62,7 @@ function elgg_solr_init() {
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_annotations_sync');
 	elgg_register_event_handler('login', 'user', 'elgg_solr_add_update_entity');
 	elgg_register_event_handler('created', 'river', 'elgg_solr_river_creation');
+	elgg_register_event_handler('profileupdate', 'user', 'elgg_solr_profile_update');
 	
 	elgg_register_plugin_hook_handler('elgg_solr:can_index', 'annotation', 'elgg_solr_annotation_can_index');
 

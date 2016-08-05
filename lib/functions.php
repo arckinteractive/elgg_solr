@@ -648,7 +648,9 @@ function elgg_solr_add_update(ElggEntity $entity) {
  * @return void
  */
 function elgg_solr_debug_log($message) {
-	error_log($message);
+	if (elgg_get_config('elgg_solr_debug') || elgg_get_config('debug') == 'NOTICE' || elgg_get_config('debug') == 'INFO') {
+		error_log($message);
+	}
 }
 
 function elgg_solr_get_access_query() {
@@ -1074,24 +1076,46 @@ function elgg_solr_get_hl_suffix() {
 	return $hl_suffix;
 }
 
+/**
+ * Set entity guid for deferred reindexing
+ *
+ * @param int $guid GUID of the entity to reindex
+ * @return void
+ */
 function elgg_solr_defer_index_update($guid) {
+	$guid = sanitize_int($guid);
+	if (empty($guid)) {
+		return;
+	}
+	
 	$guids = elgg_get_config('elgg_solr_sync');
 	if (!is_array($guids)) {
 		$guids = array();
 	}
-	$guids[$guid] = 1; // use key to keep it unique
 
+	$guid = sanitize_int($guid);
+	$guids[$guid] = 1; // use key to keep it unique
 	elgg_set_config('elgg_solr_sync', $guids);
 }
 
+/**
+ * Set entity guid for deferred removal from index
+ *
+ * @param int $guid GUID of the entity to remove
+ * @return void
+ */
 function elgg_solr_defer_index_delete($guid) {
+	$guid = sanitize_int($guid);
+	if (empty($guid)) {
+		return;
+	}
+
 	$delete_guids = elgg_get_config('elgg_solr_delete');
 	if (!is_array($delete_guids)) {
 		$delete_guids = array();
 	}
 
 	$delete_guids[$guid] = 1;
-
 	elgg_set_config('elgg_solr_delete', $delete_guids);
 }
 
