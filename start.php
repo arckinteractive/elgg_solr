@@ -93,4 +93,8 @@ function elgg_solr_init() {
 	elgg_register_admin_menu_item('administer', 'solr_index', 'administer_utilities');
 
 	elgg_register_ajax_view('elgg_solr/ajax/progress');
+
+	if (elgg_is_active_plugin('discussions')) {
+		elgg_solr_register_solr_entity_type('object', 'discussion_reply', 'elgg_solr_add_update');
+	}
 }
