@@ -487,6 +487,31 @@ function elgg_solr_get_solr_function($type, $subtype) {
 }
 
 /**
+ * Determine if entity type/subtype is registered for search,
+ * or is registered solr entity
+ * 
+ * @see elgg_register_entity_type
+ * @see elgg_solr_register_solr_entity_type
+ * 
+ * @param string $type    Entity type
+ * @param string $subtype Entity subtype
+ * @return bool
+ */
+function elgg_solr_is_registered_entity_type($type, $subtype = null) {
+
+	if (is_registered_entity_type($type, $subtype)) {
+		return true;
+	}
+
+	$solr_entities = elgg_get_config('solr_entities');
+	if ($subtype && isset($solr_entities[$type][$subtype])) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Index a file entity
  * 
  * @param ElggFile $entity File entity
@@ -581,7 +606,7 @@ function elgg_solr_add_update_file(ElggFile $entity) {
  */
 function elgg_solr_add_update(ElggEntity $entity) {
 
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
+	if (!elgg_solr_is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		return false;
 	}
 

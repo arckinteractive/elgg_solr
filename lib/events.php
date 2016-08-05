@@ -22,7 +22,7 @@ function elgg_solr_add_update_entity($event, $type, $entity) {
 		return;
 	}
 
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
+	if (!elgg_solr_is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		elgg_solr_debug_log('Not a registered entity type');
 		return;
 	}
@@ -58,7 +58,7 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 		return;
 	}
 
-	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
+	if (!elgg_solr_is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		return;
 	}
 
