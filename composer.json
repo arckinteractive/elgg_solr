@@ -1,31 +1,38 @@
 {
-    "name": "arckinteractive/elgg_solr",
-    "type": "elgg-plugin",
-    "description": "Basic solr integration to replace elgg search",
-    "homepage": "http://arckinteractive.com",
-    "keywords": [
-        "elgg", "plugin", "search", "solr", "scalability"
-    ],
-    "license": "GPL-2.0",
-    "authors": [
-        {
-            "name": "Matt Beckett",
-            "email": "matt@arckinteractive.com"
-        },
-        {
-        	"name": "Billy Gunn",
-        	"email": "billy@arckinteractive.com"
-        }
-    ],
-    "autoload": {
-        "psr-0": {
-            "": "classes/"
-        }
-    },
-    "require": {
-        "php": ">=5.4",
-        "composer/installers": "1.0.*",
-        "solarium/solarium": "3.6.*",
-        "ezyang/htmlpurifier": "4.7.0"
-    }
+	"name": "arckinteractive/elgg_solr",
+	"type": "elgg-plugin",
+	"description": "Basic solr integration to replace elgg search",
+	"homepage": "http://arckinteractive.com",
+	"keywords": [
+		"elgg", "plugin", "search", "solr", "scalability"
+	],
+	"license": "GPL-2.0",
+	"authors": [
+		{
+			"name": "Matt Beckett",
+			"email": "matt@arckinteractive.com"
+		},
+		{
+			"name": "Billy Gunn",
+			"email": "billy@arckinteractive.com"
+		}
+	],
+	"autoload": {
+		"psr-0": {
+			"": "classes/"
+		}
+	},
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/jumbojett/vroom"
+		}
+	],
+	"require": {
+		"php": ">=5.4",
+		"composer/installers": "1.0.*",
+		"solarium/solarium": "3.6.*",
+		"ezyang/htmlpurifier": "4.7.0",
+		"jumbojett/vroom": "dev-master"
+	}
 }
