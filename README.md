@@ -138,6 +138,7 @@ To index file contents, enable extraction (`extract_handler`) in plugin settings
 
 In addition to Entity fields:
 
+ * `attr_content` - extracted contents
  * `simpletype_s` - simple type (e.g. `image`, `document` etc)
  * `mimetype_s` - detected mime type (e.g. `application/json`)
  * `originalfilename_s` - original name of the uploaded file

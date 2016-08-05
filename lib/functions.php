@@ -524,7 +524,7 @@ function elgg_solr_add_update_file(ElggFile $entity) {
 	$extract = elgg_get_plugin_setting('extract_handler', 'elgg_solr');
 	$extracting = $entity->exists() && $extract == 'yes';
 
-	if ($extracting) {
+	if ($extracting && $entity->exists()) {
 		// If extraction is enabled, create and configure a new extraction query
 		$query = $client->createExtract();
 		$query->setFile($entity->getFilenameOnFilestore());
