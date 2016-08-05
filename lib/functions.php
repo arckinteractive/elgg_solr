@@ -1,5 +1,13 @@
 <?php
 
+use Solarium\Autoloader;
+use Solarium\Client;
+use Solarium\QueryType\Update\Query\Document\DocumentInterface;
+
+/**
+ * Perform reindexing
+ * @return void
+ */
 function elgg_solr_reindex() {
 	set_time_limit(0);
 
@@ -60,7 +68,7 @@ function elgg_solr_reindex() {
 		if (!$time['endtime']) {
 			$time['endtime'] = 0;
 		}
-		
+
 		$options['wheres'] = array(
 			"e.time_created >= {$time['starttime']}",
 			"e.time_created <= {$time['endtime']}",
@@ -90,8 +98,7 @@ function elgg_solr_reindex() {
 		if ($subtypes) {
 			if (!is_array($subtypes)) {
 				$options['subtypes'] = array($subtypes);
-			}
-			else {
+			} else {
 				$options['subtypes'] = $subtypes;
 			}
 		}
@@ -146,7 +153,6 @@ function elgg_solr_reindex() {
 
 				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
 				elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
-
 				// check for the termination signal
 				if ($logtime == elgg_get_plugin_setting('stop_reindex', 'elgg_solr')) {
 					$report = array(
@@ -162,9 +168,9 @@ function elgg_solr_reindex() {
 						'logtime' => $logtime,
 						'restart_time' => $restart_time
 					);
-					
+
 					file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
-					error_log('Stopping reindex due to termination signal');
+					elgg_solr_debug_log('Stopping reindex due to termination signal');
 					exit;
 				}
 			}
@@ -200,14 +206,18 @@ function elgg_solr_reindex() {
 	try {
 		$client->update($query);
 	} catch (Exception $e) {
-		error_log($e->getMessage());
-		return false;
+		elgg_solr_debug_log($e->getMessage());
+		return;
 	}
 
 	access_show_hidden_entities($show_hidden);
 	elgg_set_ignore_access($ia);
 }
 
+/**
+ * Returns a number of indexable documents
+ * @return int
+ */
 function elgg_solr_get_indexable_count() {
 	$registered_types = get_registered_entity_types();
 
@@ -232,7 +242,15 @@ function elgg_solr_get_indexable_count() {
 	return $count;
 }
 
+/**
+ * Returns a number of indexed documents
+ *
+ * @param string $query Query string
+ * @param array  $fq    Query filter options
+ * @return int
+ */
 function elgg_solr_get_indexed_count($query = '*:*', $fq = array()) {
+
 	$select = array(
 		'query' => $query,
 		'start' => 0,
@@ -254,34 +272,43 @@ function elgg_solr_get_indexed_count($query = '*:*', $fq = array()) {
 
 	try {
 		$resultset = $client->select($query);
+		return $resultset->getNumFound();
 	} catch (Exception $e) {
-		error_log($e->getMessage());
-		return false;
+		elgg_solr_debug_log($e->getMessage());
+		return 0;
 	}
-
-	return $resultset->getNumFound();
 }
 
+/**
+ * Instantiates a Solr Client
+ * @return Client
+ */
 function elgg_solr_get_client() {
 	static $client;
-	
+
 	if ($client) {
 		return $client;
 	}
 
-	Solarium\Autoloader::register();
+	Autoloader::register();
 
 	$options = elgg_solr_get_adapter_options();
 
-	$config = array('endpoint' => array(
+	$config = array(
+		'endpoint' => array(
 			'localhost' => $options
-	));
+		)
+	);
 
 	// create a client instance
-	$client = new Solarium\Client($config);
+	$client = new Client($config);
 	return $client;
 }
 
+/**
+ * Returns Solr client adapter options
+ * @return array
+ */
 function elgg_solr_get_adapter_options() {
 	return array(
 		'host' => elgg_get_plugin_setting('host', 'elgg_solr'),
@@ -291,6 +318,10 @@ function elgg_solr_get_adapter_options() {
 	);
 }
 
+/**
+ * Checks if Solr client has been configured
+ * @return bool
+ */
 function elgg_solr_has_settings() {
 	$host = elgg_get_plugin_setting('host', 'elgg_solr');
 	$port = elgg_get_plugin_setting('port', 'elgg_solr');
@@ -401,9 +432,12 @@ function elgg_solr_get_default_fq($params) {
 /**
  * Register a function to define specific configuration of an entity in solr
  * 
- * @param type $type - the entity type
- * @param type $subtype - the entity subtype
- * @param type $function - the function to call for updating an entity in solr
+ * @param string   $type     Entity type
+ * @param string   $subtype  Entity subtype
+ * @param callable $function Callback function
+ *                           Callable receives ElggEntity as an argument
+ *                           and indexes it for Solr storage
+ * @return void
  */
 function elgg_solr_register_solr_entity_type($type, $subtype, $function) {
 	$solr_entities = elgg_get_config('solr_entities');
@@ -418,11 +452,13 @@ function elgg_solr_register_solr_entity_type($type, $subtype, $function) {
 }
 
 /**
+ * Get callable for indexing the entity of given type and subtype
+ *
+ * @see elgg_solr_register_solr_entity_type
  * 
- * 
- * @param type $type
- * @param type $subtype
- * @return boolean
+ * @param string $type    Entity type
+ * @param string $subtype Entity subtype
+ * @return callbale|false
  */
 function elgg_solr_get_solr_function($type, $subtype) {
 	if (elgg_get_config('elgg_solr_debug')) {
@@ -453,22 +489,19 @@ function elgg_solr_get_solr_function($type, $subtype) {
 /**
  * Index a file entity
  * 
- * @param type $entity
- * @return boolean
+ * @param ElggFile $entity File entity
+ * @return bool
  */
-function elgg_solr_add_update_file($entity) {
+function elgg_solr_add_update_file(ElggFile $entity) {
 
 	$client = elgg_solr_get_client();
 	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 
 	$extract = elgg_get_plugin_setting('extract_handler', 'elgg_solr');
-	$extracting = false;
-	if (file_exists($entity->getFilenameOnFilestore()) && $extract == 'yes') {
-		$extracting = true;
-	}
+	$extracting = $entity->exists() && $extract == 'yes';
 
 	if ($extracting) {
-		// get an extract query instance and add settings
+		// If extraction is enabled, create and configure a new extraction query
 		$query = $client->createExtract();
 		$query->setFile($entity->getFilenameOnFilestore());
 		$query->addFieldMapping('content', 'attr_content');
@@ -477,14 +510,12 @@ function elgg_solr_add_update_file($entity) {
 	} else {
 		$query = $client->createUpdate();
 	}
-	
-	$subtype = $entity->getSubtype() ? $entity->getSubtype() : '';
 
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
-	$doc->subtype = $subtype;
+	$doc->subtype = (string) $entity->getSubtype();
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
@@ -495,9 +526,23 @@ function elgg_solr_add_update_file($entity) {
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
+	$doc->simpletype_s = (string) $entity->getSimpleType();
+	$doc->mimetype_s = (string) $entity->getMimetype();
+	$doc->originalfilename_s = $entity->originalfilename;
+	$doc->filesize_i = (int) $entity->getSize();
+
+	if (is_callable([$entity, 'hasIcon'])) {
+		$doc->has_icon_b = $entity->hasIcon('small');
+	} else {
+		$doc->has_icon_b = (bool) $entity->thumbnail;
+	}
+
 	$params = array('entity' => $entity);
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
-	
+	if ($entity->getSubtype()) {
+		$doc = elgg_trigger_plugin_hook('elgg_solr:index', "{$entity->type}:{$entity->getSubtype()}", $params, $doc);
+	}
+
 	if (!$doc) {
 		return true; // a plugin hook has stopped the indexing
 	}
@@ -510,7 +555,7 @@ function elgg_solr_add_update_file($entity) {
 		try {
 			$client->extract($query);
 		} catch (Exception $exc) {
-			error_log($exc->getMessage());
+			elgg_solr_debug_log($exc->getMessage());
 		}
 	} else {
 		$query->addDocument($doc);
@@ -521,7 +566,7 @@ function elgg_solr_add_update_file($entity) {
 		try {
 			$client->update($query);
 		} catch (Exception $exc) {
-			error_log($exc->getMessage());
+			elgg_solr_debug_log($exc->getMessage());
 		}
 	}
 
@@ -529,12 +574,12 @@ function elgg_solr_add_update_file($entity) {
 }
 
 /**
- * Index a generic elgg object
+ * Index an Elgg entity
  * 
- * @param type $entity
- * @return boolean
+ * @param ElggEntity $entity Entity
+ * @return bool
  */
-function elgg_solr_add_update($entity) {
+function elgg_solr_add_update(ElggEntity $entity) {
 
 	if (!is_registered_entity_type($entity->type, $entity->getSubtype())) {
 		return false;
@@ -544,14 +589,12 @@ function elgg_solr_add_update($entity) {
 	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 
 	$query = $client->createUpdate();
-	
-	$subtype = $entity->getSubtype() ? $entity->getSubtype() : '';
 
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
-	$doc->subtype = $subtype;
+	$doc->subtype = (string) $entity->getSubtype();
 	$doc->owner_guid = $entity->owner_guid;
 	$doc->container_guid = $entity->container_guid;
 	$doc->access_id = $entity->access_id;
@@ -563,13 +606,18 @@ function elgg_solr_add_update($entity) {
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
-	$params = array('entity' => $entity);
-	
-	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
-	if ($subtype) {
-		$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type . (($subtype != '') ? ':' . $subtype : ''), $params, $doc);
+	if (is_callable([$entity, 'hasIcon'])) {
+		$doc->has_icon_b = $entity->hasIcon('small');
+	} else {
+		$doc->has_icon_b = (bool) $entity->icontime;
 	}
-	
+
+	$params = array('entity' => $entity);
+	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
+	if ($entity->getSubtype()) {
+		$doc = elgg_trigger_plugin_hook('elgg_solr:index', "{$entity->type}:{$entity->getSubtype()}", $params, $doc);
+	}
+
 	if (!$doc) {
 		return true; // a plugin has stopped the index
 	}
@@ -583,12 +631,18 @@ function elgg_solr_add_update($entity) {
 	try {
 		$client->update($query);
 	} catch (Exception $exc) {
-		error_log($exc->getMessage());
+		elgg_solr_debug_log($exc->getMessage());
 	}
 
 	return true;
 }
 
+/**
+ * Log a debug message
+ *
+ * @param string $message Debug message
+ * @return void
+ */
 function elgg_solr_debug_log($message) {
 	error_log($message);
 }
@@ -897,31 +951,40 @@ function elgg_solr_get_tags_array($entity) {
 	return $t;
 }
 
-
-function elgg_solr_add_tags($doc, $entity) {
+/**
+ * Index entity tags (registered tag metadata names)
+ *
+ * @see elgg_get_registered_tag_metadata_names
+ * 
+ * @param DocumentInterface $doc    Solr document
+ * @param ElggEntity        $entity Indexed entity
+ * @return DocumentInterface
+ */
+function elgg_solr_add_tags(DocumentInterface $doc, ElggEntity $entity) {
 	if (!elgg_instanceof($entity)) {
 		return $doc;
 	}
-	
+
 	// store tags the old way - lumped together in $doc->tags as $name . '%%' . $value'
 	$doc->tags = elgg_solr_get_tags_array($entity);
-	
+
 	// also store them separately with magick fields
 	// store in different field types for different search types
-	$valid_tag_names = elgg_get_registered_tag_metadata_names();
-
-	if ($valid_tag_names && is_array($valid_tag_names)) {
-		foreach ($valid_tag_names as $tagname) {
-			$tags = $entity->$tagname;
-			if ($tags && !is_array($tags)) {
-				$tags = array($tags);
-			}
-
-			$name = 'tag_' . $tagname . '_ss'; // multivalued string
-			$doc->$name = $tags;
-		}
+	$valid_tag_names = (array) elgg_get_registered_tag_metadata_names();
+	if (empty($valid_tag_names)) {
+		return $doc;
 	}
-	
+
+	foreach ($valid_tag_names as $tagname) {
+		$tags = $entity->$tagname;
+		if ($tags && !is_array($tags)) {
+			$tags = array($tags);
+		}
+
+		$name = 'tag_' . $tagname . '_ss'; // multivalued string
+		$doc->$name = $tags;
+	}
+
 	return $doc;
 }
 
@@ -1039,18 +1102,16 @@ function elgg_solr_defer_annotation_delete($id) {
 	elgg_set_config('elgg_solr_annotation_delete', $delete_ids);
 }
 
-
 function elgg_solr_defer_annotation_update($id) {
 	$update_ids = elgg_get_config('elgg_solr_annotation_update');
 	if (!is_array($update_ids)) {
 		$update_ids = array();
 	}
-	
+
 	$update_ids[$id] = 1;
-	
+
 	elgg_set_config('elgg_solr_annotation_update', $update_ids);
 }
-
 
 function elgg_solr_get_entity_guids(array $options = array()) {
 	$dbprefix = elgg_get_config('dbprefix');
@@ -1214,7 +1275,7 @@ function elgg_solr_index_annotation($annotation) {
 	if (!in_array($annotation->name, $indexable)) {
 		return false;
 	}
-	
+
 	$client = elgg_solr_get_client();
 	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 
@@ -1234,7 +1295,7 @@ function elgg_solr_index_annotation($annotation) {
 	$doc->value_s = $annotation->value;
 
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', 'annotation', array('annotation' => $annotation), $doc);
-	
+
 	if (!$doc) {
 		return true; // a plugin has stopped the index
 	}
@@ -1248,7 +1309,7 @@ function elgg_solr_index_annotation($annotation) {
 	try {
 		$client->update($query);
 	} catch (Exception $exc) {
-		error_log($exc->getMessage());
+		elgg_solr_debug_log($exc->getMessage());
 	}
 }
 
@@ -1410,57 +1471,54 @@ function elgg_solr_get_log_line($filename) {
 	return $line;
 }
 
-
 function elgg_solr_get_cores() {
 	$options = elgg_solr_get_adapter_options();
-	
+
 	if (!$options['host'] || !$options['port'] || !$options['path']) {
 		return array();
 	}
-	
+
 	$cores = array();
 
-    $url = "http://{$options['host']}:{$options['port']}{$options['path']}admin/cores?action=STATUS&wt=json";
+	$url = "http://{$options['host']}:{$options['port']}{$options['path']}admin/cores?action=STATUS&wt=json";
 
-    // Initialize cURL
-    $ch = curl_init();
+	// Initialize cURL
+	$ch = curl_init();
 
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: text/xml"));
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_VERBOSE, 1);
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: text/xml"));
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_VERBOSE, 1);
 
-    $response = curl_exec($ch);
+	$response = curl_exec($ch);
 
-    $status = json_decode($response);
+	$status = json_decode($response);
 
 	if (is_object($status)) {
 		$array = json_decode(json_encode($status), true);
-		
+
 		foreach ($array['status'] as $name => $params) {
 			$cores[] = $name;
 		}
 	}
-	
+
 	return $cores;
 }
-
 
 function elgg_solr_get_fragsize() {
 	static $fragsize;
 	if ($fragsize) {
 		return (int) $fragsize;
 	}
-	
+
 	$setting = elgg_get_plugin_setting('fragsize', 'elgg_solr');
 	if (is_numeric($setting)) {
 		$fragsize = (int) $setting;
-	}
-	else {
+	} else {
 		$fragsize = 100;
 	}
-	
+
 	return $fragsize;
 }
 
@@ -1487,15 +1545,15 @@ function elgg_solr_annotation_reindex() {
 
 	// initialize the csv
 	$report = array(
-			'percent' => '',
-			'count' => 0, // report prior to indexing this entity
-			'typecount' => 0,
-			'fullcount' => 0,
-			'type' => '',
-			'querytime' => 0,
-			'message' => 'Initializing Reindex',
-			'date' => date('Y-M-j H:i:s'),
-			'logtime' => $logtime
+		'percent' => '',
+		'count' => 0, // report prior to indexing this entity
+		'typecount' => 0,
+		'fullcount' => 0,
+		'type' => '',
+		'querytime' => 0,
+		'message' => 'Initializing Reindex',
+		'date' => date('Y-M-j H:i:s'),
+		'logtime' => $logtime
 	);
 	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
 
@@ -1509,23 +1567,23 @@ function elgg_solr_annotation_reindex() {
 	if (!$registered_types) {
 		$registered_types = _elgg_services()->hooks->trigger('elgg_solr:can_index', 'annotation', [], []);
 	}
-	
+
 	if (!$registered_types) {
 		return; // nothing to reindex
 	}
-	
+
 
 	// build our options and cache them in case we need to restart it
 	$cacheoptions = array(
-			'types' => $registered_types
+		'types' => $registered_types
 	);
 
 	$options = array();
 	$time = elgg_get_config('elgg_solr_time_options');
 	if ($time && is_array($time)) {
 		$options['wheres'] = array(
-				"n_table.time_created >= {$time['starttime']}",
-				"n_table.time_created <= {$time['endtime']}",
+			"n_table.time_created >= {$time['starttime']}",
+			"n_table.time_created <= {$time['endtime']}",
 		);
 
 		$cacheoptions['starttime'] = $time['starttime'];
@@ -1550,8 +1608,7 @@ function elgg_solr_annotation_reindex() {
 		if ($subtypes) {
 			if (!is_array($subtypes)) {
 				$options['annotation_names'] = array($subtypes);
-			}
-			else {
+			} else {
 				$options['annotation_names'] = $subtypes;
 			}
 		}
@@ -1562,13 +1619,14 @@ function elgg_solr_annotation_reindex() {
 		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 		$batch_size = $batch_size ? : 1000;
 
-		$annotations = new \ElggBatch('elgg_solr_get_annotation_ids', $options, null, $batch_size);
+		$annotations = new ElggBatch('elgg_solr_get_annotation_ids', $options, null, $batch_size);
 		$final_count = elgg_solr_get_annotation_ids(array_merge($options, array('count' => true)));
 
 		elgg_set_config('elgg_solr_nocommit', true); // disable committing on each entity for performance
 		$count = 0;
 		$fetch_time_start = microtime(true);
-		foreach ($annotations as $a) { error_log($a->id);
+		foreach ($annotations as $a) {
+			elgg_solr_debug_log($a->id);
 			$count++;
 			$fullcount++;
 			$first_entity = (bool) (($count % $batch_size) == 1);
@@ -1592,40 +1650,39 @@ function elgg_solr_annotation_reindex() {
 					$restart_time = $annotation->time_created;
 				}
 				$report = array(
+					'percent' => $percent,
+					'count' => $count,
+					'typecount' => $final_count,
+					'fullcount' => $fullcount,
+					'type' => $type,
+					'querytime' => $qtime,
+					'message' => '',
+					'date' => date('Y-M-j H:i:s'),
+					'cacheoptions' => $cacheoptions,
+					'logtime' => $logtime,
+					'restart_time' => $restart_time
+				);
+
+				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
+				elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
+				// check for the termination signal
+				if ($logtime == elgg_get_plugin_setting('stop_reindex', 'elgg_solr')) {
+					$report = array(
 						'percent' => $percent,
 						'count' => $count,
 						'typecount' => $final_count,
 						'fullcount' => $fullcount,
 						'type' => $type,
 						'querytime' => $qtime,
-						'message' => '',
+						'message' => 'Reindex has been stopped',
 						'date' => date('Y-M-j H:i:s'),
 						'cacheoptions' => $cacheoptions,
 						'logtime' => $logtime,
 						'restart_time' => $restart_time
-				);
-
-				file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
-				elgg_set_config('elgg_solr_nocommit', false); // push a commit on this one
-
-				// check for the termination signal
-				if ($logtime == elgg_get_plugin_setting('stop_reindex', 'elgg_solr')) {
-					$report = array(
-							'percent' => $percent,
-							'count' => $count,
-							'typecount' => $final_count,
-							'fullcount' => $fullcount,
-							'type' => $type,
-							'querytime' => $qtime,
-							'message' => 'Reindex has been stopped',
-							'date' => date('Y-M-j H:i:s'),
-							'cacheoptions' => $cacheoptions,
-							'logtime' => $logtime,
-							'restart_time' => $restart_time
 					);
-						
+
 					file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
-					error_log('Stopping reindex due to termination signal');
+					elgg_solr_debug_log('Stopping reindex due to termination signal');
 					exit;
 				}
 			}
@@ -1640,15 +1697,15 @@ function elgg_solr_annotation_reindex() {
 	}
 
 	$report = array(
-			'percent' => '',
-			'count' => 0, // report prior to indexing this entity
-			'typecount' => 0,
-			'fullcount' => 0,
-			'type' => '',
-			'querytime' => 0,
-			'message' => 'Reindex complete',
-			'date' => date('Y-M-j H:i:s'),
-			'logtime' => $logtime
+		'percent' => '',
+		'count' => 0, // report prior to indexing this entity
+		'typecount' => 0,
+		'fullcount' => 0,
+		'type' => '',
+		'querytime' => 0,
+		'message' => 'Reindex complete',
+		'date' => date('Y-M-j H:i:s'),
+		'logtime' => $logtime
 	);
 	file_put_contents($log, json_encode($report) . "\n", FILE_APPEND);
 	elgg_set_plugin_setting('reindex_running', 0, 'elgg_solr');
@@ -1661,7 +1718,7 @@ function elgg_solr_annotation_reindex() {
 	try {
 		$client->update($query);
 	} catch (Exception $e) {
-		error_log($e->getMessage());
+		elgg_solr_debug_log($e->getMessage());
 		return false;
 	}
 
@@ -1669,118 +1726,103 @@ function elgg_solr_annotation_reindex() {
 	elgg_set_ignore_access($ia);
 }
 
-
 function elgg_solr_get_annotation_ids($options) {
 	$options = _elgg_normalize_metastrings_options($options);
-	
+
 	$type = 'annotations';
 	$callback = false;
-	
+
 	$defaults = array(
-			// entities
-			'types' => ELGG_ENTITIES_ANY_VALUE,
-			'subtypes' => ELGG_ENTITIES_ANY_VALUE,
-			'type_subtype_pairs' => ELGG_ENTITIES_ANY_VALUE,
-	
-			'guids' => ELGG_ENTITIES_ANY_VALUE,
-			'owner_guids' => ELGG_ENTITIES_ANY_VALUE,
-			'container_guids' => ELGG_ENTITIES_ANY_VALUE,
-			'site_guids' => get_config('site_guid'),
-	
-			'modified_time_lower' => ELGG_ENTITIES_ANY_VALUE,
-			'modified_time_upper' => ELGG_ENTITIES_ANY_VALUE,
-			'created_time_lower' => ELGG_ENTITIES_ANY_VALUE,
-			'created_time_upper' => ELGG_ENTITIES_ANY_VALUE,
-	
-			// options are normalized to the plural in case we ever add support for them.
-			'metastring_names' => ELGG_ENTITIES_ANY_VALUE,
-			'metastring_values' => ELGG_ENTITIES_ANY_VALUE,
-			//'metastring_name_value_pairs' => ELGG_ENTITIES_ANY_VALUE,
-			//'metastring_name_value_pairs_operator' => 'AND',
-	
-			'metastring_case_sensitive' => true,
-			//'order_by_metastring' => array(),
-			'metastring_calculation' => ELGG_ENTITIES_NO_VALUE,
-	
-			'metastring_created_time_lower' => ELGG_ENTITIES_ANY_VALUE,
-			'metastring_created_time_upper' => ELGG_ENTITIES_ANY_VALUE,
-	
-			'metastring_owner_guids' => ELGG_ENTITIES_ANY_VALUE,
-	
-			'metastring_ids' => ELGG_ENTITIES_ANY_VALUE,
-	
-			// sql
-			'order_by' => 'n_table.time_created ASC, n_table.id ASC',
-			'limit' => elgg_get_config('default_limit'),
-			'offset' => 0,
-			'count' => false,
-			'selects' => array(),
-			'wheres' => array(),
-			'joins' => array(),
-	
-			'distinct' => true,
-			'preload_owners' => false,
-			'callback' => $callback,
+		// entities
+		'types' => ELGG_ENTITIES_ANY_VALUE,
+		'subtypes' => ELGG_ENTITIES_ANY_VALUE,
+		'type_subtype_pairs' => ELGG_ENTITIES_ANY_VALUE,
+		'guids' => ELGG_ENTITIES_ANY_VALUE,
+		'owner_guids' => ELGG_ENTITIES_ANY_VALUE,
+		'container_guids' => ELGG_ENTITIES_ANY_VALUE,
+		'site_guids' => get_config('site_guid'),
+		'modified_time_lower' => ELGG_ENTITIES_ANY_VALUE,
+		'modified_time_upper' => ELGG_ENTITIES_ANY_VALUE,
+		'created_time_lower' => ELGG_ENTITIES_ANY_VALUE,
+		'created_time_upper' => ELGG_ENTITIES_ANY_VALUE,
+		// options are normalized to the plural in case we ever add support for them.
+		'metastring_names' => ELGG_ENTITIES_ANY_VALUE,
+		'metastring_values' => ELGG_ENTITIES_ANY_VALUE,
+		//'metastring_name_value_pairs' => ELGG_ENTITIES_ANY_VALUE,
+		//'metastring_name_value_pairs_operator' => 'AND',
+		'metastring_case_sensitive' => true,
+		//'order_by_metastring' => array(),
+		'metastring_calculation' => ELGG_ENTITIES_NO_VALUE,
+		'metastring_created_time_lower' => ELGG_ENTITIES_ANY_VALUE,
+		'metastring_created_time_upper' => ELGG_ENTITIES_ANY_VALUE,
+		'metastring_owner_guids' => ELGG_ENTITIES_ANY_VALUE,
+		'metastring_ids' => ELGG_ENTITIES_ANY_VALUE,
+		// sql
+		'order_by' => 'n_table.time_created ASC, n_table.id ASC',
+		'limit' => elgg_get_config('default_limit'),
+		'offset' => 0,
+		'count' => false,
+		'selects' => array(),
+		'wheres' => array(),
+		'joins' => array(),
+		'distinct' => true,
+		'preload_owners' => false,
+		'callback' => $callback,
 	);
-	
+
 	// @todo Ignore site_guid right now because of #2910
 	$options['site_guid'] = ELGG_ENTITIES_ANY_VALUE;
-	
+
 	$options = array_merge($defaults, $options);
-	
+
 	// can't use helper function with type_subtype_pair because
 	// it's already an array...just need to merge it
 	if (isset($options['type_subtype_pair'])) {
 		if (isset($options['type_subtype_pairs'])) {
-			$options['type_subtype_pairs'] = array_merge($options['type_subtype_pairs'],
-					$options['type_subtype_pair']);
+			$options['type_subtype_pairs'] = array_merge($options['type_subtype_pairs'], $options['type_subtype_pair']);
 		} else {
 			$options['type_subtype_pairs'] = $options['type_subtype_pair'];
 		}
 	}
-	
+
 	$singulars = array(
-			'type', 'subtype', 'type_subtype_pair',
-			'guid', 'owner_guid', 'container_guid', 'site_guid',
-			'metastring_name', 'metastring_value',
-			'metastring_owner_guid', 'metastring_id',
-			'select', 'where', 'join'
+		'type', 'subtype', 'type_subtype_pair',
+		'guid', 'owner_guid', 'container_guid', 'site_guid',
+		'metastring_name', 'metastring_value',
+		'metastring_owner_guid', 'metastring_id',
+		'select', 'where', 'join'
 	);
-	
+
 	$options = _elgg_normalize_plural_options_array($options, $singulars);
-	
+
 	if (!$options) {
 		return false;
 	}
-	
+
 	$db_prefix = elgg_get_config('dbprefix');
-	
+
 	// evaluate where clauses
 	if (!is_array($options['wheres'])) {
 		$options['wheres'] = array($options['wheres']);
 	}
-	
+
 	$wheres = $options['wheres'];
-	
+
 	// entities
-	$wheres[] = _elgg_services()->entityTable->getEntityTypeSubtypeWhereSql('e', $options['types'],
-			$options['subtypes'], $options['type_subtype_pairs']);
-	
+	$wheres[] = _elgg_services()->entityTable->getEntityTypeSubtypeWhereSql('e', $options['types'], $options['subtypes'], $options['type_subtype_pairs']);
+
 	$wheres[] = _elgg_get_guid_based_where_sql('e.guid', $options['guids']);
 	$wheres[] = _elgg_get_guid_based_where_sql('e.owner_guid', $options['owner_guids']);
 	$wheres[] = _elgg_get_guid_based_where_sql('e.container_guid', $options['container_guids']);
 	$wheres[] = _elgg_get_guid_based_where_sql('e.site_guid', $options['site_guids']);
-	
-	$wheres[] = _elgg_get_entity_time_where_sql('e', $options['created_time_upper'],
-			$options['created_time_lower'], $options['modified_time_upper'], $options['modified_time_lower']);
-	
-	
-	$wheres[] = _elgg_get_entity_time_where_sql('n_table', $options['metastring_created_time_upper'],
-			$options['metastring_created_time_lower'], null, null);
-	
-	$wheres[] = _elgg_get_guid_based_where_sql('n_table.owner_guid',
-			$options['metastring_owner_guids']);
-	
+
+	$wheres[] = _elgg_get_entity_time_where_sql('e', $options['created_time_upper'], $options['created_time_lower'], $options['modified_time_upper'], $options['modified_time_lower']);
+
+
+	$wheres[] = _elgg_get_entity_time_where_sql('n_table', $options['metastring_created_time_upper'], $options['metastring_created_time_lower'], null, null);
+
+	$wheres[] = _elgg_get_guid_based_where_sql('n_table.owner_guid', $options['metastring_owner_guids']);
+
 	// see if any functions failed
 	// remove empty strings on successful functions
 	foreach ($wheres as $i => $where) {
@@ -1790,41 +1832,40 @@ function elgg_solr_get_annotation_ids($options) {
 			unset($wheres[$i]);
 		}
 	}
-	
+
 	// remove identical where clauses
 	$wheres = array_unique($wheres);
-	
+
 	// evaluate join clauses
 	if (!is_array($options['joins'])) {
 		$options['joins'] = array($options['joins']);
 	}
-	
+
 	$joins = $options['joins'];
 	$joins[] = "JOIN {$db_prefix}entities e ON n_table.entity_guid = e.guid";
-	
+
 	// evaluate selects
 	if (!is_array($options['selects'])) {
 		$options['selects'] = array($options['selects']);
 	}
-	
+
 	$selects = $options['selects'];
-	
+
 	// For performance reasons we don't want the joins required for metadata / annotations
 	// unless we're going through one of their callbacks.
 	// this means we expect the functions passing different callbacks to pass their required joins.
 	// If we're doing a calculation
-	$custom_callback = ($options['callback'] == 'row_to_elggmetadata'
-			|| $options['callback'] == 'row_to_elggannotation');
+	$custom_callback = ($options['callback'] == 'row_to_elggmetadata' || $options['callback'] == 'row_to_elggannotation');
 	$is_calculation = $options['metastring_calculation'] ? true : false;
-	
+
 	if ($custom_callback || $is_calculation) {
 		$joins[] = "JOIN {$db_prefix}metastrings n on n_table.name_id = n.id";
 		$joins[] = "JOIN {$db_prefix}metastrings v on n_table.value_id = v.id";
-	
+
 		$selects[] = 'n.string as name';
 		$selects[] = 'v.string as value';
 	}
-	
+
 	foreach ($joins as $i => $join) {
 		if ($join === false) {
 			return false;
@@ -1832,24 +1873,22 @@ function elgg_solr_get_annotation_ids($options) {
 			unset($joins[$i]);
 		}
 	}
-	
+
 	// metastrings
-	$metastring_clauses = _elgg_get_metastring_sql('n_table', $options['metastring_names'],
-			$options['metastring_values'], null, $options['metastring_ids'],
-			$options['metastring_case_sensitive']);
-	
+	$metastring_clauses = _elgg_get_metastring_sql('n_table', $options['metastring_names'], $options['metastring_values'], null, $options['metastring_ids'], $options['metastring_case_sensitive']);
+
 	if ($metastring_clauses) {
 		$wheres = array_merge($wheres, $metastring_clauses['wheres']);
 		$joins = array_merge($joins, $metastring_clauses['joins']);
 	} else {
 		$wheres[] = _elgg_get_access_where_sql(array(
-				'table_alias' => 'n_table',
-				'guid_column' => 'entity_guid',
+			'table_alias' => 'n_table',
+			'guid_column' => 'entity_guid',
 		));
 	}
-	
+
 	$distinct = $options['distinct'] ? "DISTINCT " : "";
-	
+
 	if ($options['metastring_calculation'] === ELGG_ENTITIES_NO_VALUE && !$options['count']) {
 		$selects = array_unique($selects);
 		// evalutate selects
@@ -1859,7 +1898,7 @@ function elgg_solr_get_annotation_ids($options) {
 				$select_str .= ", $select";
 			}
 		}
-	
+
 		$query = "SELECT $distinct n_table.id{$select_str} FROM {$db_prefix}$type n_table";
 	} elseif ($options['count']) {
 		// count is over the entities
@@ -1867,49 +1906,49 @@ function elgg_solr_get_annotation_ids($options) {
 	} else {
 		$query = "SELECT {$options['metastring_calculation']}(v.string) as calculation FROM {$db_prefix}$type n_table";
 	}
-	
+
 	// remove identical join clauses
 	$joins = array_unique($joins);
-	
+
 	// add joins
 	foreach ($joins as $j) {
 		$query .= " $j ";
 	}
-	
+
 	// add wheres
 	$query .= ' WHERE ';
-	
+
 	foreach ($wheres as $w) {
 		$query .= " $w AND ";
 	}
-	
+
 	// Add access controls
 	$query .= _elgg_get_access_where_sql(array('table_alias' => 'e'));
-	
+
 	// reverse order by
 	if (isset($options['reverse_order_by']) && $options['reverse_order_by']) {
 		$options['order_by'] = _elgg_sql_reverse_order_by_clause($options['order_by']);
 	}
-	
+
 	if ($options['metastring_calculation'] === ELGG_ENTITIES_NO_VALUE && !$options['count']) {
 		if (isset($options['group_by'])) {
 			$options['group_by'] = sanitise_string($options['group_by']);
 			$query .= " GROUP BY {$options['group_by']}";
 		}
-	
+
 		if (isset($options['order_by']) && $options['order_by']) {
 			$options['order_by'] = sanitise_string($options['order_by']);
 			$query .= " ORDER BY {$options['order_by']}, n_table.id";
 		}
-	
+
 		if ($options['limit']) {
 			$limit = sanitise_int($options['limit']);
 			$offset = sanitise_int($options['offset'], false);
 			$query .= " LIMIT $offset, $limit";
 		}
-	
+
 		$dt = get_data($query, $options['callback']);
-	
+
 		return $dt;
 	} else {
 		$result = get_data_row($query);

@@ -228,7 +228,7 @@ function elgg_solr_relationship_delete($event, $type, $relationship) {
 
 function elgg_solr_annotation_delete($event, $type, $annotation) {
 
-	if (!($annotation instanceof \ElggAnnotation)) {
+	if (!($annotation instanceof ElggAnnotation)) {
 		return true;
 	}
 
