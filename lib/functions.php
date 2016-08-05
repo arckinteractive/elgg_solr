@@ -524,7 +524,7 @@ function elgg_solr_add_update_file(ElggFile $entity) {
 	$extract = elgg_get_plugin_setting('extract_handler', 'elgg_solr');
 	$extracting = $entity->exists() && $extract == 'yes';
 
-	if ($extracting) {
+	if ($extracting && $entity->exists()) {
 		// If extraction is enabled, create and configure a new extraction query
 		$query = $client->createExtract();
 		$query->setFile($entity->getFilenameOnFilestore());
@@ -537,35 +537,8 @@ function elgg_solr_add_update_file(ElggFile $entity) {
 
 	// add document
 	$doc = $query->createDocument();
-	$doc->id = $entity->guid;
-	$doc->type = $entity->type;
-	$doc->subtype = (string) $entity->getSubtype();
-	$doc->owner_guid = $entity->owner_guid;
-	$doc->container_guid = $entity->container_guid;
-	$doc->access_id = $entity->access_id;
-	$doc->title = elgg_strip_tags($entity->title);
-	$doc->description = elgg_strip_tags($entity->description);
-	$doc->time_created = $entity->time_created;
-	$doc->time_updated_i = $entity->time_updated;
-	$doc = elgg_solr_add_tags($doc, $entity);
-	$doc->enabled = $entity->enabled;
 
-	$doc->simpletype_s = (string) $entity->getSimpleType();
-	$doc->mimetype_s = (string) $entity->getMimetype();
-	$doc->originalfilename_s = $entity->originalfilename;
-	$doc->filesize_i = (int) $entity->getSize();
-
-	if (is_callable([$entity, 'hasIcon'])) {
-		$doc->has_icon_b = $entity->hasIcon('small');
-	} else {
-		$doc->has_icon_b = (bool) $entity->thumbnail;
-	}
-
-	$params = array('entity' => $entity);
-	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
-	if ($entity->getSubtype()) {
-		$doc = elgg_trigger_plugin_hook('elgg_solr:index', "{$entity->type}:{$entity->getSubtype()}", $params, $doc);
-	}
+	$doc = elgg_solr_prepare_entity_doc($doc, $entity);
 
 	if (!$doc) {
 		return true; // a plugin hook has stopped the indexing
@@ -612,7 +585,7 @@ function elgg_solr_add_update(ElggEntity $entity) {
 	if ($entity instanceof ElggFile) {
 		return elgg_solr_add_update_file($entity);
 	}
-	
+
 	$client = elgg_solr_get_client();
 	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 
@@ -620,31 +593,8 @@ function elgg_solr_add_update(ElggEntity $entity) {
 
 	// add document
 	$doc = $query->createDocument();
-	$doc->id = $entity->guid;
-	$doc->type = $entity->type;
-	$doc->subtype = (string) $entity->getSubtype();
-	$doc->owner_guid = $entity->owner_guid;
-	$doc->container_guid = $entity->container_guid;
-	$doc->access_id = $entity->access_id;
-	$doc->title = elgg_strip_tags($entity->title);
-	$doc->name = elgg_strip_tags($entity->name);
-	$doc->description = elgg_strip_tags($entity->description);
-	$doc->time_created = $entity->time_created;
-	$doc->time_updated_i = $entity->time_updated;
-	$doc = elgg_solr_add_tags($doc, $entity);
-	$doc->enabled = $entity->enabled;
 
-	if (is_callable([$entity, 'hasIcon'])) {
-		$doc->has_icon_b = $entity->hasIcon('small');
-	} else {
-		$doc->has_icon_b = (bool) $entity->icontime;
-	}
-
-	$params = array('entity' => $entity);
-	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
-	if ($entity->getSubtype()) {
-		$doc = elgg_trigger_plugin_hook('elgg_solr:index', "{$entity->type}:{$entity->getSubtype()}", $params, $doc);
-	}
+	$doc = elgg_solr_prepare_entity_doc($doc, $entity);
 
 	if (!$doc) {
 		return true; // a plugin has stopped the index
@@ -666,17 +616,94 @@ function elgg_solr_add_update(ElggEntity $entity) {
 }
 
 /**
+ * Populates entity doc with default index fields
+ *
+ * @param DocumentInterface $doc    Solr document
+ * @param ElggEntity        $entity Elgg entity
+ * @return DocumentInterface
+ */
+function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity) {
+
+	$doc->id = $entity->guid;
+	$doc->type = $entity->type;
+	$doc->subtype = (string) $entity->getSubtype();
+	$doc->owner_guid = $entity->owner_guid;
+	$doc->container_guid = $entity->container_guid;
+	$doc->access_id = $entity->access_id;
+	$doc->title = elgg_strip_tags($entity->title);
+	$doc->name = elgg_strip_tags($entity->name);
+	$doc->description = elgg_strip_tags($entity->description);
+	$doc->time_created = $entity->time_created;
+	$doc->time_updated_i = $entity->time_updated;
+	$doc = elgg_solr_add_tags($doc, $entity);
+	$doc->enabled = $entity->enabled;
+
+	if (is_callable([$entity, 'hasIcon'])) {
+		$doc->has_icon_b = $entity->hasIcon('small');
+	} else {
+		$doc->has_icon_b = (bool) $entity->icontime;
+	}
+
+	if ($entity instanceof ElggFile) {
+		$doc->simpletype_s = (string) $entity->getSimpleType();
+		$doc->mimetype_s = (string) $entity->getMimetype();
+		$doc->originalfilename_s = $entity->originalfilename;
+		if ($entity->exists()) {
+			$doc->exists_b = true;
+			$doc->filestorename_s = $entity->getFilenameOnFilestore();
+			$doc->filesize_i = (int) $entity->getSize();
+		} else {
+			$doc->exists_b = false;
+		}
+	}
+
+	// Store comment/reply thread information to allow grouping
+	if ($entity instanceof ElggComment) {
+		$container = $entity->getContainerEntity();
+		while ($container instanceof ElggComment) {
+			$container = $container->getContainerEntity();
+		}
+		$doc->responses_thread_i = $container->guid;
+	} else {
+		$doc->responses_thread_i = $entity->guid;
+	}
+
+	// Store comment/reply guids
+	$responses = [];
+	$responses_batch = new ElggBatch('elgg_get_entities', [
+		'types' => 'object',
+		'subtypes' => ['comment', 'discussion_reply'],
+		'container_guid' => $entity->guid,
+		'limit' => 0,
+		'callback' => false,
+	]);
+	foreach ($responses_batch as $response) {
+		$responses[] = $response->guid;
+	}
+
+	$doc->responses_is = $responses;
+	$doc->responses_count_i = count($responses);
+
+	$doc->likes_i = $entity->countAnnotations('likes');
+	
+	$params = array('entity' => $entity);
+	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
+	if ($entity->getSubtype()) {
+		$doc = elgg_trigger_plugin_hook('elgg_solr:index', "{$entity->type}:{$entity->getSubtype()}", $params, $doc);
+	}
+
+	return $doc;
+}
+
+/**
  * Log a debug message
  *
  * @param string $message Debug message
  * @return void
  */
 function elgg_solr_debug_log($message) {
-	if (elgg_get_config('elgg_solr_debug')
-			|| elgg_get_config('debug') == 'NOTICE'
-			|| elgg_get_config('debug') == 'INFO'
-			|| get_input('debug', false)
-		) {
+	if (elgg_get_config('elgg_solr_debug') || elgg_get_config('debug') == 'NOTICE' || elgg_get_config('debug') == 'INFO' || get_input('debug', false)
+	) {
 		elgg_dump($message);
 	}
 }
@@ -700,20 +727,19 @@ function elgg_solr_get_access_query($user_guid = null) {
 	if (elgg_is_admin_user($user_guid)) {
 		return '';
 	}
-	
-	$public = elgg_solr_escape_special_chars(ACCESS_PUBLIC);
-	$friends = elgg_solr_escape_special_chars(ACCESS_FRIENDS);
+
+	$access_public = elgg_solr_escape_special_chars(ACCESS_PUBLIC);
+	$access_friends = elgg_solr_escape_special_chars(ACCESS_FRIENDS);
 	$user_guid = elgg_solr_escape_special_chars($user_guid);
 
 	$queries = [];
-	
+
 	if ($user_guid) {
-		$user = elgg_get_logged_in_user_entity();
 		$queries['ors']['collections'] = "access_id:{!join from=access_list_is to=access_id}id:$user_guid";
-		$queries['ors']['is_owner'] = "owner_guid:$user->guid";
-		$queries['ors']['is_friend'] = "access_id:$friends AND owner_guid:{!join from=friends_of_is to=owner_guid}id:$user_guid";
+		$queries['ors']['is_owner'] = "owner_guid:$user_guid";
+		$queries['ors']['is_friend'] = "access_id:$access_friends AND owner_guid:{!join from=friends_of_is to=owner_guid}id:$user_guid";
 	} else {
-		$queries['ors']['collections'] = "access_id:$public";
+		$queries['ors']['collections'] = "access_id:$access_public";
 	}
 
 	$params = ['user_guid' => $user_guid];
@@ -735,7 +761,7 @@ function elgg_solr_get_access_query($user_guid = null) {
 		}
 		$query_str = '(' . implode(' AND ', $ands) . ')';
 	}
-	
+
 	return $query_str;
 }
 
@@ -1094,7 +1120,7 @@ function elgg_solr_defer_index_update($guid) {
 	if (empty($guid)) {
 		return;
 	}
-	
+
 	$guids = elgg_get_config('elgg_solr_sync');
 	if (!is_array($guids)) {
 		$guids = array();

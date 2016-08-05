@@ -5,6 +5,17 @@ access_show_hidden_entities(true);
 
 $stats = array();
 $registered_types = get_registered_entity_types();
+$solr_entities = elgg_get_config('solr_entities');
+if (is_array($solr_entities)) {
+	foreach ($solr_entities as $type => $subtypes) {
+		foreach ($subtypes as $subtype => $callback) {
+			if ($subtype == 'default') {
+				continue;
+			}
+			$registered_types[$type][] = $subtype;
+		}
+	}
+}
 
 foreach ($registered_types as $type => $subtypes) {
 	$options = array(
