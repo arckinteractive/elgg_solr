@@ -107,6 +107,10 @@ elgg_register_plugin_hook_handler('elgg_solr:can_index', 'annotation', function(
  * `enabled` - is entity enabled
  * `tag_<tag_name>_ss` - tags for registered tag metadata names
  * `has_pic_b` - flag indicating that entity has an uploaded icon
+ * `responses_thread_i` - guid of the comment/reply thread root
+ * `responses_is` - guids of comments/replies
+ * `responses_count_i` - total count of comments/replies
+ * `likes_count_i` - total count of likes
 
 ### User
 

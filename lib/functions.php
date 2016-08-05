@@ -657,6 +657,35 @@ function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity
 		}
 	}
 
+	// Store comment/reply thread information to allow grouping
+	if ($entity instanceof ElggComment) {
+		$container = $entity->getContainerEntity();
+		while ($container instanceof ElggComment) {
+			$container = $container->getContainerEntity();
+		}
+		$doc->responses_thread_i = $container->guid;
+	} else {
+		$doc->responses_thread_i = $entity->guid;
+	}
+
+	// Store comment/reply guids
+	$responses = [];
+	$responses_batch = new ElggBatch('elgg_get_entities', [
+		'types' => 'object',
+		'subtypes' => ['comment', 'discussion_reply'],
+		'container_guid' => $entity->guid,
+		'limit' => 0,
+		'callback' => false,
+	]);
+	foreach ($responses_batch as $response) {
+		$responses[] = $response->guid;
+	}
+
+	$doc->responses_is = $responses;
+	$doc->responses_count_i = count($responses);
+
+	$doc->likes_i = $entity->countAnnotations('likes');
+	
 	$params = array('entity' => $entity);
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', $entity->type, $params, $doc);
 	if ($entity->getSubtype()) {
