@@ -73,15 +73,6 @@ elgg_register_plugin_hook_handler('elgg_solr:index', 'object', function($hook, $
 });
 ```
 
-### Indexing file contents
-
-For file objects that are not of subtype `file`, use `elgg_solr_register_solr_entity_type()`:
-
-```php
-// contents of file objects can be indexed with the default callback
-elgg_solr_register_solr_entity_type('object', 'custom_file', 'elgg_solr_add_update_file');
-```
-
 ### Adding annotations to index
 
 To add an annotation to the index, add annotation name to the return of the `'elgg_solr:can_index','annotation'`:

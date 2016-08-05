@@ -585,6 +585,10 @@ function elgg_solr_add_update(ElggEntity $entity) {
 		return false;
 	}
 
+	if ($entity instanceof ElggFile) {
+		return elgg_solr_add_update_file($entity);
+	}
+	
 	$client = elgg_solr_get_client();
 	$commit = elgg_get_config('elgg_solr_nocommit') ? false : true;
 
