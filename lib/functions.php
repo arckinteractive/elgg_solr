@@ -701,19 +701,18 @@ function elgg_solr_get_access_query($user_guid = null) {
 		return '';
 	}
 	
-	$public = elgg_solr_escape_special_chars(ACCESS_PUBLIC);
-	$friends = elgg_solr_escape_special_chars(ACCESS_FRIENDS);
+	$access_public = elgg_solr_escape_special_chars(ACCESS_PUBLIC);
+	$access_friends = elgg_solr_escape_special_chars(ACCESS_FRIENDS);
 	$user_guid = elgg_solr_escape_special_chars($user_guid);
 
 	$queries = [];
 	
 	if ($user_guid) {
-		$user = elgg_get_logged_in_user_entity();
 		$queries['ors']['collections'] = "access_id:{!join from=access_list_is to=access_id}id:$user_guid";
-		$queries['ors']['is_owner'] = "owner_guid:$user->guid";
-		$queries['ors']['is_friend'] = "access_id:$friends AND owner_guid:{!join from=friends_of_is to=owner_guid}id:$user_guid";
+		$queries['ors']['is_owner'] = "owner_guid:$user_guid";
+		$queries['ors']['is_friend'] = "access_id:$access_friends AND owner_guid:{!join from=friends_of_is to=owner_guid}id:$user_guid";
 	} else {
-		$queries['ors']['collections'] = "access_id:$public";
+		$queries['ors']['collections'] = "access_id:$access_public";
 	}
 
 	$params = ['user_guid' => $user_guid];
