@@ -1229,8 +1229,8 @@ function elgg_solr_index_user($hook, $type, $return, $params) {
 	$return->groups_is = $group_guids;
 	$return->groups_count_i = count($group_guids);
 
-	// Index friendships
-	$friend_guids = [];
+	// Index friendships (people friended by this user)
+	$friends_guids = [];
 	$friends_batch = new ElggBatch('elgg_get_entities_from_relationship', [
 		'type' => 'user',
 		'relationship' => 'friend',
@@ -1239,16 +1239,35 @@ function elgg_solr_index_user($hook, $type, $return, $params) {
 		'callback' => false,
 	]);
 	foreach ($friends_batch as $friend) {
-		$friend_guids[] = $friend->guid;
+		$friends_guids[] = $friend->guid;
 	}
 
-	$return->friends_is = $friend_guids;
-	$return->friends_count_i = count($friend_guids);
+	$return->friends_is = $friends_guids;
+	$return->friends_count_i = count($friends_guids);
+
+	// Index friendships (people that friended this user)
+	$friends_of_guids = [];
+	$friends_of_batch = new ElggBatch('elgg_get_entities_from_relationship', [
+		'type' => 'user',
+		'relationship' => 'friend',
+		'relationship_guid' => $entity->guid,
+		'inverse_relationship' => true,
+		'limit' => 0,
+		'callback' => false,
+	]);
+	foreach ($friends_of_batch as $friend_of) {
+		$friends_of_guids[] = $friend_of->guid;
+	}
+
+	$return->friends_of_is = $friends_of_guids;
+	$return->friends_of_count_i = count($friends_of_guids);
 
 	$return->last_login_i = (int) $entity->last_login;
 	$return->last_action_i = (int) $entity->last_action;
 	$return->has_pic_b = (bool) $entity->icontime;
 
+	$return->access_list_is = get_access_array($entity->guid, 0, true);
+	
 	return $return;
 }
 
@@ -1313,4 +1332,35 @@ function elgg_solr_index_group($hook, $type, $return, $params) {
  */
 function elgg_solr_annotation_can_index($hook, $type, $return, $params) {
 	return array_merge($return, ['likes']);
+}
+
+/**
+ * Update access collection hook
+ *
+ * @param string $hook   'access:collections:add_user'|'access:collections:remove_user'
+ * @param string $type   'collection'
+ * @param mixed  $return Hook result
+ * @param array  $params Hook params
+ * @return void
+ */
+function elgg_solr_collection_update($hook, $type, $return, $params) {
+	$user_guid = elgg_extract('user_guid', $params);
+	elgg_solr_defer_index_update($user_guid);
+}
+
+/**
+ * Delete access collection hook
+ *
+ * @param string $hook   'access:collections:deletecollection'
+ * @param string $type   'collection'
+ * @param mixed  $return Hook result
+ * @param array  $params Hook params
+ * @return void
+ */
+function elgg_solr_collection_delete($hook, $type, $return, $params) {
+	$collection_id = elgg_extract('collection_id', $params);
+	$members = get_members_of_access_collection($collection_id, true);
+	foreach ($members as $member_guid) {
+		elgg_solr_defer_index_update($member_guid);
+	}
 }

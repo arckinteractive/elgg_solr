@@ -335,11 +335,10 @@ function elgg_solr_has_settings() {
 }
 
 /**
- * get default filter queries based on search params
+ * Parse defualt filter queries from ege* options
  * 
- * @param type $params
- * 
- * return array
+ * @param array $params ege* options
+ * @return array
  */
 function elgg_solr_get_default_fq($params) {
 	$fq = array();
@@ -673,88 +672,71 @@ function elgg_solr_add_update(ElggEntity $entity) {
  * @return void
  */
 function elgg_solr_debug_log($message) {
-	if (elgg_get_config('elgg_solr_debug') || elgg_get_config('debug') == 'NOTICE' || elgg_get_config('debug') == 'INFO') {
-		error_log($message);
+	if (elgg_get_config('elgg_solr_debug')
+			|| elgg_get_config('debug') == 'NOTICE'
+			|| elgg_get_config('debug') == 'INFO'
+			|| get_input('debug', false)
+		) {
+		elgg_dump($message);
 	}
 }
 
-function elgg_solr_get_access_query() {
+/**
+ * Get access query for Solr search
+ *
+ * @param int $user_guid GUID of the user accessing content
+ * @return string
+ */
+function elgg_solr_get_access_query($user_guid = null) {
 
-	if (elgg_is_admin_logged_in() || elgg_get_ignore_access()) {
-		return false; // no access limit
+	if (elgg_get_ignore_access()) {
+		return '';
 	}
 
-	static $return;
-
-	if ($return) {
-		return $return;
+	if (!isset($user_guid)) {
+		$user_guid = elgg_get_logged_in_user_guid();
 	}
 
-	$access = get_access_array();
-
-	// access filter query
-	if ($access) {
-		$access_list_glue = elgg_get_plugin_setting('addortoaccess_glue', 'elgg_solr');
-		if ($access_list_glue == 'yes') {
-			$access_list_glue = ' OR ';
-		} else {
-			$access_list_glue = ' ';
-		}
-		$access_list = implode($access_list_glue, $access);
+	if (elgg_is_admin_user($user_guid)) {
+		return '';
 	}
+	
+	$public = elgg_solr_escape_special_chars(ACCESS_PUBLIC);
+	$friends = elgg_solr_escape_special_chars(ACCESS_FRIENDS);
+	$user_guid = elgg_solr_escape_special_chars($user_guid);
 
-	if (elgg_is_logged_in()) {
-
-		// get friends
-		// @TODO - is there a better way? Not sure if there's a limit on solr if
-		// someone has a whole lot of friends...
-		$friends = elgg_get_entities_from_relationship(array(
-			'type' => 'user',
-			'relationship' => 'friend',
-			'relationship_guid' => elgg_get_logged_in_user_guid(),
-			'inverse_relationship' => true,
-			'limit' => false,
-			'callback' => false // keep the query fast
-		));
-
-		$friend_guids = array();
-		foreach ($friends as $friend) {
-			$friend_guids[] = $friend->guid;
-		}
-
-		$friends_list = '';
-		if ($friend_guids) {
-			$friends_list = elgg_solr_escape_special_chars(implode(' ', $friend_guids));
-		}
-	}
-
-	//$query->createFilterQuery('access')->setQuery("owner_guid: {guid} OR access_id:({$access_list}) OR (access_id:" . ACCESS_FRIENDS . " AND owner_guid:({$friends}))");
-	if (elgg_is_logged_in()) {
-		$return = "owner_guid:" . elgg_get_logged_in_user_guid();
+	$queries = [];
+	
+	if ($user_guid) {
+		$user = elgg_get_logged_in_user_entity();
+		$queries['ors']['collections'] = "access_id:{!join from=access_list_is to=access_id}id:$user_guid";
+		$queries['ors']['is_owner'] = "owner_guid:$user->guid";
+		$queries['ors']['is_friend'] = "access_id:$friends AND owner_guid:{!join from=friends_of_is to=owner_guid}id:$user_guid";
 	} else {
-		$return = '';
+		$queries['ors']['collections'] = "access_id:$public";
 	}
 
-	if ($access_list) {
-		if ($return) {
-			$return .= ' OR ';
+	$params = ['user_guid' => $user_guid];
+	$queries = elgg_trigger_plugin_hook('elgg_solr:access', 'entities', $params, $queries);
+
+	if (!empty($queries['ors'])) {
+		$ors = [];
+		foreach ($queries['ors'] as $or) {
+			$ors[] = "($or)";
 		}
-		$return .= "access_id:(" . elgg_solr_escape_special_chars($access_list) . ")";
+		$queries['ands'][] = implode(' OR ', $ors);
 	}
 
-	$fr_prefix = '';
-	$fr_suffix = '';
-	if ($return && $friends_list) {
-		$return .= ' OR ';
-		$fr_prefix = '(';
-		$fr_suffix = ')';
+	$query_str = '';
+	if (!empty($queries['ands'])) {
+		$ands = [];
+		foreach ($queries['ands'] as $and) {
+			$ands[] = "($and)";
+		}
+		$query_str = '(' . implode(' AND ', $ands) . ')';
 	}
-
-	if ($friends_list) {
-		$return .= $fr_prefix . 'access_id:' . elgg_solr_escape_special_chars(ACCESS_FRIENDS) . ' AND owner_guid:(' . $friends_list . ')' . $fr_suffix;
-	}
-
-	return $return;
+	
+	return $query_str;
 }
 
 function elgg_solr_escape_special_chars($string) {

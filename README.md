@@ -53,6 +53,11 @@ These hooks can be used to customize indexed fields
 
 Allows to add annotations to index by name
 
+**elgg_solr:access, entities**
+
+Allows plugins to add additional access queries.
+
+
 ## Indexing
 
 ### Tuning indexed values
@@ -137,4 +142,4 @@ In addition to Entity fields:
  * `mimetype_s` - detected mime type (e.g. `application/json`)
  * `originalfilename_s` - original name of the uploaded file
  * `filesize_i` - file size in bytes
->>>>>>> cs
+

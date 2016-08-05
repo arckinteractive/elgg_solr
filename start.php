@@ -64,6 +64,10 @@ function elgg_solr_init() {
 	elgg_register_event_handler('created', 'river', 'elgg_solr_river_creation');
 	elgg_register_event_handler('profileupdate', 'user', 'elgg_solr_profile_update');
 	
+	elgg_register_plugin_hook_handler('access:collections:add_user', 'collection', 'elgg_solr_collection_update');
+	elgg_register_plugin_hook_handler('access:collections:remove_user', 'collection', 'elgg_solr_collection_update');
+	elgg_register_plugin_hook_handler('access:collections:deletecollection', 'collection', 'elgg_solr_collection_delete');
+
 	elgg_register_plugin_hook_handler('elgg_solr:can_index', 'annotation', 'elgg_solr_annotation_can_index');
 
 	elgg_set_config('elgg_solr_sync', []);
