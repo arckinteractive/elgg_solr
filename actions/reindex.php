@@ -28,7 +28,13 @@ switch ($type) {
 		break;
 	default:
 		// set up options to use instead of all registered types
-		$types = array($type => get_input('subtype', array()));
+		$subtypes = get_input('subtype', array());
+		if (empty($subtypes)) {
+			$subtypes = $subtypes;
+		} else if (!is_array($subtypes)) {
+			$subtypes = array($subtypes);
+		}
+		$types = array($type => $subtypes);
 		elgg_set_config('elgg_solr_reindex_options', $types);
 		elgg_register_event_handler('shutdown', 'system', 'elgg_solr_reindex');		
 		break;
