@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+2.1.2 (09/10/2016):
+ - fix potential for broken markup on search highlighting
+
 2.1.1 (07/22/2016):
  - fix package.json author list formatting
  - reindex users on login

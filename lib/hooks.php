@@ -80,8 +80,11 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 		$hlfields = $params['hlfields'];
 	}
 	$hl->setFields($hlfields);
-	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
-	$hl->setSimplePostfix('</span>');
+	
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	$hl->setSimplePrefix($hl_prefix);
+	$hl->setSimplePostfix($hl_suffix);
 
 	$fragsize = elgg_solr_get_fragsize();
 	if (isset($params['fragsize'])) {
@@ -107,8 +110,6 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 
 	// Count the total number of documents found by solr
 	$count = $resultset->getNumFound();
-	$hl_prefix = elgg_solr_get_hl_prefix();
-	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
 
@@ -125,19 +126,8 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 		if ($highlightedDoc) {
 			foreach ($highlightedDoc as $field => $highlight) {
 				$snippet = implode(' (...) ', $highlight);
-				// get our highlight based on the wrapped tokens
-				// note, this is to prevent partial html from breaking page layouts
-				preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
-				if ($match[1]) {
-					$matches = array_unique($match[1]);
-					foreach ($matches as $m) {
-						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);
-					}
-					$snippet = $purifier->purify($snippet);
-				}
-
-				$search_results[$document->id][$field] = $snippet;
+				$search_results[$document->id][$field] = $purifier->purify($snippet);
 			}
 		}
 		$search_results[$document->id]['score'] = $document->score;
@@ -270,8 +260,11 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 		$hlfields = $params['hlfields'];
 	}
 	$hl->setFields($hlfields);
-	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
-	$hl->setSimplePostfix('</span>');
+	
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	$hl->setSimplePrefix($hl_prefix);
+	$hl->setSimplePostfix($hl_suffix);
 
 	$fragsize = elgg_solr_get_fragsize();
 	if (isset($params['fragsize'])) {
@@ -297,8 +290,6 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 
 	// Count the total number of documents found by solr
 	$count = $resultset->getNumFound();
-	$hl_prefix = elgg_solr_get_hl_prefix();
-	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$config = HTMLPurifier_Config::createDefault();
 	$purifier = new HTMLPurifier($config);
@@ -314,19 +305,8 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 		if ($highlightedDoc) {
 			foreach ($highlightedDoc as $field => $highlight) {
 				$snippet = implode(' (...) ', $highlight);
-				// get our highlight based on the wrapped tokens
-				// note, this is to prevent partial html from breaking page layouts
-				preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
-				if ($match[1]) {
-					$matches = array_unique($match[1]);
-					foreach ($matches as $m) {
-						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);
-					}
-					$snippet = $purifier->purify($snippet);
-				}
-
-				$search_results[$document->id][$field] = $snippet;
+				$search_results[$document->id][$field] = $purifier->purify($snippet);
 			}
 		}
 
@@ -458,8 +438,11 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 		$hlfields = $params['hlfields'];
 	}
 	$hl->setFields($hlfields);
-	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
-	$hl->setSimplePostfix('</span>');
+	
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	$hl->setSimplePrefix($hl_prefix);
+	$hl->setSimplePostfix($hl_suffix);
 
 	$fragsize = elgg_solr_get_fragsize();
 	if (isset($params['fragsize'])) {
@@ -485,8 +468,6 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 
 	// Count the total number of documents found by solr
 	$count = $resultset->getNumFound();
-	$hl_prefix = elgg_solr_get_hl_prefix();
-	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
 
@@ -503,19 +484,8 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 		if ($highlightedDoc) {
 			foreach ($highlightedDoc as $field => $highlight) {
 				$snippet = implode(' (...) ', $highlight);
-				// get our highlight based on the wrapped tokens
-				// note, this is to prevent partial html from breaking page layouts
-				preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
-				if ($match[1]) {
-					$matches = array_unique($match[1]);
-					foreach ($matches as $m) {
-						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);
-					}
-					$snippet = $purifier->purify($snippet);
-				}
-
-				$search_results[$document->id][$field] = $snippet;
+				$search_results[$document->id][$field] = $purifier->purify($snippet);
 			}
 		}
 		$search_results[$document->id]['score'] = $document->score;
@@ -652,8 +622,11 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 		$hlfields = $params['hlfields'];
 	}
 	$hl->setFields($hlfields);
-	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
-	$hl->setSimplePostfix('</span>');
+	
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	$hl->setSimplePrefix($hl_prefix);
+	$hl->setSimplePostfix($hl_suffix);
 
 	$fragsize = elgg_solr_get_fragsize();
 	if (isset($params['fragsize'])) {
@@ -680,8 +653,6 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 
 	// Count the total number of documents found by solr
 	$count = $resultset->getNumFound();
-	$hl_prefix = elgg_solr_get_hl_prefix();
-	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
 
@@ -698,19 +669,8 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 		if ($highlightedDoc) {
 			foreach ($highlightedDoc as $field => $highlight) {
 				$snippet = implode(' (...) ', $highlight);
-				// get our highlight based on the wrapped tokens
-				// note, this is to prevent partial html from breaking page layouts
-				preg_match_all('/<span data-hl="elgg-solr">(.*?)<\/span>/', $snippet, $match);
 
-				if ($match[1]) {
-					$matches = array_unique($match[1]);
-					foreach ($matches as $m) {
-						$snippet = str_replace($m, $hl_prefix . $m . $hl_suffix, $snippet);
-					}
-					$snippet = $purifier->purify($snippet);
-				}
-
-				$search_results[$document->id][$field] = $snippet;
+				$search_results[$document->id][$field] = $purifier->purify($snippet);
 			}
 		}
 
@@ -873,8 +833,11 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	// get highlighting component and apply settings
 	$hl = $query->getHighlighting();
 	$hl->setFields(array('tags'));
-	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
-	$hl->setSimplePostfix('</span>');
+	
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	$hl->setSimplePrefix($hl_prefix);
+	$hl->setSimplePostfix($hl_suffix);
 
 	// this executes the query and returns the result
 	try {
@@ -894,8 +857,6 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 
 	// Count the total number of documents found by solr
 	$count = $resultset->getNumFound();
-	$hl_prefix = elgg_solr_get_hl_prefix();
-	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$search_results = array();
 
@@ -917,11 +878,11 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 					$matched = $hl_prefix;
 					$matched .= substr(strstr(elgg_strip_tags($h), '%%'), 2);
 					$matched .= $hl_suffix;
-					$snippet[] = $purifier->purify($matched);
+					$snippet[] = $matched;
 				}
 
 				$display = implode(', ', $snippet);
-				$search_results[$document->id][$field] = $display;
+				$search_results[$document->id][$field] = $purifier->purify($display);
 			}
 		}
 		$search_results[$document->id]['score'] = $document->score;
@@ -1084,8 +1045,11 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	// get highlighting component and apply settings
 	$hl = $query->getHighlighting();
 	$hl->setFields(array('description'));
-	$hl->setSimplePrefix('<span data-hl="elgg-solr">');
-	$hl->setSimplePostfix('</span>');
+	
+	$hl_prefix = elgg_solr_get_hl_prefix();
+	$hl_suffix = elgg_solr_get_hl_suffix();
+	$hl->setSimplePrefix($hl_prefix);
+	$hl->setSimplePostfix($hl_suffix);
 
 	$fragsize = elgg_solr_get_fragsize();
 	if (isset($params['fragsize'])) {
@@ -1112,8 +1076,6 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 
 	// Count the total number of documents found by solr
 	$count = $resultset->getNumFound();
-	$hl_prefix = elgg_solr_get_hl_prefix();
-	$hl_suffix = elgg_solr_get_hl_suffix();
 
 	$show_score = elgg_get_plugin_setting('show_score', 'elgg_solr');
 
@@ -1135,15 +1097,8 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 		if ($highlightedDoc) {
 			foreach ($highlightedDoc as $highlight) {
 				$snippet = implode(' (...) ', $highlight);
-				// get our highlight based on the wrapped tokens
-				// note, this is to prevent partial html from breaking page layouts
-				$match = array();
-				preg_match('/<span data-hl="elgg-solr">(.*)<\/span>/', $snippet, $match);
 
-				if ($match[1]) {
-					$snippet = str_replace($match[1], $hl_prefix . $match[1] . $hl_suffix, $snippet);
-					$snippet = $purifier->purify($snippet);
-				}
+				$snippet = $purifier->purify($snippet);
 			}
 		}
 

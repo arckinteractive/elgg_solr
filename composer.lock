@@ -4,8 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9dc5503974dbc891f7a63e9daa416622",
-    "content-hash": "523d4b2d4cc53f537cff2ebaaea34919",
+    "content-hash": "d27a07c0347cf7fb2dc7fc54aedd2d00",
     "packages": [
         {
             "name": "composer/installers",
@@ -152,6 +151,27 @@
             "time": "2015-08-05 01:03:42"
         },
         {
+            "name": "jumbojett/vroom",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jumbojett/vroom.git",
+                "reference": "99d5432458b0660d13f13a2eb0df95c5e9941658"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jumbojett/vroom/zipball/99d5432458b0660d13f13a2eb0df95c5e9941658",
+                "reference": "99d5432458b0660d13f13a2eb0df95c5e9941658",
+                "shasum": ""
+            },
+            "type": "elgg-plugin",
+            "support": {
+                "source": "https://github.com/jumbojett/vroom/tree/master",
+                "issues": "https://github.com/jumbojett/vroom/issues"
+            },
+            "time": "2015-08-10 20:12:25"
+        },
+        {
             "name": "solarium/solarium",
             "version": "3.6.0",
             "source": {
@@ -207,16 +227,16 @@
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v3.1.2",
+            "version": "v3.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher.git",
-                "reference": "7f9839ede2070f53e7e2f0849b9bd14748c434c5"
+                "reference": "c0c00c80b3a69132c4e55c3e7db32b4a387615e5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/7f9839ede2070f53e7e2f0849b9bd14748c434c5",
-                "reference": "7f9839ede2070f53e7e2f0849b9bd14748c434c5",
+                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/c0c00c80b3a69132c4e55c3e7db32b4a387615e5",
+                "reference": "c0c00c80b3a69132c4e55c3e7db32b4a387615e5",
                 "shasum": ""
             },
             "require": {
@@ -263,13 +283,15 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "https://symfony.com",
-            "time": "2016-06-29 05:41:56"
+            "time": "2016-07-19 10:45:57"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "jumbojett/vroom": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
