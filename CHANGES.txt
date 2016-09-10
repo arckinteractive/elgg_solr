@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+1.10.2 (09/10/2016):
+ - fix possibly broken markup in search highlight snippets
+
 1.10.1 (04/07/2016):
  - fix groups not indexed on full reindex action
  - chore: packagist composer.json info
