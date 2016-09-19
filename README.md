@@ -35,25 +35,29 @@ This plugin follows the structure of the default Elgg search plugin, can be exte
 
 ## Plugin hooks
 
-**search, <search_type>**
-**search, <entity_type>**
-**search, <entity_type>:<entity_subtype>**
+**`search, <search_type>`**
+
+**`search, <entity_type>`**
+
+**`search, <entity_type>:<entity_subtype>`**
 
 These hooks can be used to modify search criteria
 
 
-**elgg_solr:index, <entity_type>**
-**elgg_solr:index, <entity_type>:<entity_subtype>**
-**elgg_solr:index, annotation**
+**`elgg_solr:index, <entity_type>`**
+
+**`elgg_solr:index, <entity_type>:<entity_subtype>`**
+
+**`elgg_solr:index, annotation`**
 
 These hooks can be used to customize indexed fields
 
 
-**elgg_solr:can_index, annotation**
+**`elgg_solr:can_index, annotation`**
 
 Allows to add annotations to index by name
 
-**elgg_solr:access, entities**
+**`elgg_solr:access, entities`**
 
 Allows plugins to add additional access queries.
 
