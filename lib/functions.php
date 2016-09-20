@@ -10,6 +10,9 @@ use Solarium\QueryType\Update\Query\Document\DocumentInterface;
  */
 function elgg_solr_reindex() {
 	set_time_limit(0);
+	
+	// disable query cache
+	_elgg_services()->db->disableQueryCache();
 
 	$ia = elgg_set_ignore_access(true);
 	$show_hidden = access_get_show_hidden_status();
