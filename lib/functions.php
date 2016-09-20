@@ -670,8 +670,9 @@ function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity
 	}
 
 	if ($entity instanceof ElggFile) {
-		$doc->simpletype_s = (string) $entity->getSimpleType();
-		$doc->mimetype_s = (string) $entity->getMimetype();
+		$mimetype = (string) $entity->getMimeType();
+		$doc->simpletype_s = (string) elgg_get_file_simple_type($mimetype);
+		$doc->mimetype_s = $mimetype;
 		$doc->originalfilename_s = $entity->originalfilename;
 		if ($entity->exists()) {
 			$doc->exists_b = true;
