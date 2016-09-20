@@ -2,6 +2,9 @@
 
 x.x (mm/dd/yyyy):
 
+2.1.3 ():
+ - fix back compatibility for mimetype indexing
+
 2.1.2 (09/10/2016):
  - fix potential for broken markup on search highlighting
 
