@@ -96,6 +96,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	try {
 		$resultset = $client->select($query);
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -104,6 +105,7 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	try {
 		$highlighting = $resultset->getHighlighting();
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -276,6 +278,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	try {
 		$resultset = $client->select($query);
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -284,6 +287,7 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	try {
 		$highlighting = $resultset->getHighlighting();
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -454,6 +458,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	try {
 		$resultset = $client->select($query);
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -462,6 +467,7 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	try {
 		$highlighting = $resultset->getHighlighting();
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -639,6 +645,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	try {
 		$resultset = $client->select($query);
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -647,6 +654,7 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	try {
 		$highlighting = $resultset->getHighlighting();
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -843,6 +851,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	try {
 		$resultset = $client->select($query);
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -851,6 +860,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	try {
 		$highlighting = $resultset->getHighlighting();
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -1062,6 +1072,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	try {
 		$resultset = $client->select($query);
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
@@ -1070,6 +1081,7 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	try {
 		$highlighting = $resultset->getHighlighting();
 	} catch (Exception $e) {
+		register_error(elgg_echo('elgg_solr:search:error'));
 		elgg_solr_debug_log($e->getMessage());
 		return null;
 	}
