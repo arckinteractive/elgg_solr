@@ -24,7 +24,8 @@ This plugin follows the structure of the default Elgg search plugin, can be exte
 
  3. Create a new Solr instance and configure it:
 	* Make sure that `/<instance>/conf/solrconfig.xml` is set to use classic index schema: `<schemaFactory class="ClassicIndexSchemaFactory"></schemaFactory>`
-	* Copy contents of `schema.xml` (or `schema.solr5.xml` for Solr 5+) included in the root of the plugin to `/<instance>/conf/schema.xml`
+	* Copy contents of `install/schema.xml` (or `install/schema.solr5.xml` for Solr 5+) included in the root of the plugin to `/<instance>/conf/schema.xml`
+        * Copy contents of `install/solrconfig.solr5.xml` to `/<instance>/conf/solrconfig.xml if using solr 5
 
  4. Update `elgg_solr` plugin settings to point to the new Solr instance
 
