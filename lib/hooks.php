@@ -46,6 +46,8 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	if ($params['qf']) {
 		$qf = $params['qf'];
 	}
+	// allow plugins to change default query fields
+	$qf = elgg_trigger_plugin_hook('solr:query_fields', 'object', $params, $qf);
 	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 
@@ -220,6 +222,8 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 	if ($params['qf']) {
 		$qf = $params['qf'];
 	}
+	// allow plugins to change default query fields
+	$qf = elgg_trigger_plugin_hook('solr:query_fields', 'object', $params, $qf);
 	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 
@@ -404,6 +408,8 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	if ($params['qf']) {
 		$qf = $params['qf'];
 	}
+	// allow plugins to change default query fields
+	$qf = elgg_trigger_plugin_hook('solr:query_fields', 'user', $params, $qf);
 	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 
@@ -594,6 +600,8 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	if (isset($params['qf'])) {
 		$qf = $params['qf'];
 	}
+	// allow plugins to change default query fields
+	$qf = elgg_trigger_plugin_hook('solr:query_fields', 'group', $params, $qf);
 	$dismax->setQueryFields($qf);
 	$dismax->setQueryAlternative('*:*');
 
@@ -1024,6 +1032,8 @@ function elgg_solr_comment_search($hook, $type, $return, $params) {
 	if ($params['qf']) {
 		$qf = $params['qf'];
 	}
+	// allow plugins to change default query fields
+	$qf = elgg_trigger_plugin_hook('solr:query_fields', 'comment', $params, $qf);
 	$dismax->setQueryFields($qf);
 
 	$boostQuery = elgg_solr_get_boost_query();
