@@ -68,6 +68,8 @@ function elgg_solr_file_search($hook, $type, $value, $params) {
 	} else {
 		$filter_queries = $default_fq;
 	}
+	
+	$filter_queries = elgg_trigger_plugin_hook('solr:filter_queries', 'object', $params, $filter_queries);
 
 	if (!empty($filter_queries)) {
 		foreach ($filter_queries as $key => $value) {
@@ -253,6 +255,8 @@ function elgg_solr_object_search($hook, $type, $return, $params) {
 		$filter_queries = $default_fq;
 	}
 
+	$filter_queries = elgg_trigger_plugin_hook('solr:filter_queries', 'object', $params, $filter_queries);
+	
 	if (!empty($filter_queries)) {
 		foreach ($filter_queries as $key => $value) {
 			$query->createFilterQuery($key)->setQuery($value);
@@ -434,6 +438,8 @@ function elgg_solr_user_search($hook, $type, $return, $params) {
 	} else {
 		$filter_queries = $default_fq;
 	}
+	
+	$filter_queries = elgg_trigger_plugin_hook('solr:filter_queries', 'user', $params, $filter_queries);
 
 	if (!empty($filter_queries)) {
 		foreach ($filter_queries as $key => $value) {
@@ -622,6 +628,8 @@ function elgg_solr_group_search($hook, $type, $return, $params) {
 	} else {
 		$filter_queries = $default_fq;
 	}
+	
+	$filter_queries = elgg_trigger_plugin_hook('solr:filter_queries', 'group', $params, $filter_queries);
 
 	if (!empty($filter_queries)) {
 		foreach ($filter_queries as $key => $value) {
@@ -840,6 +848,8 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 		$filter_queries = $default_fq;
 	}
 
+	$filter_queries = elgg_trigger_plugin_hook('solr:filter_queries', 'tag', $params, $filter_queries);
+	
 	if (!empty($filter_queries)) {
 		foreach ($filter_queries as $key => $value) {
 			$query->createFilterQuery($key)->setQuery($value);
