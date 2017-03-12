@@ -1,3 +1,9 @@
+<a name="2.2.3"></a>
+## [2.2.3](https://github.com/arckinteractive/elgg_solr/compare/2.2.2...v2.2.3) (2017-03-12)
+
+
+
+
 <a name="2.2.2"></a>
 ## [2.2.2](https://github.com/arckinteractive/elgg_solr/compare/2.2.1...v2.2.2) (2017-02-22)
 
