@@ -4,7 +4,7 @@
     <id>elgg_solr</id>
     <author>Matt Beckett (matt@arckinteractive.com)</author>
     <author>Billy Gunn (billy@arckinteractive.com)</author>
-    <version type="dist">2.2.3</version>
+    <version type="dist">2.2.4</version>
     <description>Solr integration for Elgg</description>
     <website>http://www.arckinteractive.com/</website>
     <requires>
