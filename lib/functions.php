@@ -221,6 +221,7 @@ function elgg_solr_reindex() {
 		$client->update($query);
 	} catch (Exception $e) {
 		elgg_solr_debug_log($e->getMessage());
+		elgg_solr_exception_log($e);
 		return;
 	}
 
@@ -300,6 +301,7 @@ function elgg_solr_get_indexed_count($query = '*:*', $fq = array()) {
 		return $resultset->getNumFound();
 	} catch (Exception $e) {
 		elgg_solr_debug_log($e->getMessage());
+		elgg_solr_exception_log($e);
 		return 0;
 	}
 }
@@ -576,8 +578,9 @@ function elgg_solr_add_update_file(ElggFile $entity) {
 		}
 		try {
 			$client->extract($query);
-		} catch (Exception $exc) {
-			elgg_solr_debug_log($exc->getMessage());
+		} catch (Exception $e) {
+			elgg_solr_debug_log($e->getMessage());
+			elgg_solr_exception_log($e);
 		}
 	} else {
 		$query->addDocument($doc);
@@ -587,8 +590,9 @@ function elgg_solr_add_update_file(ElggFile $entity) {
 
 		try {
 			$client->update($query);
-		} catch (Exception $exc) {
-			elgg_solr_debug_log($exc->getMessage());
+		} catch (Exception $e) {
+			elgg_solr_debug_log($e->getMessage());
+			elgg_solr_exception_log($e);
 		}
 	}
 
@@ -633,8 +637,9 @@ function elgg_solr_add_update(ElggEntity $entity) {
 	// this executes the query and returns the result
 	try {
 		$client->update($query);
-	} catch (Exception $exc) {
-		elgg_solr_debug_log($exc->getMessage());
+	} catch (Exception $e) {
+		elgg_solr_debug_log($e->getMessage());
+		elgg_solr_exception_log($e);
 	}
 
 	return true;
@@ -732,6 +737,31 @@ function elgg_solr_debug_log($message) {
 	) {
 		elgg_dump($message);
 	}
+}
+
+function elgg_solr_exception_log($e) {
+	if (!file_exists(elgg_get_config('dataroot') . 'elgg_solr')) {
+		mkdir(elgg_get_config('dataroot') . 'elgg_solr');
+	}
+	
+	if (!file_exists(elgg_get_config('dataroot') . 'elgg_solr/exceptions')) {
+		mkdir(elgg_get_config('dataroot') . 'elgg_solr/exceptions');
+	}
+	
+	$log = elgg_get_config('dataroot') . 'elgg_solr/exceptions/' . date('Y-m') . '.log';
+	
+	$message = date('c'). ': ' . $e->getMessage() . "\n";
+	
+	$trace = $e->getTrace();
+	foreach ($trace as $array) {
+		if ($array['function'] == 'getData') {
+			if (is_object($array['args'][0]) && method_exists($array['args'][0], 'getParams')) {
+				$message .= print_r($array['args'][0]->getParams(),1);
+			}
+		}
+	}
+	
+	file_put_contents($log, $message . "\n", FILE_APPEND);
 }
 
 /**
@@ -1395,8 +1425,9 @@ function elgg_solr_index_annotation($annotation) {
 	// this executes the query and returns the result
 	try {
 		$client->update($query);
-	} catch (Exception $exc) {
-		elgg_solr_debug_log($exc->getMessage());
+	} catch (Exception $e) {
+		elgg_solr_debug_log($e->getMessage());
+		elgg_solr_exception_log($e);
 	}
 }
 
@@ -1806,6 +1837,7 @@ function elgg_solr_annotation_reindex() {
 		$client->update($query);
 	} catch (Exception $e) {
 		elgg_solr_debug_log($e->getMessage());
+		elgg_solr_exception_log($e);
 		return false;
 	}
 

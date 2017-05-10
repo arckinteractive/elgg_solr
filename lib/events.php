@@ -71,10 +71,11 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 
 		try {
 			$client->update($query);
-		} catch (Exception $ex) {
+		} catch (Exception $e) {
 			//something went wrong, lets cache the id and try again on cron
 			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', $entity->guid, ACCESS_PUBLIC);
-			elgg_solr_debug_log($ex->getMessage());
+			elgg_solr_debug_log($e->getMessage());
+			elgg_solr_exception_log($e);
 		}
 	} else {
 		elgg_solr_defer_index_delete($entity->guid);
@@ -164,10 +165,11 @@ function elgg_solr_entities_sync() {
 
 			try {
 				$client->update($query);
-			} catch (Exception $ex) {
+			} catch (Exception $e) {
 				//something went wrong, lets cache the id and try again on cron
 				elgg_get_site_entity()->annotate('elgg_solr_delete_cache', $g, ACCESS_PUBLIC);
-				elgg_solr_debug_log($ex->getMessage());
+				elgg_solr_debug_log($e->getMessage());
+				elgg_solr_exception_log($e);
 			}
 		}
 	}
@@ -308,9 +310,10 @@ function elgg_solr_annotation_delete($event, $type, $annotation) {
 
 		try {
 			$client->update($query);
-		} catch (Exception $exc) {
+		} catch (Exception $e) {
 			elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:' . $annotation->id, ACCESS_PUBLIC);
-			elgg_solr_debug_log($exc->getMessage());
+			elgg_solr_debug_log($e->getMessage());
+			elgg_solr_exception_log($e);
 		}
 	} else {
 		elgg_solr_defer_annotation_delete($annotation->id);
@@ -351,9 +354,10 @@ function elgg_solr_annotations_sync() {
 
 			try {
 				$client->update($query);
-			} catch (Exception $exc) {
+			} catch (Exception $e) {
 				elgg_get_site_entity()->annotate('elgg_solr_delete_cache', 'annotation:' . $g, ACCESS_PUBLIC);
-				elgg_solr_debug_log($exc->getMessage());
+				elgg_solr_debug_log($e->getMessage());
+				elgg_solr_exception_log($e);
 			}
 		}
 	}
