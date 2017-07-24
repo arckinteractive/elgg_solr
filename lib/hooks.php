@@ -829,7 +829,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	$select = array(
 		'query' => $q,
 		'start' => $params['offset'],
-		'rows' => $params['limit'],
+		'rows' => isset($params['limit']) ? $params['limit'] : 10,
 		'fields' => array('id', 'title', 'description', 'score')
 	);
 
@@ -857,7 +857,7 @@ function elgg_solr_tag_search($hook, $type, $return, $params) {
 	}
 
 	$filter_queries = elgg_trigger_plugin_hook('solr:filter_queries', 'tag', $params, $filter_queries);
-	
+
 	if (!empty($filter_queries)) {
 		foreach ($filter_queries as $key => $value) {
 			$query->createFilterQuery($key)->setQuery($value);
