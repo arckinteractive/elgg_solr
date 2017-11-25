@@ -30,7 +30,7 @@
 	],
 	"require": {
 		"php": ">=5.4",
-		"composer/installers": "^1.0",
+		"composer/installers": "^1.2",
 		"solarium/solarium": "3.6.*",
 		"ezyang/htmlpurifier": "4.7.0",
 		"jumbojett/vroom": "dev-master"
