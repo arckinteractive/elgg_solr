@@ -1,3 +1,18 @@
+<a name="2.2.5"></a>
+## [2.2.5](https://github.com/arckinteractive/elgg_solr/compare/2.2.4...v2.2.5) (2017-11-25)
+
+
+### Bug Fixes
+
+* **composer:** upgrade composer/installers ([1659f8f](https://github.com/arckinteractive/elgg_solr/commit/1659f8f))
+* **tags:** set default rows limit to ensure that results are displayed ([2a5307f](https://github.com/arckinteractive/elgg_solr/commit/2a5307f))
+
+### Features
+
+* **conf:** add solr6 config ([73b320e](https://github.com/arckinteractive/elgg_solr/commit/73b320e))
+
+
+
 <a name="2.2.4"></a>
 ## [2.2.4](https://github.com/arckinteractive/elgg_solr/compare/2.2.3...v2.2.4) (2017-05-10)
 
