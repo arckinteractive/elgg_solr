@@ -6,7 +6,7 @@
 	"keywords": [
 		"elgg", "plugin", "search", "solr", "scalability"
 	],
-	"license": "GPL-2.0",
+	"license": "GPL-2.0-only",
 	"authors": [
 		{
 			"name": "Matt Beckett",
