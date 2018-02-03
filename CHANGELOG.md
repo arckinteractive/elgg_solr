@@ -1,3 +1,14 @@
+<a name="2.2.7"></a>
+## [2.2.7](https://github.com/arckinteractive/elgg_solr/compare/2.2.6...v2.2.7) (2018-02-03)
+
+
+### Bug Fixes
+
+* **index:** no dropping index on river creation ([9a792ad](https://github.com/arckinteractive/elgg_solr/commit/9a792ad))
+* **packagist:** packagist friendly license.  Screw you packagist. ([2be21b2](https://github.com/arckinteractive/elgg_solr/commit/2be21b2))
+
+
+
 <a name="2.2.6"></a>
 ## [2.2.6](https://github.com/arckinteractive/elgg_solr/compare/2.2.5...v2.2.6) (2017-11-25)
 
