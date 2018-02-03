@@ -377,7 +377,7 @@ function elgg_solr_annotations_sync() {
  */
 function elgg_solr_river_creation($event, $type, $river) {
 	elgg_solr_defer_index_update($river->subject_guid);
-	elgg_solr_defer_index_delete($river->object_guid);
+	elgg_solr_defer_index_update($river->object_guid);
 	elgg_solr_defer_index_update($river->target_guid);
 	elgg_solr_defer_index_update(elgg_get_logged_in_user_guid());
 }
