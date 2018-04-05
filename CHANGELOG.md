@@ -1,3 +1,9 @@
+<a name="2.2.8"></a>
+## [2.2.8](https://github.com/arckinteractive/elgg_solr/compare/2.2.7...v2.2.8) (2018-04-05)
+
+
+
+
 <a name="2.2.7"></a>
 ## [2.2.7](https://github.com/arckinteractive/elgg_solr/compare/2.2.6...v2.2.7) (2018-02-03)
 
