@@ -608,12 +608,12 @@ function elgg_solr_add_update_file($entity) {
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
 	$doc->subtype = $subtype;
-	$doc->owner_guid = $entity->owner_guid;
-	$doc->container_guid = $entity->container_guid;
-	$doc->access_id = $entity->access_id;
+	$doc->owner_guid = (int) $entity->owner_guid;
+	$doc->container_guid = (int) $entity->container_guid;
+	$doc->access_id = (int) $entity->access_id;
 	$doc->title = elgg_strip_tags($entity->title);
 	$doc->description = elgg_strip_tags($entity->description);
-	$doc->time_created = $entity->time_created;
+	$doc->time_created = (int) $entity->time_created;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
@@ -674,13 +674,13 @@ function elgg_solr_add_update_object_default($entity) {
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
 	$doc->subtype = $subtype;
-	$doc->owner_guid = $entity->owner_guid;
-	$doc->container_guid = $entity->container_guid;
-	$doc->access_id = $entity->access_id;
+	$doc->owner_guid = (int) $entity->owner_guid;
+	$doc->container_guid = (int) $entity->container_guid;
+	$doc->access_id = (int) $entity->access_id;
 	$doc->title = elgg_strip_tags($entity->title);
 	$doc->name = elgg_strip_tags($entity->name);
 	$doc->description = elgg_strip_tags($entity->description);
-	$doc->time_created = $entity->time_created;
+	$doc->time_created = (int) $entity->time_created;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
@@ -746,14 +746,14 @@ function elgg_solr_add_update_user($entity) {
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
 	$doc->subtype = $subtype;
-	$doc->owner_guid = $entity->owner_guid;
-	$doc->container_guid = $entity->container_guid;
-	$doc->access_id = $entity->access_id;
+	$doc->owner_guid = (int) $entity->owner_guid;
+	$doc->container_guid = (int) $entity->container_guid;
+	$doc->access_id = (int) $entity->access_id;
 	$doc->title = elgg_strip_tags($entity->title);
 	$doc->name = elgg_strip_tags($entity->name);
 	$doc->username = $entity->username;
 	$doc->description = elgg_strip_tags($desc);
-	$doc->time_created = $entity->time_created;
+	$doc->time_created = (int) $entity->time_created;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
