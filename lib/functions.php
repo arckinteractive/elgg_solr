@@ -657,14 +657,14 @@ function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity
 	$doc->id = $entity->guid;
 	$doc->type = $entity->type;
 	$doc->subtype = (string) $entity->getSubtype();
-	$doc->owner_guid = $entity->owner_guid;
-	$doc->container_guid = $entity->container_guid;
-	$doc->access_id = $entity->access_id;
+	$doc->owner_guid = (int) $entity->owner_guid;
+	$doc->container_guid = (int) $entity->container_guid;
+	$doc->access_id = (int) $entity->access_id;
 	$doc->title = elgg_strip_tags($entity->title);
 	$doc->name = elgg_strip_tags($entity->name);
 	$doc->description = elgg_strip_tags($entity->description);
-	$doc->time_created = $entity->time_created;
-	$doc->time_updated_i = $entity->time_updated;
+	$doc->time_created = (int) $entity->time_created;
+	$doc->time_updated_i = (int) $entity->time_updated;
 	$doc = elgg_solr_add_tags($doc, $entity);
 	$doc->enabled = $entity->enabled;
 
@@ -694,9 +694,9 @@ function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity
 		while ($container instanceof ElggComment) {
 			$container = $container->getContainerEntity();
 		}
-		$doc->responses_thread_i = $container->guid;
+		$doc->responses_thread_i = (int) $container->guid;
 	} else {
-		$doc->responses_thread_i = $entity->guid;
+		$doc->responses_thread_i = (int) $entity->guid;
 	}
 
 	// Store comment/reply guids
