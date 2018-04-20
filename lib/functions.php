@@ -655,18 +655,18 @@ function elgg_solr_add_update(ElggEntity $entity) {
 function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity) {
 
 	$doc->id = $entity->guid;
-	$doc->type = $entity->type;
-	$doc->subtype = (string) $entity->getSubtype();
-	$doc->owner_guid = (int) $entity->owner_guid;
-	$doc->container_guid = (int) $entity->container_guid;
-	$doc->access_id = (int) $entity->access_id;
-	$doc->title = elgg_strip_tags($entity->title);
-	$doc->name = elgg_strip_tags($entity->name);
-	$doc->description = elgg_strip_tags($entity->description);
-	$doc->time_created = (int) $entity->time_created;
+	$doc->type_s = $entity->type;
+	$doc->subtype_s = (string) $entity->getSubtype();
+	$doc->owner_guid_i = (int) $entity->owner_guid;
+	$doc->container_guid_i = (int) $entity->container_guid;
+	$doc->access_id_i = (int) $entity->access_id;
+	$doc->title_s = elgg_strip_tags($entity->title);
+	$doc->name_s = elgg_strip_tags($entity->name);
+	$doc->description_s = elgg_strip_tags($entity->description);
+	$doc->time_created_i = (int) $entity->time_created;
 	$doc->time_updated_i = (int) $entity->time_updated;
-	$doc = elgg_solr_add_tags($doc, $entity);
-	$doc->enabled = $entity->enabled;
+	//$doc = elgg_solr_add_tags($doc, $entity);
+	$doc->enabled_s = $entity->enabled;
 
 	if (is_callable([$entity, 'hasIcon'])) {
 		$doc->has_icon_b = $entity->hasIcon('small');

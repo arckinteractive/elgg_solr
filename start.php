@@ -75,7 +75,7 @@ function elgg_solr_init() {
 
 	// register functions for indexing
 	elgg_solr_register_solr_entity_type('object', 'file', 'elgg_solr_add_update_file');
-	elgg_solr_register_solr_entity_type('user', 'default', 'elgg_solr_add_update');
+	elgg_solr_register_solr_entity_type('user', 'user', 'elgg_solr_add_update');
 	elgg_solr_register_solr_entity_type('object', 'default', 'elgg_solr_add_update');
 	elgg_solr_register_solr_entity_type('group', 'default', 'elgg_solr_add_update');
 
@@ -90,7 +90,15 @@ function elgg_solr_init() {
 	elgg_register_action('elgg_solr/restart_reindex', __DIR__ . '/actions/restart_reindex.php', 'admin');
 	elgg_register_action('elgg_solr/stop_reindex', __DIR__ . '/actions/stop_reindex.php', 'admin');
 
-	elgg_register_admin_menu_item('administer', 'solr_index', 'administer_utilities');
+
+	elgg_register_menu_item('page', [
+		'name' => 'solr_index',
+		'text' => elgg_echo('admin:administer_utilities:solr_index'),
+		'href' => 'admin/administer_utilities/solr_index',
+		'context' => 'admin',
+		'section' => 'administer',
+		'parent_name' => 'administer_utilities'
+	]);
 
 	elgg_register_ajax_view('elgg_solr/ajax/progress');
 

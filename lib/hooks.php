@@ -1197,20 +1197,15 @@ function elgg_solr_index_user($hook, $type, $return, $params) {
 	}
 	
 	// Add username to doc
-	$return->username = $entity->username;
+	$return->username_s = $entity->username;
 
 	// Add profile fields to additional fields	
 	$profile_fields = elgg_get_config('profile_fields');
 	if (is_array($profile_fields) && sizeof($profile_fields) > 0) {
 		foreach ($profile_fields as $shortname => $valtype) {
+			$key = 'profile_' . $shortname . '_ss';
 
-			if (is_array($entity->$shortname) || $valtype == 'tags') {
-				$key = 'profile_' . $shortname . '_ss';
-			} else {
-				$key = 'profile_' . $shortname . '_s';
-			}
-
-			$return->$key = $entity->$shortname;
+			$return->$key = (array) $entity->$shortname;
 		}
 	}
 
@@ -1268,7 +1263,7 @@ function elgg_solr_index_user($hook, $type, $return, $params) {
 	$return->has_pic_b = (bool) $entity->icontime;
 
 	$return->access_list_is = get_access_array($entity->guid, 0, true);
-	
+
 	return $return;
 }
 

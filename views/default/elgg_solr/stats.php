@@ -31,15 +31,15 @@ foreach ($registered_types as $type => $subtypes) {
 		foreach ($subtypes as $s) {
 			$options['subtype'] = $s;
 			$count = elgg_get_entities($options);
-			$indexed = elgg_solr_get_indexed_count("type:{$type}", array('subtype' => "subtype:{$s}"));
-			$stats["{$type}:{$s}"] = array('count' => $count, 'indexed' => $indexed);
+			$indexed = elgg_solr_get_indexed_count("type_s:{$type}", ['subtype' => "subtype_s:{$s}"]);
+			$stats["{$type}:{$s}"] = ['count' => $count, 'indexed' => $indexed];
 		}
 		continue;
 	}
 	
-	$options['subtype'] = ELGG_ENTITIES_NO_VALUE;
+	unset($options['subtype']);
 	$count = elgg_get_entities($options);
-	$indexed = elgg_solr_get_indexed_count("type:{$type}");
+	$indexed = elgg_solr_get_indexed_count("type_s:{$type}");
 	
 	$stats[$type] = array('count' => $count, 'indexed' => $indexed);
 }
