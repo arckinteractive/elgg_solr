@@ -53,7 +53,7 @@ foreach ($indexable as $name) {
 	
 	$stats['annotation:' . $name] = [
 		'count' => elgg_get_annotations($options),
-		'indexed' => elgg_solr_get_indexed_count('type:annotation', ['subtype' => "subtype:{$name}"])
+		'indexed' => elgg_solr_get_indexed_count('type_s:annotation', ['subtype' => "subtype_s:{$name}"])
 	];
 }
 

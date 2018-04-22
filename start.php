@@ -1,6 +1,6 @@
 <?php
 
-const ELGG_SOLR_PLUGIN_VERSION = 20160722;
+const ELGG_SOLR_PLUGIN_VERSION = 20180422;
 
 require_once __DIR__ . '/lib/functions.php';
 require_once __DIR__ . '/lib/hooks.php';
@@ -12,13 +12,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 	require_once __DIR__ . '/vendor/autoload.php';
 }
 
-elgg_register_event_handler('init', 'system', 'elgg_solr_init');
-
-/**
- *  Init elgg_solr plugin
- */
-function elgg_solr_init() {
-
+elgg_register_event_handler('init', 'system', function() {
 	elgg_extend_view('admin.css', 'css/elgg_solr.css');
 
 	// if the plugin is not configured lets leave search alone
@@ -55,7 +49,6 @@ function elgg_solr_init() {
 	elgg_register_event_handler('delete', 'annotation', 'elgg_solr_annotation_delete');
 	elgg_register_event_handler('create', 'relationship', 'elgg_solr_relationship_create');
 	elgg_register_event_handler('delete', 'relationship', 'elgg_solr_relationship_delete');
-	elgg_register_event_handler('upgrade', 'system', 'elgg_solr_upgrades');
 	elgg_register_event_handler('disable', 'all', 'elgg_solr_disable_entity');
 	elgg_register_event_handler('enable', 'all', 'elgg_solr_enable_entity');
 	elgg_register_event_handler('shutdown', 'system', 'elgg_solr_entities_sync');
@@ -101,8 +94,4 @@ function elgg_solr_init() {
 	]);
 
 	elgg_register_ajax_view('elgg_solr/ajax/progress');
-
-	if (elgg_is_active_plugin('discussions')) {
-		elgg_solr_register_solr_entity_type('object', 'discussion_reply', 'elgg_solr_add_update');
-	}
-}
+});

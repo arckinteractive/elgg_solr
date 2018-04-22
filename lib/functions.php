@@ -83,6 +83,7 @@ function elgg_solr_reindex() {
 			$time['endtime'] = 0;
 		}
 
+		//@todo - query builder statement
 		$options['wheres'] = array(
 			"e.time_created >= {$time['starttime']}",
 			"e.time_created <= {$time['endtime']}",
@@ -104,8 +105,10 @@ function elgg_solr_reindex() {
 		if ($restart_time) {
 			elgg_set_config('elgg_solr_restart_time', false);
 
+			//@TODO - query builder statement
 			$options['wheres'][1] = "e.time_created <= {$restart_time}";
 		} elseif ($time['endtime']) {
+			//@TODO - query builder statement
 			$options['wheres'][1] = "e.time_created <= {$time['endtime']}";
 		}
 
@@ -122,6 +125,8 @@ function elgg_solr_reindex() {
 		// which is much more efficient than standard egef
 		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 		$batch_size = $batch_size ? $batch_size : 1000;
+
+		//@TODO - replace this function
 		$entities = new ElggBatch('elgg_solr_get_entity_guids', $options, null, $batch_size);
 		$final_count = elgg_solr_get_entity_guids(array_merge($options, array('count' => true)));
 
@@ -373,22 +378,20 @@ function elgg_solr_get_default_fq($params) {
 	// type/types
 	if (isset($params['type']) && $params['type'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if ($params['type'] === ELGG_ENTITIES_NO_VALUE) {
-			//$fq['type'] = '-type:[* TO *]';
-			$fq['type'] = 'type:""';
+			$fq['type'] = 'type_s:""';
 		} else {
-			$fq['type'] = 'type:' . $params['type'];
+			$fq['type'] = 'type_s:' . $params['type'];
 		}
 	}
 
 	if (isset($params['types']) && $params['types'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['types'])) {
-			$fq['type'] = 'type:(' . implode(' ', $params['types']) . ')';
+			$fq['type'] = 'type_s:(' . implode(' ', $params['types']) . ')';
 		} else {
 			if ($params['types'] === ELGG_ENTITIES_NO_VALUE) {
-				//$fq['type'] = '-type:[* TO *]';
-				$fq['type'] = 'type:""';
+				$fq['type'] = 'type_s:""';
 			} else {
-				$fq['type'] = 'type:' . $params['types'];
+				$fq['type'] = 'type_s:' . $params['types'];
 			}
 		}
 	}
@@ -396,22 +399,20 @@ function elgg_solr_get_default_fq($params) {
 	//subtype
 	if (isset($params['subtype']) && $params['subtype'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if ($params['subtype'] === ELGG_ENTITIES_NO_VALUE) {
-			//$fq['subtype'] = '-subtype:[* TO *]';
-			$fq['subtype'] = 'subtype:""';
+			$fq['subtype'] = 'subtype_s:""';
 		} else {
-			$fq['subtype'] = 'subtype:' . $params['subtype'];
+			$fq['subtype'] = 'subtype_s:' . $params['subtype'];
 		}
 	}
 
 	if (isset($params['subtypes']) && $params['subtypes'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['subtypes'])) {
-			$fq['subtype'] = 'subtype:(' . implode(' ', $params['subtypes']) . ')';
+			$fq['subtype'] = 'subtype_s:(' . implode(' ', $params['subtypes']) . ')';
 		} else {
 			if ($params['subtypes'] === ELGG_ENTITIES_NO_VALUE) {
-				//$fq['subtype'] = '-subtype:[* TO *]';
-				$fq['subtype'] = 'subtype:""';
+				$fq['subtype'] = 'subtype_s:""';
 			} else {
-				$fq['subtype'] = 'subtype:' . $params['subtypes'];
+				$fq['subtype'] = 'subtype_s:' . $params['subtypes'];
 			}
 		}
 	}
@@ -419,27 +420,27 @@ function elgg_solr_get_default_fq($params) {
 
 	//container
 	if (isset($params['container_guid']) && $params['container_guid'] !== ELGG_ENTITIES_ANY_VALUE) {
-		$fq['container'] = 'container_guid:' . $params['container_guid'];
+		$fq['container'] = 'container_guid_i:' . $params['container_guid'];
 	}
 
 	if (isset($params['container_guids']) && $params['container_guids'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['container_guids'])) {
-			$fq['container'] = 'container_guid:(' . implode(' ', $params['container_guids']) . ')';
+			$fq['container'] = 'container_guid_i:(' . implode(' ', $params['container_guids']) . ')';
 		} else {
-			$fq['container'] = 'container_guid:' . $params['container_guid'];
+			$fq['container'] = 'container_guid_i:' . $params['container_guid'];
 		}
 	}
 
 	//owner
 	if (isset($params['owner_guid']) && $params['owner_guid'] !== ELGG_ENTITIES_ANY_VALUE) {
-		$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
+		$fq['owner'] = 'owner_guid_i:' . $params['owner_guid'];
 	}
 
 	if (isset($params['owner_guids']) && $params['owner_guids'] !== ELGG_ENTITIES_ANY_VALUE) {
 		if (is_array($params['owner_guids'])) {
-			$fq['owner'] = 'owner_guid:(' . implode(' ', $params['owner_guids']) . ')';
+			$fq['owner'] = 'owner_guid_i:(' . implode(' ', $params['owner_guids']) . ')';
 		} else {
-			$fq['owner'] = 'owner_guid:' . $params['owner_guid'];
+			$fq['owner'] = 'owner_guid_i:' . $params['owner_guid'];
 		}
 	}
 
@@ -449,7 +450,7 @@ function elgg_solr_get_default_fq($params) {
 	}
 
 	if (!access_get_show_hidden_status()) {
-		$fq['enabled'] = 'enabled:"yes"';
+		$fq['enabled'] = 'enabled_s:"yes"';
 	}
 
 	return $fq;
@@ -688,7 +689,7 @@ function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity
 		}
 	}
 
-	// Store comment/reply thread information to allow grouping
+	// Store comment thread information to allow grouping
 	if ($entity instanceof ElggComment) {
 		$container = $entity->getContainerEntity();
 		while ($container instanceof ElggComment) {
@@ -703,7 +704,7 @@ function elgg_solr_prepare_entity_doc(DocumentInterface $doc, ElggEntity $entity
 	$responses = [];
 	$responses_batch = new ElggBatch('elgg_get_entities', [
 		'types' => 'object',
-		'subtypes' => ['comment', 'discussion_reply'],
+		'subtypes' => ['comment'],
 		'container_guid' => $entity->guid,
 		'limit' => 0,
 		'callback' => false,
@@ -791,11 +792,11 @@ function elgg_solr_get_access_query($user_guid = null) {
 	$queries = [];
 
 	if ($user_guid) {
-		$queries['ors']['collections'] = "access_id:{!join from=access_list_is to=access_id}id:$user_guid";
-		$queries['ors']['is_owner'] = "owner_guid:$user_guid";
-		$queries['ors']['is_friend'] = "access_id:$access_friends AND owner_guid:{!join from=friends_of_is to=owner_guid}id:$user_guid";
+		$queries['ors']['collections'] = "access_id_i:{!join from=access_list_is to=access_id}id:$user_guid";
+		$queries['ors']['is_owner'] = "owner_guid_i:$user_guid";
+		$queries['ors']['is_friend'] = "access_id_i:$access_friends AND owner_guid:{!join from=friends_of_is to=owner_guid}id:$user_guid";
 	} else {
-		$queries['ors']['collections'] = "access_id:$access_public";
+		$queries['ors']['collections'] = "access_id_i:$access_public";
 	}
 
 	$params = ['user_guid' => $user_guid];
@@ -849,7 +850,7 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 
 	if ($subtype) {
 		$options['subtype'] = $subtype;
-		$fq['subtype'] = "subtype:{$subtype}";
+		$fq['subtype'] = "subtype_s:{$subtype}";
 	} else {
 		$options['subtype'] = ELGG_ENTITIES_NO_VALUE;
 	}
@@ -861,8 +862,8 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 				$starttime = mktime(date('G', $time), date('i', $time), $i, date('m', $time), date('j', $time), date('Y', $time));
 				$endtime = mktime(date('G', $time), date('i', $time), $i + 1, date('m', $time), date('j', $time), date('Y', $time));
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
 
 				$stats[date('s', $starttime)] = array(
@@ -879,8 +880,8 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 				$starttime = mktime(date('G', $time), $i, 0, date('m', $time), date('j', $time), date('Y', $time));
 				$endtime = mktime(date('G', $time), $i + 1, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
 
 				$stats[date('i', $starttime)] = array(
@@ -897,8 +898,8 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 				$starttime = mktime($i, 0, 0, date('m', $time), date('j', $time), date('Y', $time));
 				$endtime = mktime($i + 1, 0, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
 
 				$stats[date('H', $starttime)] = array(
@@ -915,8 +916,8 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 				$starttime = mktime(0, 0, 0, date('m', $time), $i, date('Y', $time));
 				$endtime = mktime(0, 0, 0, date('m', $time), $i + 1, date('Y', $time)) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
 
 				$stats[date('d', $starttime)] = array(
@@ -933,8 +934,8 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 				$starttime = mktime(0, 0, 0, $i, 1, date('Y', $time));
 				$endtime = mktime(0, 0, 0, $i + 1, 1, date('Y', $time)) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
 
 				$stats[date('F', $starttime)] = array(
@@ -956,8 +957,8 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 				$starttime = mktime(0, 0, 0, 1, 1, $i);
 				$endtime = mktime(0, 0, 0, 1, 1, $i + 1) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_solr_get_system_count($options, $starttime, $endtime);
 
 				$stats[$i] = array(
@@ -976,6 +977,7 @@ function elgg_solr_get_stats($time, $block, $type, $subtype) {
 }
 
 function elgg_solr_get_system_count($options, $starttime, $endtime) {
+	//@TODO query statement
 	$options['wheres'] = array(
 		"e.time_created >= {$starttime}",
 		"e.time_created <= {$endtime}"
@@ -1018,6 +1020,7 @@ function elgg_solr_get_display_datetime($time, $block) {
 	return date($format, $time);
 }
 
+//@TODO this better
 /**
  * Returns an array of tags for indexing
  *
@@ -1137,7 +1140,7 @@ function elgg_solr_get_boost_query() {
 		return $boostquery;
 	}
 
-	$boostquery = "time_created:[{$starttime} TO {$now}]^{$time_boost}";
+	$boostquery = "time_created_i:[{$starttime} TO {$now}]^{$time_boost}";
 	return $boostquery;
 }
 
@@ -1230,6 +1233,8 @@ function elgg_solr_defer_annotation_update($id) {
 	elgg_set_config('elgg_solr_annotation_update', $update_ids);
 }
 
+//@TODO - this shit
+// can we use the sql hook to limit to guids only?
 function elgg_solr_get_entity_guids(array $options = array()) {
 	$dbprefix = elgg_get_config('dbprefix');
 
@@ -1401,15 +1406,19 @@ function elgg_solr_index_annotation($annotation) {
 	// add document
 	$doc = $query->createDocument();
 	$doc->id = 'annotation:' . $annotation->id;
-	$doc->type = 'annotation';
-	$doc->subtype = $annotation->name;
-	$doc->owner_guid = $annotation->owner_guid;
-	$doc->container_guid = $annotation->entity_guid;
-	$doc->access_id = $annotation->access_id;
-	$doc->description = elgg_strip_tags($annotation->value);
-	$doc->time_created = $annotation->time_created;
-	$doc->enabled = $annotation->enabled;
+	$doc->type_s = 'annotation';
+	$doc->subtype_s = $annotation->name;
+	$doc->owner_guid_i = $annotation->owner_guid;
+	$doc->container_guid_i = $annotation->entity_guid;
+	$doc->access_id_i = $annotation->access_id;
+	$doc->description_s = elgg_strip_tags($annotation->value);
+	$doc->time_created_i = $annotation->time_created;
+	$doc->enabled_s = $annotation->enabled;
+	// store as string for query
+	// store as force-casted int for numeric values for comparison searches
+	// won't make sense for all types, but can't hurt
 	$doc->value_s = $annotation->value;
+	$doc->value_i = (int) $annotation->value;
 
 	$doc = elgg_trigger_plugin_hook('elgg_solr:index', 'annotation', array('annotation' => $annotation), $doc);
 
@@ -1440,7 +1449,7 @@ function elgg_solr_index_annotation($annotation) {
 function elgg_solr_get_annotation_stats($time, $block, $subtype) {
 	$type = 'annotation';
 	$fq = array(
-		'subtype' => "subtype:{$subtype}"
+		'subtype' => "subtype_s:{$subtype}"
 	);
 	$stats = array();
 	switch ($block) {
@@ -1452,8 +1461,8 @@ function elgg_solr_get_annotation_stats($time, $block, $subtype) {
 				$starttime = mktime($i, 0, 0, date('m', $time), date('j', $time), date('Y', $time));
 				$endtime = mktime($i + 1, 0, 0, date('m', $time), date('j', $time), date('Y', $time)) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_get_annotations(array(
 					'annotation_name' => $subtype,
 					'annotation_created_time_lower' => $starttime,
@@ -1475,8 +1484,8 @@ function elgg_solr_get_annotation_stats($time, $block, $subtype) {
 				$starttime = mktime(0, 0, 0, date('m', $time), $i, date('Y', $time));
 				$endtime = mktime(0, 0, 0, date('m', $time), $i + 1, date('Y', $time)) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_get_annotations(array(
 					'annotation_name' => $subtype,
 					'annotation_created_time_lower' => $starttime,
@@ -1498,8 +1507,8 @@ function elgg_solr_get_annotation_stats($time, $block, $subtype) {
 				$starttime = mktime(0, 0, 0, $i, 1, date('Y', $time));
 				$endtime = mktime(0, 0, 0, $i + 1, 1, date('Y', $time)) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_get_annotations(array(
 					'annotation_name' => $subtype,
 					'annotation_created_time_lower' => $starttime,
@@ -1526,8 +1535,8 @@ function elgg_solr_get_annotation_stats($time, $block, $subtype) {
 				$starttime = mktime(0, 0, 0, 1, 1, $i);
 				$endtime = mktime(0, 0, 0, 1, 1, $i + 1) - 1;
 
-				$fq['time_created'] = "time_created:[{$starttime} TO {$endtime}]";
-				$indexed = elgg_solr_get_indexed_count("type:{$type}", $fq);
+				$fq['time_created'] = "time_created_i:[{$starttime} TO {$endtime}]";
+				$indexed = elgg_solr_get_indexed_count("type_s:{$type}", $fq);
 				$system = elgg_get_annotations(array(
 					'annotation_name' => $subtype,
 					'annotation_created_time_lower' => $starttime,
@@ -1699,6 +1708,7 @@ function elgg_solr_annotation_reindex() {
 	$options = array();
 	$time = elgg_get_config('elgg_solr_time_options');
 	if ($time && is_array($time)) {
+		//@TODO - query statement
 		$options['wheres'] = array(
 			"n_table.time_created >= {$time['starttime']}",
 			"n_table.time_created <= {$time['endtime']}",
@@ -1718,6 +1728,7 @@ function elgg_solr_annotation_reindex() {
 		if ($restart_time) {
 			elgg_set_config('elgg_solr_restart_time', false);
 
+			//@TODO query statement stuff
 			$options['wheres'][1] = "n_table.time_created <= {$restart_time}";
 		} elseif ($time['endtime']) {
 			$options['wheres'][1] = "n_table.time_created <= {$time['endtime']}";
@@ -1737,6 +1748,7 @@ function elgg_solr_annotation_reindex() {
 		$batch_size = elgg_get_plugin_setting('reindex_batch_size', 'elgg_solr');
 		$batch_size = $batch_size ? : 1000;
 
+		//@TODO can we replace this with sql hooks?
 		$annotations = new ElggBatch('elgg_solr_get_annotation_ids', $options, null, $batch_size);
 		$final_count = elgg_solr_get_annotation_ids(array_merge($options, array('count' => true)));
 
@@ -1845,6 +1857,7 @@ function elgg_solr_annotation_reindex() {
 	elgg_set_ignore_access($ia);
 }
 
+//@TODO - replace with sql hook hopefully?
 function elgg_solr_get_annotation_ids($options) {
 	$options = _elgg_normalize_metastrings_options($options);
 

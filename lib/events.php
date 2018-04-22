@@ -63,7 +63,7 @@ function elgg_solr_delete_entity($event, $type, $entity) {
 	}
 
 	// if shutdown just do it, otherwise defer
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		$client = elgg_solr_get_client();
 		$query = $client->createUpdate();
 		$query->addDeleteById($entity->guid);
@@ -91,7 +91,7 @@ function elgg_solr_delete_entity($event, $type, $entity) {
  * @return void
  */
 function elgg_solr_metadata_update($event, $type, $metadata) {
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		$entity = get_entity($metadata->entity_guid);
 		if ($entity) {
 			elgg_solr_add_update_entity(null, null, $entity);
@@ -189,7 +189,7 @@ function elgg_solr_entities_sync() {
  * @return void
  */
 function elgg_solr_profile_update($event, $type, $entity) {
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		elgg_solr_add_update_entity(null, null, $entity);
 	} else {
 		$guids = elgg_get_config('elgg_solr_sync');
@@ -203,16 +203,6 @@ function elgg_solr_profile_update($event, $type, $entity) {
 }
 
 /**
- * Run upgrade scripts
- * @return void
- */
-function elgg_solr_upgrades() {
-	$ia = elgg_set_ignore_access(true);
-	require_once __DIR__ . '/upgrades.php';
-	elgg_set_ignore_access($ia);
-}
-
-/**
  * Entity disabled event
  *
  * @param string     $event  "disable"
@@ -221,7 +211,7 @@ function elgg_solr_upgrades() {
  * @return void
  */
 function elgg_solr_disable_entity($event, $type, $entity) {
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		elgg_solr_add_update_entity(null, null, $entity);
 	} else {
 		elgg_solr_defer_index_update($entity->guid);
@@ -237,7 +227,7 @@ function elgg_solr_disable_entity($event, $type, $entity) {
  * @return void
  */
 function elgg_solr_enable_entity($event, $type, $entity) {
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		elgg_solr_add_update_entity(null, null, $entity);
 	} else {
 		elgg_solr_defer_index_update($entity->guid);
@@ -253,7 +243,7 @@ function elgg_solr_enable_entity($event, $type, $entity) {
  * @return void
  */
 function elgg_solr_relationship_create($event, $type, $relationship) {
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		$entity1 = get_entity($relationship->guid_one);
 		$entity2 = get_entity($relationship->guid_two);
 		elgg_solr_add_update_entity(null, null, $entity1);
@@ -277,7 +267,7 @@ function elgg_solr_relationship_create($event, $type, $relationship) {
  * @return void
  */
 function elgg_solr_relationship_delete($event, $type, $relationship) {
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		$entity1 = get_entity($relationship->guid_one);
 		$entity2 = get_entity($relationship->guid_two);
 		elgg_solr_add_update_entity(null, null, $entity1);
@@ -302,7 +292,7 @@ function elgg_solr_annotation_delete($event, $type, $annotation) {
 		return;
 	}
 
-	if ($GLOBALS['shutdown_flag']) {
+	if (isset($GLOBALS['shutdown_flag']) && $GLOBALS['shutdown_flag']) {
 		$client = elgg_solr_get_client();
 		$query = $client->createUpdate();
 		$query->addDeleteById('annotation:' . $annotation->id);

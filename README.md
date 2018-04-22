@@ -18,7 +18,7 @@ This plugin follows the structure of the default Elgg search plugin, can be exte
 ## Installation
 
  1. Download the plugin and upload it to `/mod/elgg_solr`,
-    or install with composer `composer require arckinteractive/elgg_solr:~2.0`
+    or install with composer `composer require arckinteractive/elgg_solr:~3.0`
 
  2. In Admin > Plugins, reorder the `elgg_solr` plugin to be positioned under `search` plugin, and enable it
 
@@ -99,17 +99,17 @@ elgg_register_plugin_hook_handler('elgg_solr:can_index', 'annotation', function(
 ### Entity
 
  * `id` - guid
- * `type` - entity type
- * `subtype` - entity subtype
- * `owner_guid` - guid of the owner
- * `container_guid` - guid of the container
- * `access_id` - access level
- * `title` - title
- * `name` - name
- * `description` - description
- * `time_created` - timestamp of the creation
+ * `type_s` - entity type
+ * `subtype_s` - entity subtype
+ * `owner_guid_i` - guid of the owner
+ * `container_guid_i` - guid of the container
+ * `access_id_i` - access level
+ * `title_s` - title
+ * `name_s` - name
+ * `description_s` - description
+ * `time_created_i` - timestamp of the creation
  * `time_updated_i` - timestamp of the last update
- * `enabled` - is entity enabled
+ * `enabled_s` - is entity enabled 'yes'/'no'
  * `tag_<tag_name>_ss` - tags for registered tag metadata names
  * `has_pic_b` - flag indicating that entity has an uploaded icon
  * `responses_thread_i` - guid of the comment/reply thread root
@@ -121,9 +121,8 @@ elgg_register_plugin_hook_handler('elgg_solr:can_index', 'annotation', function(
 
 In addition to Entity fields:
 
- * `username` - username
- * `profile_<field_name>_s` - profile fields with a single value
- * `profile_<field_name>_ss` - profile fields with multiple values (tags)
+ * `username_s` - username
+ * `profile_<field_name>_ss` - profile fields with single or multiple values (tags)
  * `groups_is` - guids of groups a user is member of
  * `groups_count_i` - total number of groups a user is a member of
  * `friends_is` - guids of user's friends
@@ -136,8 +135,7 @@ In addition to Entity fields:
 
 In addition to Entity fields:
 
- * `group_<field_name>_s` - profile fields with a single value
- * `group_<field_name>_ss` - profile fields with multiple values (tags)
+ * `group_<field_name>_ss` - profile fields with single or multiple values (tags)
  * `members_is` - guids of group members
  * `members_count_i` - total number of group members
 

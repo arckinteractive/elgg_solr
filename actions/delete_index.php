@@ -5,15 +5,10 @@ $type = get_input('type', false);
 $subtype = get_input('subtype', false);
 
 if ($type) {
-	// fix comments params
-	if ($type == 'comments') {
-		$type = 'annotation';
-		$subtype = 'generic_comment';
-	}
-	$q = "type:{$type}";
+	$q = "type_s:{$type}";
 	
 	if ($subtype) {
-		$q .= " AND subtype:{$subtype}";
+		$q .= " AND subtype_s:{$subtype}";
 	}
 }
 else {
@@ -21,7 +16,7 @@ else {
 }
 
 if ($starttime && $endtime) {
-	$q .= " AND time_created:[{$starttime} TO {$endtime}]";
+	$q .= " AND time_created_i:[{$starttime} TO {$endtime}]";
 }
 
 // create a client instance

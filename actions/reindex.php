@@ -10,7 +10,6 @@ $endtime = get_input('endtime');
 $type = get_input('type');
 
 switch ($type) {
-	//@TODO annotations
 	case 'annotation':
 		
 		$indexable = _elgg_services()->hooks->trigger('elgg_solr:can_index', 'annotation', [], []);
